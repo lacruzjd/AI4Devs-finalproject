@@ -48,7 +48,10 @@ services:
     dockerContext: .
     plan: starter
     region: oregon
-    healthCheckPath: /health      # ⚠️ está en la RAÍZ, no bajo /api/v1
+    # Sin `healthCheckPath`: Render lo rechaza en un `pserv` ("pserv service type cannot
+    # have a health check path") — los private services no reciben tráfico externo, así
+    # que no hay health check HTTP que hacerles. El endpoint `/health` sigue existiendo en
+    # la RAÍZ (no bajo /api/v1) y es alcanzable desde el frontend por la red interna.
     envVars:
       - key: NODE_ENV
         value: production
@@ -123,6 +126,7 @@ services:
 #    login, extracción de bodega, tablero FEFO, un reporte.
 # 4. Comprobar que el escáner de códigos (US-032) sigue funcionando bajo HTTPS —
 #    exige `camera=(self)` en Permissions-Policy (TK-141).
-# 5. Plan gratuito: el servicio se suspende por inactividad (arranque en frío de
-#    decenas de segundos) y la base de datos caduca. Avisar al revisor.
+# 5. Plan de pago (starter): sin suspensión por inactividad ni caducidad de la base,
+#    así que el revisor no se encuentra un arranque en frío. Confirmar el gasto
+#    mensual en el dashboard antes de dejarlo corriendo más allá de la revisión.
 # ═══════════════════════════════════════════════════════════════════════════════
