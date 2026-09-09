@@ -245,8 +245,19 @@ El despliegue y aprovisionamiento están automatizados mediante **GitHub Actions
 1.  Verificación de gobernanza agéntica con `bash .agents/scripts/validate_agents.sh` (0 enlaces rotos).
 2.  Entorno de ejecución Node 24 LTS con caché optimizada de `pnpm 9`.
 3.  Servicio PostgreSQL efímero y aislado en contenedor Docker para tests de integración.
-4.  Comprobación de tipos con TypeScript, auditoría estática con linters (`pnpm run lint`), linter de especificaciones `DESIGN.md` y ejecución de la suite de 186 pruebas automatizadas unitarias/integración.
-5.  Autenticación segura en la nube mediante OpenID Connect (OIDC) sin almacenamiento de llaves estáticas.
+4.  Comprobación de tipos con TypeScript, auditoría estática con linters (`pnpm run lint`), detección de duplicación (`jscpd`, 1.48 % sobre un umbral del 3 %), linter de especificaciones `DESIGN.md` y ejecución de la suite completa de **830 pruebas** automatizadas (587 backend + 243 frontend).
+5.  **Seguridad (Job 2, Guard 25/33):** `gitleaks` (secretos), **Semgrep** (SAST sobre el código de la aplicación — distinto y adicional a `gitleaks`), construcción de ambas imágenes Docker y escaneo de CVEs con `trivy`, más auditoría de dependencias con riesgo residual documentado.
+6.  Generación y publicación del **SBOM** en formato CycloneDX (`cdxgen`) como artefacto verificable — requisito de OWASP Top 10:2025 A03.
+7.  Autenticación segura en la nube mediante OpenID Connect (OIDC) sin almacenamiento de llaves estáticas.
+
+**Entornos de ejecución:**
+
+| Entorno | Declaración | Estado |
+| :--- | :--- | :--- |
+| Local / Docker | [`docker-compose.yml`](docker-compose.yml) + [`infrastructure/opentofu/main.tf`](infrastructure/opentofu/main.tf) | ✅ Verificado end-to-end (ver §1.5) |
+| Revisión en la nube | [`render.yaml`](render.yaml) — 3 servicios, topología decidida en [`ADR-006`](docs/02_architecture_design/adr/ADR-006-render-deployment-topology.md) | ⚠️ Declarado; despliegue real pendiente ([`TK-142`](docs/05_agile_planning/12_tickets/shared/frontend/TK-142.md)) |
+
+El `nginx` que sirve el SPA hace de proxy inverso hacia el backend (`/api/`), preservando el **mismo origen** — premisa de la que dependen la decisión de almacenamiento de sesión ([`ADR-005`](docs/02_architecture_design/adr/ADR-005-session-token-storage.md)) y la política `connect-src 'self'` de la CSP. Su upstream y puerto están parametrizados (`${BACKEND_ORIGIN}` / `${NGINX_PORT}`) para que el mismo artefacto sirva en local y en la nube sin cambios de código.
 
 ### **2.5. Seguridad:**
 *   **Validación Activa:** Todos los payloads que ingresan a la API son parseados síncronamente con **Zod** para prevenir inyección de payloads malformados (*Mass Assignment*).
@@ -255,12 +266,12 @@ El despliegue y aprovisionamiento están automatizados mediante **GitHub Actions
 *   **Mitigación SQLi:** Uso obligatorio de sentencias preparadas (Prepared Statements) a través del motor relacional de Prisma.
 
 ### **2.6. Tests y Gobernanza Agéntica:**
-El proyecto sigue la directiva de **Desarrollo Guiado por Pruebas (TDD)** y **Gobernanza Agéntica v2.3.0**:
+El proyecto sigue la directiva de **Desarrollo Guiado por Pruebas (TDD)** y **Gobernanza Agéntica v2.15.0**:
 *   Se prohíbe escribir código de producción sin un test unitario/integración que falle previamente (`RED` a `GREEN`).
-*   Suite completa verificada: **186/186 tests activos al 100% de éxito (98 Backend + 88 Frontend)**.
+*   Suite completa verificada: **830/830 tests al 100 % de éxito (587 backend + 243 frontend)**, ejecutados en cada corrida de CI.
 *   Patrón de **3 Oráculos** (UI, RED, ESTADO) para aserciones deterministas en Playwright E2E y pruebas unitarias/integración.
 *   Uso de **Fake Repositories** en memoria para pruebas de la capa de aplicación con sincronización dinámica entre modelos de lectura y escritura.
-*   Cumplimiento de **Stryker Mutation Score $\ge 70\%$** para evitar pruebas tautológicas.
+*   **Mutation testing (Stryker) — alcance real, declarado sin adornos:** el gate **local acotado al diff** del ticket en curso (`check_mutation_score.sh`) es operativo y aplica el umbral del 70 % **por archivo**, de modo que un archivo con tests fuertes no pueda compensar a otro débil. El paso equivalente en CI es hoy **informativo** (`continue-on-error`) y de alcance completo, así que **el repositorio no acredita un score ≥ 70 % global**; el rewiring está pendiente en [`TK-138`](docs/05_agile_planning/12_tickets/shared/backend/TK-138.md). Ver la nota de verificación en [`docs/00_stack_manifest.md`](docs/00_stack_manifest.md) §5.
 
 ---
 
@@ -933,7 +944,7 @@ A continuación se registra el histórico de Pull Requests de este repositorio:
 *   **URL:** [github.com/LIDR-academy/AI4Devs-finalproject/pull/316](https://github.com/LIDR-academy/AI4Devs-finalproject/pull/316)
 *   **Ramas:** `lacruzjd:finalproject-JDLM` ➡️ `LIDR-academy:main`
 *   **Ticket Relacionado:** TK-063 a TK-144 (108 tickets backend + frontend + gobernanza) — ver §6.3 y el [Índice de Tickets](docs/05_agile_planning/12_tickets/indice_tickets.md).
-*   **Descripción del Cambio:** Entrega final del producto sobre la base funcional de la Entrega 2. Nuevas capacidades de negocio: trazabilidad completa de extracciones con propósito y responsable (US-014), RBAC dinámico con matriz de permisos y *gating* de UI por permiso (US-015), sectores físicos de almacenamiento y stock multi-sector (US-016/US-025), recuperación de PIN por email (US-018), reportes de costeo y valorización monetaria de mermas + TRR real (US-019/US-020), navegación por rutas con *shell* de aplicación y turno Día/Noche (US-022/US-023/US-024), trazabilidad de preparación de recetas y mermas (US-026→US-029), catálogo administrable de motivos de consumo (US-030), escaneo de código de barras (US-032), registro de temperatura de refrigeración (US-033), configuración del agente de IA con credenciales cifradas (US-034), recetas de rescate anti-desperdicio con IA opcional y *zero-leakage* de datos del restaurante (US-035), y edición/baja del catálogo maestro (US-036/US-037). Remediaciones de auditoría: escalada de privilegios Crítica y RBAC por ruta (AUDIT-SEC-001/002), rate limiting por cliente real y clave de cifrado dedicada (AUDIT-SEC-003/004), y varias auditorías de calidad de módulo (AUDIT-DEV-006/007/012/013/014/015). Gobernanza: framework `.agents/` a v2.15.0 — incluida la nueva `SK-36` que genera y gobierna los ADRs, **ejecutada de verdad** para producir [`ADR-005`](docs/02_architecture_design/adr/ADR-005-session-token-storage.md) (almacenamiento del token de sesión) —, Design System "Sistema FEFO" a v5.9.1, `ci_local.sh` para reproducir CI antes del push, y endurecimiento del `nginx` que sirve el SPA con CSP calibrada contra el build real (TK-141).
+*   **Descripción del Cambio:** Entrega final del producto sobre la base funcional de la Entrega 2. Nuevas capacidades de negocio: trazabilidad completa de extracciones con propósito y responsable (US-014), RBAC dinámico con matriz de permisos y *gating* de UI por permiso (US-015), sectores físicos de almacenamiento y stock multi-sector (US-016/US-025), recuperación de PIN por email (US-018), reportes de costeo y valorización monetaria de mermas + TRR real (US-019/US-020), navegación por rutas con *shell* de aplicación y turno Día/Noche (US-022/US-023/US-024), trazabilidad de preparación de recetas y mermas (US-026→US-029), catálogo administrable de motivos de consumo (US-030), escaneo de código de barras (US-032), registro de temperatura de refrigeración (US-033), configuración del agente de IA con credenciales cifradas (US-034), recetas de rescate anti-desperdicio con IA opcional y *zero-leakage* de datos del restaurante (US-035), y edición/baja del catálogo maestro (US-036/US-037). Remediaciones de auditoría: escalada de privilegios Crítica y RBAC por ruta (AUDIT-SEC-001/002), rate limiting por cliente real y clave de cifrado dedicada (AUDIT-SEC-003/004), y varias auditorías de calidad de módulo (AUDIT-DEV-006/007/012/013/014/015). Gobernanza: framework `.agents/` a v2.15.0 — incluida la nueva `SK-36` que genera y gobierna los ADRs, **ejecutada de verdad** para producir [`ADR-005`](docs/02_architecture_design/adr/ADR-005-session-token-storage.md) (almacenamiento del token de sesión) —, Design System "Sistema FEFO" a v5.9.1, `ci_local.sh` para reproducir CI antes del push, y endurecimiento del `nginx` que sirve el SPA con CSP calibrada contra el build real (TK-141). Despliegue: `nginx` parametrizado y Blueprint de Render declarado en [`render.yaml`](render.yaml) (TK-142, `ADR-006`). **Etiqueta de release:** `v1.0-final-JDLM`.
 *   **Quality Gates (DoD):**
     *   `pnpm run build && pnpm run lint` — 0 errores.
     *   `pnpm run test` — 587 tests backend + 243 frontend en verde.

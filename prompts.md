@@ -292,9 +292,9 @@ Se verificó que los 52 tests del frontend siguieran en verde sin modificar ning
 
 ---
 
-## 9. Entrega Final — Desarrollo Iterativo VSDD (TK-063 – TK-135)
+## 9. Entrega Final — Desarrollo Iterativo VSDD (TK-063 – TK-144)
 
-> La Entrega Final se construyó a lo largo de ~90 tickets sobre `finalproject-JDLM`. En vez de transcribir un prompt por ticket, se documentan aquí los **prompts estructurales** que se repitieron como patrón para cada nueva capacidad, remediación de auditoría y cierre de entrega. El detalle ticket a ticket vive en [`docs/05_agile_planning/15_history.md`](docs/05_agile_planning/15_history.md).
+> La Entrega Final se construyó a lo largo de **108 tickets** sobre `finalproject-JDLM`. En vez de transcribir un prompt por ticket, se documentan aquí los **prompts estructurales** que se repitieron como patrón para cada nueva capacidad, remediación de auditoría y cierre de entrega. El detalle ticket a ticket vive en [`docs/05_agile_planning/15_history.md`](docs/05_agile_planning/15_history.md).
 
 ### **9.1. Nueva capacidad de negocio (cascada spec-before-code, Guard 26)**
 
