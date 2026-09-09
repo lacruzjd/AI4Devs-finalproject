@@ -13,7 +13,7 @@ date: 2026-09-09
 - **Estado:** `Accepted`
 - **Fecha:** 2026-09-09
 - **Autor:** Claude (AI Pair Programmer) — decisión confirmada por el humano en la PAUSA HitL de `SK-36` Fase 3
-- **Implementado por:** [`TK-142`](../../05_agile_planning/12_tickets/shared/frontend/TK-142.md) — `approved`, posterior al PR #3
+- **Implementado por:** [`TK-142`](../../05_agile_planning/12_tickets/shared/frontend/TK-142.md) — `done`. La topología se implementa **tal como se decidió**: el backend es `pserv` (privado, no expuesto a internet). Hubo una desviación temporal a `web` mientras el despliegue iba en plan gratuito —donde los *private services* no existen—, revertida al pasar a plan de pago (2026-09-09).
 - **Relacionado:** depende de [`ADR-005`](./ADR-005-session-token-storage.md) — la premisa de mismo origen que decidió aquel ADR es exactamente lo que esta topología debe preservar.
 
 ---
