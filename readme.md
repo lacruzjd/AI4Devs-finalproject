@@ -144,9 +144,29 @@ Es el camino probado end-to-end: levanta PostgreSQL 15, el backend (que aplica l
 
 ### **1.5. Evidencia de despliegue**
 
-**Entorno público:** _(pendiente — el Blueprint de Render está declarado en [`render.yaml`](render.yaml); ver [`ADR-006`](docs/02_architecture_design/adr/ADR-006-render-deployment-topology.md) y [`TK-142`](docs/05_agile_planning/12_tickets/shared/frontend/TK-142.md))_
+### 🌐 Entorno público
 
-**Despliegue local reproducible — verificado end-to-end el 2026-09-09.** No es una afirmación de documentación: se ejecutó el recorrido exacto de §1.4 partiendo de una base de datos vacía y de un `.env` recién copiado de `.env.example`.
+> ## **https://restostock-frontend.onrender.com**
+
+**Acceso:** usuario `bootstrap-admin` con el PIN facilitado por separado. En el primer acceso el sistema **exige rotar el PIN** (Guard 36).
+
+Desplegado con el Blueprint de [`render.yaml`](render.yaml) según la topología decidida en [`ADR-006`](docs/02_architecture_design/adr/ADR-006-render-deployment-topology.md) e implementada en [`TK-142`](docs/05_agile_planning/12_tickets/shared/frontend/TK-142.md): **el backend es un servicio privado**, no alcanzable desde internet. La única puerta pública es el SPA, y `nginx` hace de proxy inverso hacia el backend por la red interna — lo que preserva el **mismo origen** del que dependen [`ADR-005`](docs/02_architecture_design/adr/ADR-005-session-token-storage.md) y la política `connect-src 'self'` de la CSP.
+
+**Verificado contra el despliegue real (2026-09-09):**
+
+| Comprobación | Resultado |
+| :--- | :--- |
+| `GET /` | `200` |
+| Fallback de rutas del SPA (`/estaciones`) | `200`, no 404 |
+| Proxy `/api/` → backend privado | `401` — el backend responde y exige autenticación (un `502` habría significado que el proxy no llega) |
+| Cabeceras de seguridad de `TK-141` bajo HTTPS | Las 5 presentes: CSP, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy` |
+| `camera=(self)` | Presente — sin ella el escáner de códigos de barras (`US-032`) no funcionaría en HTTPS |
+
+---
+
+### 🖥️ Despliegue local reproducible
+
+**Verificado end-to-end el 2026-09-09.** No es una afirmación de documentación: se ejecutó el recorrido exacto de §1.4 partiendo de una base de datos vacía y de un `.env` recién copiado de `.env.example`.
 
 | Comprobación | Resultado |
 | :--- | :--- |

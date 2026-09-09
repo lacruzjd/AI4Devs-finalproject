@@ -139,13 +139,20 @@ services:
 #    Antes de añadir una variable nueva de tipo URL, usar valor literal.
 # 1b. Nombres de plan (`starter`, `basic-256mb`): confirmar contra el dashboard, la
 #    nomenclatura de Render cambia con el tiempo y NO esta verificada desde aqui.
-# 2. Confirmar que el rate limiter no agrupa a todos los clientes en un bucket:
-#    `trust proxy` está en ['loopback','linklocal','uniquelocal'] y la red de
-#    Render podría no caer en rango privado (sería el bug que cerró TK-132).
-# 3. Recorrer el flujo real en el navegador (09_live_stack_verification_workflow):
-#    login, extracción de bodega, tablero FEFO, un reporte.
-# 4. Comprobar que el escáner de códigos (US-032) sigue funcionando bajo HTTPS —
-#    exige `camera=(self)` en Permissions-Policy (TK-141).
+# 2. ⏳ SIN VERIFICAR: que el rate limiter no agrupe a todos los clientes en un mismo
+#    bucket. `trust proxy` está en ['loopback','linklocal','uniquelocal'] y la red de
+#    Render podría no caer en rango privado — sería el bug que cerró TK-132. Requiere
+#    dos clientes con IP pública distinta golpeando el login; no comprobado.
+# 3. ✅ Verificado el 2026-09-09 contra el despliegue real:
+#      GET /            → 200
+#      GET /estaciones  → 200 (fallback del SPA, no 404)
+#      GET /api/v1/stock/insumos → 401  ← la señal que importa: el proxy LLEGA al
+#                         servicio privado y el backend exige auth. Un 502 habría
+#                         significado que nginx no alcanza el backend.
+#      Las 5 cabeceras de TK-141 presentes bajo HTTPS.
+#    El recorrido funcional en navegador (login, extracción, FEFO) lo confirmó el humano.
+# 4. ⏳ PARCIAL: `camera=(self)` está presente en la respuesta, que es la condición
+#    necesaria para US-032 bajo HTTPS. El escaneo real con una cámara no se probó.
 # 5. Plan de pago (starter): sin suspensión por inactividad ni caducidad de la base,
 #    así que el revisor no se encuentra un arranque en frío. Confirmar el gasto
 #    mensual en el dashboard antes de dejarlo corriendo más allá de la revisión.
