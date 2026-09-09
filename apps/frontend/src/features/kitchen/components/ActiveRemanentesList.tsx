@@ -1,23 +1,28 @@
 import React from 'react';
-import { Clock, AlertTriangle, MinusCircle, Trash2, CheckCircle2 } from 'lucide-react';
+import { Clock, MinusCircle, Trash2, CheckCircle2 } from 'lucide-react';
 import { RemanenteFEFOItem } from '../services/kitchen.service.js';
 import { formatQuantity, formatUnitLabel } from '../../../utils/formatters.js';
+import { UrgencyChip } from '../../../shared/components/UrgencyChip.js';
+import { urgencyFromHours } from '../../../shared/components/urgency.js';
+import { RowButton } from '../../../shared/components/RowButton.js';
+import styles from './ActiveRemanentesList.module.css';
 
 interface ActiveRemanentesListProps {
   items: RemanenteFEFOItem[];
-  onConsume: (id: string, qty: number) => void;
+  // ADR-004 / TK-108-FE: ya no consume directo — abre ConsumeReasonModal (motivo obligatorio).
+  onRequestConsume: (item: RemanenteFEFOItem, qty: number) => void;
   onDiscard: (item: RemanenteFEFOItem) => void;
 }
 
 const DISCRETE_UNITS = ['UNITS', 'UNIDADES', 'PZA', 'PACK', 'UD', 'UDS'];
 
 const RemanentesEmptyState: React.FC = () => (
-  <div className="card-dashboard" style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-secondary)' }}>
-    <CheckCircle2 size={48} style={{ color: 'var(--color-primary)', margin: '0 auto 12px' }} />
-    <h3 style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+  <div className={`card-dashboard ${styles['remanentes-empty-state']}`}>
+    <CheckCircle2 size={48} className={styles['empty-state-icon']} />
+    <h3 className="fs-lg fw-semibold">
       ¡No hay remanentes abiertos en cocina!
     </h3>
-    <p style={{ marginTop: '4px', fontSize: '0.9rem' }}>
+    <p className="mt-1 fs-md">
       Extrae insumos desde bodega para iniciar las preparaciones del turno.
     </p>
   </div>
@@ -29,55 +34,38 @@ interface RemanenteInfoBlockProps {
   isCritical: boolean;
 }
 
-const RemanenteInfoBlock: React.FC<RemanenteInfoBlockProps> = ({ item, index, isCritical }) => (
-  <div style={{ minWidth: '220px', flex: 1 }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-      <span
-        style={{ backgroundColor: 'var(--bg-main)', fontSize: '0.75rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', color: 'var(--color-primary)' }}
-      >
-        FEFO #{index + 1}
-      </span>
-      {isCritical && (
-        <span
-          style={{
-            backgroundColor: 'rgba(255, 42, 42, 0.15)',
-            color: 'var(--color-danger)',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            padding: '2px 8px',
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-          }}
-        >
-          <AlertTriangle size={12} /> ALERTA CRÍTICA
+const RemanenteInfoBlock: React.FC<RemanenteInfoBlockProps> = ({ item, index, isCritical }) => {
+  const urgency = urgencyFromHours(item.hoursRemaining);
+  return (
+    <div className={styles['remanente-info-block']}>
+      <div className="flex-gap-sm flex-wrap mb-1">
+        <span className={styles['fefo-index-badge']}>FEFO #{index + 1}</span>
+        <UrgencyChip level={urgency.level} label={urgency.label} />
+      </div>
+
+      <h3 className="fs-lg fw-bold">{item.insumoName}</h3>
+
+      <div className="flex-gap-md mt-2 text-secondary-color fs-sm">
+        <span className="flex-gap-xs">
+          <Clock size={14} className={isCritical ? 'text-danger-color' : 'text-primary-color'} />
+          Vence en: <strong>{item.hoursRemaining} hrs</strong>
         </span>
-      )}
+        <span>•</span>
+        <span>Ubicación: <strong>{item.location}</strong></span>
+      </div>
     </div>
-
-    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>{item.insumoName}</h3>
-
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        <Clock size={14} style={{ color: isCritical ? 'var(--color-danger)' : 'var(--color-primary)' }} />
-        Vence en: <strong>{item.hoursRemaining} hrs</strong>
-      </span>
-      <span>•</span>
-      <span>Ubicación: <strong>{item.location}</strong></span>
-    </div>
-  </div>
-);
+  );
+};
 
 const RemanenteQuantityDisplay: React.FC<{ item: RemanenteFEFOItem }> = ({ item }) => (
-  <div style={{ textAlign: 'right', minWidth: '140px' }}>
-    <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+  <div className={styles['remanente-qty-display']}>
+    <div className="fs-2xl fw-black">
       {formatQuantity(item.currentQuantity, item.unitOfMeasure)}{' '}
-      <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+      <span className="fs-base fw-semibold text-secondary-color">
         {formatUnitLabel(item.unitOfMeasure)}
       </span>
     </div>
-    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+    <div className="fs-xs text-secondary-color">
       Inicial: {formatQuantity(item.initialQuantity, item.unitOfMeasure)} {formatUnitLabel(item.unitOfMeasure)}
     </div>
   </div>
@@ -86,16 +74,17 @@ const RemanenteQuantityDisplay: React.FC<{ item: RemanenteFEFOItem }> = ({ item 
 interface RemanenteActionButtonsProps {
   item: RemanenteFEFOItem;
   isDiscrete: boolean;
-  onConsume: (id: string, qty: number) => void;
+  isCritical: boolean;
+  onRequestConsume: (item: RemanenteFEFOItem, qty: number) => void;
   onDiscard: (item: RemanenteFEFOItem) => void;
 }
 
-const RemanenteActionButtons: React.FC<RemanenteActionButtonsProps> = ({ item, isDiscrete, onConsume, onDiscard }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+const RemanenteActionButtons: React.FC<RemanenteActionButtonsProps> = ({ item, isDiscrete, isCritical, onRequestConsume, onDiscard }) => (
+  <div className="flex-gap-sm flex-wrap">
     <button
-      className="btn-touch btn-secondary"
-      onClick={() => onConsume(item.id, isDiscrete ? 1 : 0.25)}
-      style={{ minWidth: '70px', height: '48px', padding: '0 12px', fontSize: '0.9rem', fontWeight: 700 }}
+      type="button"
+      className={`btn-touch btn-secondary ${styles['remanente-qty-btn']}`}
+      onClick={() => onRequestConsume(item, isDiscrete ? 1 : 0.25)}
       title={isDiscrete ? 'Consumir 1 unidad' : 'Consumir 0.25 porciones'}
       id={`btn-consume-025-${item.id}`}
     >
@@ -103,30 +92,31 @@ const RemanenteActionButtons: React.FC<RemanenteActionButtonsProps> = ({ item, i
     </button>
 
     <button
-      className="btn-touch btn-secondary"
-      onClick={() => onConsume(item.id, isDiscrete ? 2 : 0.5)}
-      style={{ minWidth: '70px', height: '48px', padding: '0 12px', fontSize: '0.9rem', fontWeight: 700 }}
+      type="button"
+      className={`btn-touch btn-secondary ${styles['remanente-qty-btn']}`}
+      onClick={() => onRequestConsume(item, isDiscrete ? 2 : 0.5)}
       title={isDiscrete ? 'Consumir 2 unidades' : 'Consumir 0.5 porciones'}
       id={`btn-consume-050-${item.id}`}
     >
       {isDiscrete ? '-2' : '-0.5'}
     </button>
 
-    <button
-      className="btn-touch btn-primary"
-      onClick={() => onConsume(item.id, isDiscrete ? 5 : 1.0)}
-      style={{ minWidth: '75px', height: '48px', padding: '0 12px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}
+    {/* Consumo principal ("Usar"): variante `urgent` cuando la fila es crítica (TK-086-FE). */}
+    <RowButton
+      variant={isCritical ? 'urgent' : 'default'}
+      className={`${styles['remanente-qty-btn']} ${styles['remanente-qty-btn--wide']}`}
+      onClick={() => onRequestConsume(item, isDiscrete ? 5 : 1.0)}
       title={isDiscrete ? 'Consumir 5 unidades' : 'Consumir 1.0 porcion'}
       id={`btn-consume-100-${item.id}`}
     >
       <MinusCircle size={16} />
       {isDiscrete ? '-5' : '-1.0'}
-    </button>
+    </RowButton>
 
     <button
-      className="btn-touch btn-danger"
+      type="button"
+      className={`btn-touch btn-danger btn-icon ${styles['icon-badge-sm']}`}
       onClick={() => onDiscard(item)}
-      style={{ width: '48px', height: '48px', padding: 0 }}
       title="Registrar Descarte de Merma"
       id={`btn-discard-${item.id}`}
     >
@@ -138,42 +128,34 @@ const RemanenteActionButtons: React.FC<RemanenteActionButtonsProps> = ({ item, i
 interface RemanenteListItemProps {
   item: RemanenteFEFOItem;
   index: number;
-  onConsume: (id: string, qty: number) => void;
+  onRequestConsume: (item: RemanenteFEFOItem, qty: number) => void;
   onDiscard: (item: RemanenteFEFOItem) => void;
 }
 
-const RemanenteListItem: React.FC<RemanenteListItemProps> = ({ item, index, onConsume, onDiscard }) => {
+const RemanenteListItem: React.FC<RemanenteListItemProps> = ({ item, index, onRequestConsume, onDiscard }) => {
   const isCritical = item.hoursRemaining < 24;
   const isDiscrete = DISCRETE_UNITS.includes(item.unitOfMeasure.toUpperCase());
 
   return (
     <div
-      className="card-dashboard"
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: '16px',
-        borderLeft: isCritical ? '6px solid var(--color-danger)' : '6px solid var(--color-primary)',
-      }}
+      className={`card-dashboard flex-between flex-wrap ${styles['flex-gap-lg']} ${isCritical ? styles['remanente-card--critical'] : styles['remanente-card']}`}
     >
       <RemanenteInfoBlock item={item} index={index} isCritical={isCritical} />
       <RemanenteQuantityDisplay item={item} />
-      <RemanenteActionButtons item={item} isDiscrete={isDiscrete} onConsume={onConsume} onDiscard={onDiscard} />
+      <RemanenteActionButtons item={item} isDiscrete={isDiscrete} isCritical={isCritical} onRequestConsume={onRequestConsume} onDiscard={onDiscard} />
     </div>
   );
 };
 
-export const ActiveRemanentesList: React.FC<ActiveRemanentesListProps> = ({ items, onConsume, onDiscard }) => {
+export const ActiveRemanentesList: React.FC<ActiveRemanentesListProps> = ({ items, onRequestConsume, onDiscard }) => {
   if (items.length === 0) {
     return <RemanentesEmptyState />;
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div className="flex-column gap-4">
       {items.map((item, index) => (
-        <RemanenteListItem key={item.id} item={item} index={index} onConsume={onConsume} onDiscard={onDiscard} />
+        <RemanenteListItem key={item.id} item={item} index={index} onRequestConsume={onRequestConsume} onDiscard={onDiscard} />
       ))}
     </div>
   );

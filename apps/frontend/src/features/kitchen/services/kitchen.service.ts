@@ -1,6 +1,6 @@
 import { apiRequest } from '../../../shared/http/apiClient.js';
 import { DecimalQuantity } from '../../../shared/domain/DecimalQuantity.js';
-import { CatalogService } from '../../catalog/services/catalog.service.js';
+import { RecipesService } from '../../recipes/services/recipes.service.js';
 
 export interface RecipeItem {
   id: string;
@@ -8,6 +8,54 @@ export interface RecipeItem {
   category: string;
   description: string;
   ingredientsSummary: string;
+}
+
+/** US-033: tipo de unidad refrigerante, con umbral FDA propio en el dominio del backend. */
+export type TemperatureUnitType = 'REFRIGERATOR' | 'FREEZER';
+
+export interface RecordTemperatureLogDTO {
+  storageLocationId: string;
+  unitType: TemperatureUnitType;
+  /** Decimal como string (Guard 17): hasta 3 dígitos enteros y 2 decimales, ej. "-18.00". */
+  temperatureCelsius: string;
+}
+
+/* jscpd:ignore-start — espejo deliberado de TemperatureLogOutputDTO del backend.
+   openapi.yaml es la SSoT; front y back son paquetes separados sin tipo compartido. */
+export interface TemperatureLogItem {
+  id: string;
+  storageLocationId: string;
+  unitType: TemperatureUnitType;
+  temperatureCelsius: string;
+  /** Calculado en el dominio del backend, nunca persistido — solo advierte, jamás bloquea. */
+  isWithinSafeRange: boolean;
+  recordedByUserId: string;
+  recordedAt: string;
+}
+/* jscpd:ignore-end */
+
+export interface TemperatureLogFilters {
+  storageLocationId?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+// US-007 v1.1.0 / TK-111-FE
+interface RecipeIngredientAvailability {
+  insumoId: string;
+  insumoName: string;
+  unitOfMeasure: string;
+  requiredQuantity: string;
+  availableQuantity: string;
+  isSufficient: boolean;
+}
+
+export interface RecipeAvailability {
+  recipeId: string;
+  recipeName: string;
+  portions: number;
+  ingredients: RecipeIngredientAvailability[];
+  isFullyAvailable: boolean;
 }
 
 export interface RemanenteFEFOItem {
@@ -18,6 +66,10 @@ export interface RemanenteFEFOItem {
   currentQuantity: string;
   initialQuantity: string;
   location: string;
+  // US-026 / TK-112-FE: el backend (`GetActiveRemanentesUseCase`) ya lo enviaba —
+  // el tipo del frontend lo descartaba en silencio, dejando el filtro por área
+  // sin forma de distinguir un área real de otra (solo tenía el nombre en `location`).
+  storageLocationId?: string;
   expirationDate: string;
   hoursRemaining: number;
   isCriticalAlert: boolean;
@@ -113,9 +165,22 @@ export class KitchenService {
     );
   }
 
-  public static async consumeRemanente(remanenteId: string, quantity: number | string): Promise<void> {
+  public static async checkActiveRemanente(insumoId: string): Promise<RemanenteFEFOItem[]> {
     try {
-      await apiRequest(`/kitchen/remanentes/${remanenteId}/consume`, { method: 'POST', body: { quantity } });
+      return await apiRequest<RemanenteFEFOItem[]>(
+        `/kitchen/remanentes-activos?insumoId=${encodeURIComponent(insumoId)}`
+      );
+    } catch (err) {
+      console.error('[KitchenService] Error en checkActiveRemanente, omitiendo advertencia de apertura duplicada:', err);
+      return [];
+    }
+  }
+
+  // ADR-004 / US-004 / TK-108-FE: reasonId es obligatorio (catálogo administrable, US-030);
+  // notes es texto libre siempre opcional.
+  public static async consumeRemanente(remanenteId: string, quantity: number | string, reasonId: string, notes?: string): Promise<void> {
+    try {
+      await apiRequest(`/kitchen/remanentes/${remanenteId}/consume`, { method: 'POST', body: { quantity, reasonId, notes } });
       return;
     } catch (err) {
       console.error('[KitchenService] Error de red en consumeRemanente:', err);
@@ -171,7 +236,7 @@ export class KitchenService {
 
   public static async fetchAvailableRecipes(): Promise<RecipeItem[]> {
     try {
-      const [recipes, insumos] = await Promise.all([CatalogService.listRecipes(), CatalogService.listInsumos()]);
+      const [recipes, insumos] = await Promise.all([RecipesService.listRecipes(), RecipesService.listInsumos()]);
       const insumoNameById = new Map(insumos.map((insumo) => [insumo.id, insumo.name]));
 
       return recipes.map((recipe) => {
@@ -194,5 +259,29 @@ export class KitchenService {
       console.error('[KitchenService] Error en fetchAvailableRecipes, cayendo a modo offline:', err);
       return FALLBACK_RECIPES;
     }
+  }
+
+  // US-007 v1.1.0 / TK-111-FE: a diferencia de los demás métodos de esta clase, NO cae a
+  // datos mock en modo offline — mostrar una disponibilidad inventada sería peor que no
+  // mostrar ninguna. El modal decide qué hacer si esta llamada falla (no bloquea el envío).
+  public static async fetchRecipeAvailability(recipeId: string, portions: number): Promise<RecipeAvailability> {
+    return apiRequest<RecipeAvailability>(`/kitchen/recipes/${recipeId}/availability?portions=${portions}`);
+  }
+
+  // US-033 / TK-120-FE: sin fallback a mock (AUDIT-DEV-006 F-5) — una lectura de
+  // temperatura inventada es peor que ninguna, es un registro sanitario.
+  public static async recordTemperatureLog(data: RecordTemperatureLogDTO): Promise<TemperatureLogItem> {
+    return apiRequest<TemperatureLogItem>('/kitchen/temperature-logs', { method: 'POST', body: data });
+  }
+
+  // US-033: histórico solo-ADMIN (el backend lo gatea con requireRole('ADMIN')).
+  public static async fetchTemperatureLogs(filters: TemperatureLogFilters = {}): Promise<TemperatureLogItem[]> {
+    const params = new URLSearchParams();
+    if (filters.storageLocationId) params.set('storageLocationId', filters.storageLocationId);
+    if (filters.startDate) params.set('startDate', filters.startDate);
+    if (filters.endDate) params.set('endDate', filters.endDate);
+    const query = params.toString();
+
+    return apiRequest<TemperatureLogItem[]>(`/kitchen/temperature-logs${query ? `?${query}` : ''}`);
   }
 }

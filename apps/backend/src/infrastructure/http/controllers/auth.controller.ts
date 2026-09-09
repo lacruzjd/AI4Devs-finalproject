@@ -4,41 +4,106 @@ import { AuthenticateByPinUseCase } from '../../../application/auth/use-cases/Au
 import { CreateUserUseCase } from '../../../application/auth/use-cases/CreateUserUseCase.js';
 import { SetUserStatusUseCase } from '../../../application/auth/use-cases/SetUserStatusUseCase.js';
 import { ListUsersUseCase } from '../../../application/auth/use-cases/ListUsersUseCase.js';
+import { UpdateUserUseCase } from '../../../application/auth/use-cases/UpdateUserUseCase.js';
+import { ChangePinUseCase } from '../../../application/auth/use-cases/ChangePinUseCase.js';
+import { RequestAdminPinResetUseCase } from '../../../application/auth/use-cases/RequestAdminPinResetUseCase.js';
+import { ResetAdminPinUseCase } from '../../../application/auth/use-cases/ResetAdminPinUseCase.js';
+import { handleZodOrNext } from '../utils/responseUtils.js';
 
-export const authPinSchema = z.object({
+const authPinSchema = z.object({
   userId: z.string().min(1, 'El ID de usuario es requerido.'),
   pin: z.string().regex(/^\d{4,6}$/, 'El PIN debe contener entre 4 y 6 digitos numericos.'),
 });
 
-export const createUserSchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido.'),
-  role: z.enum(['ADMIN', 'KITCHEN_STAFF']),
-  pin: z.string().regex(/^\d{4,6}$/, 'El PIN debe contener entre 4 y 6 digitos numericos.'),
+const changePinSchema = z.object({
+  userId: z.string().min(1, 'El ID de usuario es requerido.'),
+  currentPin: z.string().regex(/^\d{4,6}$/, 'El PIN actual debe contener entre 4 y 6 digitos numericos.'),
+  newPin: z.string().regex(/^\d{4,6}$/, 'El nuevo PIN debe contener entre 4 y 6 digitos numericos.'),
 });
 
-export const setUserStatusSchema = z.object({
+const forgotPinSchema = z.object({
+  email: z.string().email('Debe ingresar un formato de correo electronico valido.'),
+});
+
+const resetPinSchema = z.object({
+  token: z.string().min(16, 'El token de recuperacion es invalido.'),
+  newPin: z.string().regex(/^\d{4,6}$/, 'El nuevo PIN debe contener entre 4 y 6 digitos numericos.'),
+});
+
+const createUserSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido.'),
+  role: z.string().min(1, 'El rol es requerido.'),
+  pin: z.string().regex(/^\d{4,6}$/, 'El PIN debe contener entre 4 y 6 digitos numericos.'),
+  email: z.string().email().optional(),
+});
+
+const updateUserSchema = z.object({
+  name: z.string().min(1).optional(),
+  role: z.string().min(1).optional(),
+  pin: z.string().regex(/^\d{4,6}$/, 'El PIN debe contener entre 4 y 6 digitos numericos.').optional(),
+  email: z.string().email().optional(),
+});
+
+const setUserStatusSchema = z.object({
   action: z.enum(['BLOCK', 'ACTIVATE']),
 });
-
-function respondValidationError(req: Request, res: Response, detailMsg: string): void {
-  res.status(400).json({
-    type: 'https://restostock.com/errors/validation-error',
-    title: 'ValidationError',
-    status: 400,
-    detail: detailMsg,
-    instance: req.originalUrl || req.url,
-    error: 'ValidationError',
-    message: detailMsg,
-  });
-}
 
 export class AuthController {
   constructor(
     private readonly authenticateByPinUseCase: AuthenticateByPinUseCase,
     private readonly createUserUseCase?: CreateUserUseCase,
     private readonly setUserStatusUseCase?: SetUserStatusUseCase,
-    private readonly listUsersUseCase?: ListUsersUseCase
+    private readonly listUsersUseCase?: ListUsersUseCase,
+    private readonly updateUserUseCase?: UpdateUserUseCase,
+    private readonly changePinUseCase?: ChangePinUseCase,
+    private readonly requestAdminPinResetUseCase?: RequestAdminPinResetUseCase,
+    private readonly resetAdminPinUseCase?: ResetAdminPinUseCase
   ) {}
+
+  public forgotPin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsedBody = forgotPinSchema.parse(req.body);
+      if (!this.requestAdminPinResetUseCase) {
+        throw new Error('RequestAdminPinResetUseCase no configurado.');
+      }
+      const clientOrigin = req.headers.origin as string | undefined;
+      const result = await this.requestAdminPinResetUseCase.execute({
+        email: parsedBody.email,
+        clientOrigin,
+      });
+      res.status(200).json(result);
+    } catch (error) {
+      handleZodOrNext(req, res, next, error);
+    }
+  };
+
+  public resetPin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsedBody = resetPinSchema.parse(req.body);
+      if (!this.resetAdminPinUseCase) {
+        throw new Error('ResetAdminPinUseCase no configurado.');
+      }
+      const result = await this.resetAdminPinUseCase.execute(parsedBody);
+      res.status(200).json(result);
+    } catch (error) {
+      handleZodOrNext(req, res, next, error);
+    }
+  };
+
+
+  public changePin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsedBody = changePinSchema.parse(req.body);
+      if (!this.changePinUseCase) {
+        throw new Error('ChangePinUseCase no configurado.');
+      }
+      const result = await this.changePinUseCase.execute(parsedBody);
+      res.status(200).json(result);
+    } catch (error) {
+      handleZodOrNext(req, res, next, error);
+    }
+  };
+
 
   public loginWithPin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -46,11 +111,7 @@ export class AuthController {
       const result = await this.authenticateByPinUseCase.execute(parsedBody);
       res.status(200).json(result);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        respondValidationError(req, res, error.errors.map((e) => e.message).join('; '));
-        return;
-      }
-      next(error);
+      handleZodOrNext(req, res, next, error);
     }
   };
 
@@ -65,11 +126,7 @@ export class AuthController {
       const result = await this.createUserUseCase.execute(parsedBody);
       res.status(201).json(result);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        respondValidationError(req, res, error.errors.map((e) => e.message).join('; '));
-        return;
-      }
-      next(error);
+      handleZodOrNext(req, res, next, error);
     }
   };
 
@@ -85,6 +142,22 @@ export class AuthController {
     }
   };
 
+  public updateUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const parsedBody = updateUserSchema.parse(req.body);
+
+      if (!this.updateUserUseCase) {
+        throw new Error('UpdateUserUseCase no configurado.');
+      }
+
+      const result = await this.updateUserUseCase.execute({ userId: id, ...parsedBody });
+      res.status(200).json(result);
+    } catch (error) {
+      handleZodOrNext(req, res, next, error);
+    }
+  };
+
   public setUserStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
@@ -97,11 +170,7 @@ export class AuthController {
       const result = await this.setUserStatusUseCase.execute({ userId: id, action: parsedBody.action });
       res.status(200).json(result);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        respondValidationError(req, res, error.errors.map((e) => e.message).join('; '));
-        return;
-      }
-      next(error);
+      handleZodOrNext(req, res, next, error);
     }
   };
 }

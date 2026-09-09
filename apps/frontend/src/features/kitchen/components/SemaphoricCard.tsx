@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './SemaphoricCard.module.css';
 
 export interface AlertItem {
   id: string;
@@ -15,19 +16,18 @@ interface SemaphoricCardProps {
 }
 
 interface Severity {
-  color: string;
+  key: 'critical' | 'warning' | 'safe';
   label: string;
-  bg: string;
 }
 
 function getSeverity(hours: number): Severity {
   if (hours <= 6) {
-    return { color: 'var(--color-danger, #ff2a2a)', bg: 'rgba(255, 42, 42, 0.12)', label: 'CRÍTICO (< 6h)' };
+    return { key: 'critical', label: 'CRÍTICO (< 6h)' };
   }
   if (hours <= 24) {
-    return { color: 'var(--color-warning, #f4a261)', bg: 'rgba(244, 162, 97, 0.12)', label: 'ADVERTENCIA (< 24h)' };
+    return { key: 'warning', label: 'ADVERTENCIA (< 24h)' };
   }
-  return { color: 'var(--color-success, #00a896)', bg: 'rgba(0, 168, 150, 0.12)', label: 'ÓPTIMO' };
+  return { key: 'safe', label: 'ÓPTIMO' };
 }
 
 interface AlertActionButtonsProps {
@@ -36,36 +36,18 @@ interface AlertActionButtonsProps {
 }
 
 const AlertActionButtons: React.FC<AlertActionButtonsProps> = ({ alert, onAction }) => (
-  <div style={{ display: 'flex', gap: '0.5rem' }}>
+  <div className={styles['semaphoric-actions']}>
     <button
       onClick={() => onAction(alert.id, 'consume')}
       aria-label={`Consumir ${alert.ingredientName}`}
-      style={{
-        minHeight: '48px',
-        minWidth: '90px',
-        backgroundColor: 'var(--color-primary, #00a896)',
-        color: '#ffffff',
-        border: 'none',
-        borderRadius: '6px',
-        fontWeight: 600,
-        cursor: 'pointer',
-      }}
+      className={`${styles['semaphoric-action-btn']} ${styles['semaphoric-action-btn--consume']}`}
     >
       Consumir
     </button>
     <button
       onClick={() => onAction(alert.id, 'discard')}
       aria-label={`Descartar ${alert.ingredientName}`}
-      style={{
-        minHeight: '48px',
-        minWidth: '90px',
-        backgroundColor: 'transparent',
-        color: 'var(--color-danger, #ff2a2a)',
-        border: '1px solid var(--color-danger, #ff2a2a)',
-        borderRadius: '6px',
-        fontWeight: 600,
-        cursor: 'pointer',
-      }}
+      className={`${styles['semaphoric-action-btn']} ${styles['semaphoric-action-btn--discard']}`}
     >
       Descartar
     </button>
@@ -78,43 +60,27 @@ export const SemaphoricCard: React.FC<SemaphoricCardProps> = ({ alert, onAction 
   return (
     <article
       data-testid={`semaphoric-card-${alert.id}`}
-      style={{
-        backgroundColor: 'var(--bg-card, #101c24)',
-        borderLeft: `6px solid ${severity.color}`,
-        borderRadius: '8px',
-        padding: '1rem',
-        marginBottom: '0.75rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.75rem',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
-      }}
+      className={`${styles['semaphoric-card']} ${styles[`severity-${severity.key}`]}`}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h4 style={{ margin: 0, color: 'var(--text-primary, #ffffff)', fontSize: '1.1rem' }}>
+      <div className={styles['semaphoric-header']}>
+        <h4 className={styles['semaphoric-title']}>
           {alert.ingredientName}
         </h4>
-        <span
-          style={{
-            backgroundColor: severity.bg,
-            color: severity.color,
-            padding: '0.25rem 0.6rem',
-            borderRadius: '4px',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-          }}
-        >
+        <span className={styles['severity-badge']}>
           {severity.label}
         </span>
       </div>
 
-      <div style={{ color: 'var(--text-secondary, #94a3b8)', fontSize: '0.9rem' }}>
-        <span>Lote: <strong>{alert.lotNumber}</strong></span> • 
+      <div className={styles['semaphoric-meta']}>
+        <span>Lote: <strong>{alert.lotNumber}</strong></span> •
         <span> Cantidad: <strong>{alert.quantity} {alert.unit}</strong></span>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ color: severity.color, fontWeight: 700, fontSize: '0.95rem' }}>
+      <div className={styles['semaphoric-footer']}>
+        {/* Texto siempre en --text-primary (no en el tono del tier): a este tamaño/peso ningún tono de acento
+            alcanza el 7:1 exigido para "números principales" por el Design System v2.0.0; la urgencia ya la
+            comunican el borde izquierdo y el badge (uso no-textual, ≥3:1). */}
+        <span className={styles['semaphoric-time']}>
           ⏳ Vence en {alert.hoursRemaining}h
         </span>
 

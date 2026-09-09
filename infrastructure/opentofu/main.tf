@@ -25,6 +25,18 @@ variable "jwt_secret" {
   sensitive   = true
 }
 
+variable "encryption_key" {
+  description = "Clave dedicada al cifrado de credenciales de terceros (API keys de IA). DEBE diferir de jwt_secret (AUDIT-SEC-004); Guard 14 aborta el arranque en producción si falta."
+  type        = string
+  sensitive   = true
+}
+
+variable "client_origin" {
+  description = "Origen canónico del frontend para el enlace del email de recuperación de PIN (AUDIT-SEC-004). Opcional si cors_allowed_origins es un allowlist concreto."
+  type        = string
+  default     = ""
+}
+
 variable "postgres_user" {
   description = "Usuario de PostgreSQL — inyectado vía TF_VAR_postgres_user, nunca hardcodeado (Guard 23/25)."
   type        = string
@@ -55,9 +67,21 @@ variable "rate_limit_window_ms" {
 }
 
 variable "rate_limit_max_requests" {
-  description = "Máximo de requests por IP dentro de rate_limit_window_ms (Guard 16)."
+  description = "Máximo de requests por IP REAL de cliente dentro de rate_limit_window_ms (Guard 16 / AUDIT-SEC-003: por cliente, no compartido, gracias a trust proxy)."
   type        = number
-  default     = 100
+  default     = 300
+}
+
+variable "login_rate_limit_window_ms" {
+  description = "Ventana (ms) del limiter anti-fuerza-bruta de login/forgot-pin/reset-pin (Guard 16)."
+  type        = number
+  default     = 900000
+}
+
+variable "login_rate_limit_max" {
+  description = "Máximo de intentos de login por IP real dentro de login_rate_limit_window_ms. Subir en sitios con NAT compartido (varias terminales tras una IP)."
+  type        = number
+  default     = 10
 }
 
 variable "seed_admin_pin" {
@@ -156,10 +180,14 @@ resource "docker_container" "backend" {
     "NODE_ENV=production",
     "PORT=3000",
     "JWT_SECRET=${var.jwt_secret}",
+    "ENCRYPTION_KEY=${var.encryption_key}",
+    "CLIENT_ORIGIN=${var.client_origin}",
     "DATABASE_URL=postgresql://${var.postgres_user}:${var.postgres_password}@postgres:5432/${var.postgres_db}?schema=public",
     "CORS_ALLOWED_ORIGINS=${var.cors_allowed_origins}",
     "RATE_LIMIT_WINDOW_MS=${var.rate_limit_window_ms}",
     "RATE_LIMIT_MAX_REQUESTS=${var.rate_limit_max_requests}",
+    "LOGIN_RATE_LIMIT_WINDOW_MS=${var.login_rate_limit_window_ms}",
+    "LOGIN_RATE_LIMIT_MAX=${var.login_rate_limit_max}",
     "SEED_ADMIN_PIN=${var.seed_admin_pin}",
     "SEED_ADMIN_NAME=${var.seed_admin_name}",
   ]

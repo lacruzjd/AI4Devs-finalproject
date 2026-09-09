@@ -1,6 +1,6 @@
 ---
 document: prd
-version: 1.0.0
+version: 1.1.0
 status: approved
 inputs:
   - docs/01_product_definition/01_product_discovery.md
@@ -38,6 +38,14 @@ inputs:
    - [US-011: Trazabilidad y Auditoría de Movimientos de Stock](#us-011-trazabilidad-y-auditoría-de-movimientos-de-stock)
    - [US-012: Gestión de Catálogo Maestro (Alta de Insumos y Recetas)](#us-012-gestión-de-catálogo-maestro-alta-de-insumos-y-recetas)
    - [US-013: Reabastecimiento de Bodega](#us-013-reabastecimiento-de-bodega)
+   - [US-019: Costeo de Insumos y Valorización Monetaria de Mermas](#us-019-costeo-de-insumos-y-valorización-monetaria-de-mermas)
+   - [US-020: Indicador TRR Real en el Dashboard de Reportes](#us-020-indicador-trr-real-en-el-dashboard-de-reportes)
+   - [US-021: Advertencia de Apertura Duplicada al Extraer Insumo](#us-021-advertencia-de-apertura-duplicada-al-extraer-insumo)
+   - [US-025: Depósito de Insumos en Sub-Sector de Bodega y Stock Multi-Sector](#us-025-depósito-de-insumos-en-sub-sector-de-bodega-y-stock-multi-sector)
+   - [US-032: Escaneo de Código de Barras en Extracción de Bodega](#us-032-escaneo-de-código-de-barras-en-extracción-de-bodega)
+   - [US-033: Registro de Temperatura de Refrigeración al Iniciar Turno](#us-033-registro-de-temperatura-de-refrigeración-al-iniciar-turno)
+   - [US-034: Panel de Configuración de Agentes IA](#us-034-panel-de-configuración-de-agentes-ia)
+   - [US-035: Generador de Recetas de Aprovechamiento Anti-Desperdicio](#us-035-generador-de-recetas-de-aprovechamiento-anti-desperdicio)
 6. [Estrategia de Calidad y Verificación (QA/Testing)](#6-estrategia-de-calidad-y-verificación-qatesting)
 7. [Roadmap Post-MVP (Fase 2)](#7-roadmap-post-mvp-fase-2)
 
@@ -61,6 +69,8 @@ El sistema optimiza la rotación de inventarios forzando una lógica FEFO (First
 *   **Consumo rápido por recetas (manual):** Registro manual de uso de insumos mediante plantillas de recetas guardadas en la terminal, descontando de forma secuencial en orden FEFO sin integrarse con sistemas de comandas externos o facturación (BOM).
 *   **Cierre de turno y conciliación física:** Flujo de fin de jornada para que el operario declare el inventario real en cocina y el sistema genere de manera guiada los registros de merma y discrepancias.
 *   **Dashboard y reporte de mermas visibles:** Panel web administrativo para que el administrador visualice en tiempo real los descartes acumulados agrupados por insumo y causa, haciendo la merma visible de inmediato.
+
+La identidad visual de la aplicación sigue el **Sistema FEFO** (turno Día/Noche, `US-022`) — ver [`DESIGN.md`](../../DESIGN.md) y [`docs/02_architecture_design/05_ui_ux_design_system.md`](../02_architecture_design/05_ui_ux_design_system.md) para el detalle completo de tokens, tipografía y ergonomía táctil. La navegación se organiza en un **shell de rutas de nivel superior** (Inventario, Estaciones, Recetas, Reportes, Ajustes) con acceso por rol (`US-023`), en lugar de un tablero único con menús superpuestos; el contenido de cada ruta se muestra inline y Ajustes tiene sub-rutas enlazables (`US-024`).
 
 ### 1.3. Objetivos de Negocio y KPIs (Métricas de Éxito)
 *   **Reducción de Merma Desconocida:** Disminuir en un **30%** la diferencia financiera entre el inventario teórico del sistema y las auditorías físicas semanales en un periodo de 90 días.
@@ -91,7 +101,7 @@ El sistema optimiza la rotación de inventarios forzando una lógica FEFO (First
 ## 3. Flujo End-to-End Prioritario
 
 ### 3.1. Happy Path: Secuencia de Pasos
-1.  **Extracción del Depósito:** Un *Operario Autorizado* accede a la terminal, selecciona su perfil, ingresa su PIN de 4 dígitos y registra el traslado de una unidad de compra sellada (ej. 1 Horma de Queso Parmesano) desde el Almacén Principal hacia el sector de Cocina. El stock del depósito principal decrece en 1 unidad.
+1.  **Extracción del Depósito:** Un *Operario Autorizado* accede a la terminal con su PIN (registrando `operatorId`), selecciona el insumo y especifica el propósito de la extracción (`KITCHEN_STOCK` para uso general, `RECIPE` para receta o `DIRECT_DISCARD` para descarte/merma directa desde bodega) junto con el lugar de destino o el motivo correspondiente. El stock del depósito principal decrece en la cantidad extraída.
 2.  **Registro de Uso Parcial:** Tras utilizar el ingrediente para el servicio, el cocinero pesa la porción consumida (ej. 400 gramos). El *Operario Autorizado* ingresa su PIN en la tablet de la cocina y registra el consumo indicando el insumo y la cantidad exacta en la unidad de consumo directo.
 3.  **Cálculo Automático de Remanente:** El sistema detecta la apertura del insumo, multiplica la unidad de compra extraída por el factor de conversión parametrizado (ej. 1 Horma = 5000g), resta el consumo registrado y genera de inmediato un registro de `Remanente` por la diferencia (ej. 4600g).
 4.  **Resguardo Físico:** El *Operario Autorizado* selecciona la sububicación de destino (ej. "Heladera A - Línea de Fríos") en la pantalla y confirma el guardado.
@@ -109,11 +119,11 @@ sequenceDiagram
 
     OP->>TAB: Ingresa PIN (4 dígitos)
     TAB->>API: POST /api/v1/auth/pin { pin }
-    API-->>TAB: HTTP 200 OK (JWT Token)
+    API-->>TAB: HTTP 200 OK (JWT Token + operatorId)
 
-    OP->>TAB: Registra Extracción (ej. 1 Horma Queso)
-    TAB->>API: POST /api/v1/stock/extractions
-    API->>DB: Descuenta Depósito & Crea Insumo Abierto
+    OP->>TAB: Registra Extracción (insumo, qty, purpose, reason/recipeId, toLocation)
+    TAB->>API: POST /api/v1/stock/extraction
+    API->>DB: Descuenta Depósito, registra StockMovement (operatorId, purpose, reason) & crea Remanente/Merma
     DB-->>API: Transacción Exitosa
     API-->>TAB: HTTP 201 Created (Stock Actualizado)
 
@@ -147,8 +157,8 @@ sequenceDiagram
 
 *   **Descuento automático de inventario por receta (BOM):** No se calcularán deducciones automáticas de ingredientes basándose en el software de facturación o comandas. Todos los consumos y aperturas se declaran explícitamente en la terminal.
 *   **Gestión de Compras y Proveedores:** Quedan fuera de alcance las alertas automáticas de reabastecimiento, generación de órdenes de compra y el módulo de cuentas por pagar a proveedores.
-*   **Multisede:** La base de datos y la arquitectura del backend operan estrictamente para una sucursal física única.
-*   **Integración de Hardware Físico:** No se integran balanzas electrónicas por USB/Bluetooth ni escáneres de código de barras en esta primera fase.
+*   **Multisede:** La base de datos y la arquitectura del backend operan estrictamente para una sucursal física única. *(Nota: la subdivisión de la bodega de esa única sucursal en sub-sectores físicos —Heladera de Carnes, Cámara de Congelados, Bodega de Secos— SÍ está en alcance; ver `US-016` y `US-025`.)*
+*   **Integración de Hardware Físico:** No se integran balanzas electrónicas por USB/Bluetooth ni **lectores de código de barras dedicados** en esta primera fase. *(Aclarado en `US-032`, 2026-09-05: el escaneo de código de barras mediante la cámara ya integrada del dispositivo táctil — sin ningún periférico USB/Bluetooth nuevo — queda explícitamente fuera de esta exclusión; es una capacidad de software puro sobre hardware que el operario ya tiene.)*
 
 ---
 
@@ -269,6 +279,218 @@ A continuación se resume el backlog del MVP de RestoStock, estructurado bajo el
 *   **Complejidad:** S
 *   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
 *   **Estado:** ✅ Done — Backend (`TK-060`) y Frontend (`TK-060-FE`) implementados — ver [Matriz de Trazabilidad](../05_agile_planning/13_matriz_trazabilidad.md).
+
+
+### US-014: Trazabilidad de Extracción de Bodega por Propósito y Autoría
+*   **Historia:** Como encargado de bodega o administrador, quiero especificar el propósito exacto de la extracción (stock general, receta o descarte directo) y registrar la autoría del operario, para mantener la trazabilidad completa del inventario y descartar pérdidas prematuras directamente desde la bodega.
+*   **Complejidad:** M
+*   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
+*   **Estado:** ✅ Done — Backend (`TK-072`) y Frontend (`TK-072-FE`) implementados.
+
+
+### US-015: Gestión de Permisos y Roles Dinámicos (Dynamic RBAC)
+*   **Historia:** Como Administrador, quiero crear roles personalizados y configurar la matriz de permisos de forma dinámica desde la interfaz, para otorgar accesos granulares al personal (bodeguero, cocinero, sub-chef) y autoredirigir al inicio de sesión según el perfil.
+*   **Complejidad:** L
+*   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
+*   **Criterios de Aceptación (BDD - Sintaxis Gherkin):**
+    *   **Escenario 1 (Creación de Rol y Autoredirección por Permisos):**
+        *   **Given** Un nuevo rol "Cocinero Auxiliar" con el permiso `kitchen:recipe_prepare` asignado y sin permiso `stock:extract`.
+        *   **When** El usuario con dicho rol inicia sesión con su PIN.
+        *   **Then** El sistema valida las credenciales, emite JWT con permisos y la UI lo redirige automáticamente al Tablero FEFO de Cocina.
+
+
+### US-016: Definición de Sectores de Almacenamiento y Cocina
+*   **Historia:** Como Administrador, quiero dar de alta y bautizar los sectores físicos del restaurante (cámaras frías, bodegas de secos, mesas de preparación), para que los modales de extracción y reabastecimiento consuman ubicaciones reales y personalizadas.
+*   **Complejidad:** M
+*   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
+*   **Estado:** 🚧 Spec aprobada — el CRUD de sectores (`StorageLocation`) y su pantalla de gestión ya existen (Escenario 1); resta cablear los desplegables dinámicos de origen/destino en los modales de extracción y reabastecimiento (Escenario 2, `TK-074` / `TK-074-FE`) y blindar el endpoint `/api/v1/locations` con `requireRole('ADMIN')`.
+*   **Habilitador de:** `US-025` (stock multi-sector) depende de este catálogo de sectores.
+
+### US-025: Depósito de Insumos en Sub-Sector de Bodega y Stock Multi-Sector
+*   **Historia:** Como Administrador, quiero indicar en qué sub-sector físico de la bodega queda depositado un insumo al darlo de alta o reabastecerlo, y que el operario elija de qué sub-sector extrae al pasar stock a cocina, para reflejar la ubicación física real de cada existencia y validar el saldo por sector.
+*   **Complejidad:** L
+*   **Evaluación INVEST:** Independiente (depende solo de `US-016`), Negociable, Valiosa, Estimable, Small (partible en backend/frontend), Testeable.
+*   **Decisiones de negocio consultadas con el humano (Guard 28):**
+    *   **Multiplicidad:** el stock de bodega de un insumo puede repartirse en **varios sub-sectores a la vez**; se rastrea por par `(insumo, sub-sector)` sobre `WarehouseStock`.
+    *   **Extracción:** el operario **elige el sub-sector de origen** en el modal de extracción; el backend valida el saldo **de ese sector** (Invariante 1 pasa a ser por-sector).
+    *   **Obligatoriedad y migración:** el sub-sector es **obligatorio** en el alta y el reabastecimiento de insumos; los insumos preexistentes (stock en `MAIN_WAREHOUSE`) se migran a un sector semilla `"Bodega Principal – Sin clasificar"` (`type = WAREHOUSE`) vía migración Prisma.
+    *   **Borrado de sector:** un `StorageLocation` con saldo `> 0` en alguna línea `WarehouseStock` no puede eliminarse ni desactivarse (rechazo `HTTP 409`).
+*   **Criterios de Aceptación (BDD - Sintaxis Gherkin):**
+    *   **Escenario 1 (Alta de insumo con sub-sector obligatorio):**
+        *   **Given** Los sub-sectores de bodega `"Heladera de Carnes"` y `"Cámara de Congelados"` dados de alta y activos.
+        *   **When** El Administrador registra el insumo `"Lomo Vacuno"` con stock inicial `12` KG seleccionando `"Heladera de Carnes"`.
+        *   **Then** Se crea el insumo y una línea `WarehouseStock (insumo, "Heladera de Carnes", 12.0000)`; el catálogo muestra `Stock Bodega: 12 KG` con desglose `Heladera de Carnes: 12 KG`.
+    *   **Escenario 2 (Reabastecimiento a un segundo sub-sector):**
+        *   **Given** El insumo `"Lomo Vacuno"` con `12` KG en `"Heladera de Carnes"`.
+        *   **When** El Administrador reabastece `8` KG seleccionando `"Cámara de Congelados"`.
+        *   **Then** El total de bodega es `20` KG, con desglose `Heladera de Carnes: 12 KG` y `Cámara de Congelados: 8 KG`.
+    *   **Escenario 3 (Extracción con saldo insuficiente en el sector elegido):**
+        *   **Given** El insumo `"Lomo Vacuno"` con `12` KG en `"Heladera de Carnes"` y `8` KG en `"Cámara de Congelados"`.
+        *   **When** Un operario intenta extraer `15` KG indicando origen `"Cámara de Congelados"`.
+        *   **Then** El backend rechaza atómicamente con `HTTP 422` (saldo del sector `8` < `15`), sin descontar de otros sectores.
+    *   **Escenario 4 (Bloqueo de borrado de sector con saldo):**
+        *   **Given** El sub-sector `"Heladera de Carnes"` con `12` KG de `"Lomo Vacuno"`.
+        *   **When** El Administrador intenta eliminar o desactivar ese sector.
+        *   **Then** El sistema responde `HTTP 409 Conflict` indicando que existen existencias asociadas.
+*   **Estado:** ✅ Done — Backend (`TK-096`) y Frontend (`TK-096-FE`) implementados.
+
+
+### US-026: Áreas de Cocina como Ubicaciones de Catálogo y Destino Dinámico en Extracción
+*   **Historia:** Como Administrador (catálogo) y Operario (extracción), quiero administrar las áreas físicas de la cocina como ubicaciones del mismo catálogo `StorageLocation` que usa la bodega, y elegir el área de cocina de destino desde una lista real al extraer, para que cada `Remanente` quede vinculado por FK a un área concreta y no a un literal fijo.
+*   **Complejidad:** L · **INVEST:** depende de `US-016`; prerrequisito de `US-027`/`US-028`.
+*   **Decisiones de negocio (Guard 28, ver [ADR-003](../02_architecture_design/adr/ADR-003-recipe-preparation-tracking.md) #2/#3):** áreas de cocina = `StorageLocation type=KITCHEN`; `Remanente.location` literal → FK vía migración Prisma; un área KITCHEN con remanentes activos no se borra/desactiva (`HTTP 409`).
+*   **Estado:** 📝 Draft — `TK-102` / `TK-102-FE`. Cierra la deuda pendiente de `TK-074-FE`.
+
+### US-027: Apertura Automática de Preparación de Receta al Extraer
+*   **Historia:** Como Operario de Cocina, quiero que al extraer insumos de bodega para una receta concreta el sistema abra automáticamente una "preparación de receta" que agrupe los remanentes de esa tanda, para después declarar en un paso qué se consumió, qué sobró y qué se descartó, y para que la trazabilidad conecte la extracción con la preparación real.
+*   **Complejidad:** L · **INVEST:** depende de `US-014`, `US-026`.
+*   **Decisiones de negocio (Guard 28, [ADR-003](../02_architecture_design/adr/ADR-003-recipe-preparation-tracking.md) #1/#4/#11):** modelo de conciliación (no reserva) — la extracción debita como hoy y solo etiqueta los remanentes; la preparación se abre sola con `purpose=RECIPE`; `recipeId` pasa a obligatorio en ese modo; un solo actor por ahora.
+*   **Estado:** 📝 Draft — `TK-103` / `TK-103-FE`.
+
+### US-028: Cierre de Preparación de Receta — Sobrante con Ubicación y Merma con Motivo
+*   **Historia:** Como Operario de Cocina o Administrador, quiero cerrar una preparación declarando las porciones reales y, por cada ingrediente, cuánto sobró y **dónde lo guardé** y cuánto se descartó y por qué, para que quede constancia trazable de qué pasó con cada insumo — quién lo preparó, dónde quedó físicamente el sobrante y el motivo de cada merma.
+*   **Complejidad:** XL · **INVEST:** depende de `US-027`, `US-026`.
+*   **Decisiones de negocio (Guard 28, [ADR-003](../02_architecture_design/adr/ADR-003-recipe-preparation-tracking.md) #5–#10):** consumo asumido = teórico (se declara solo sobrante y merma); cuadre exacto `extraído = consumido + sobrante + merma`; el sobrante queda en un área de cocina (o vuelve a bodega **solo si el remanente está intacto**: cero consumo Y "envase sin abrir"); el reloj FEFO del sobrante se conserva; cierre opcional (la conciliación de turno absorbe las abiertas); cualquier `KITCHEN_STAFF` puede cerrar; todo el cierre en una transacción.
+*   **Estado:** 📝 Draft — `TK-104` / `TK-104-FE`.
+
+### US-029: Reporte de Mermas de Preparación y Auditoría del Consumo Ad-hoc
+*   **Historia:** Como Administrador, quiero ver la merma generada al preparar recetas (por receta, ingrediente y motivo, valorizada en `$`) y el consumo real vs. teórico por receta, y quiero que el consumo ad-hoc de recetas también deje rastro de auditoría.
+*   **Complejidad:** M · **Diferible.** **INVEST:** depende de `US-028`; extiende `US-009`/`US-011`.
+*   **Decisiones de negocio (Guard 28, [ADR-003](../02_architecture_design/adr/ADR-003-recipe-preparation-tracking.md) #12, decisión B):** sin notificación push en v1 (solo reporte); el endpoint legacy `POST /kitchen/recipes/:id/consume` se conserva para consumo ad-hoc pero pasa a emitir `CONSUMPTION_RECIPE`.
+*   **Estado:** 📝 Draft — `TK-105` / `TK-105-FE`.
+
+
+### US-017: Configuración General del Restaurante y Parámetros FEFO
+*   **Historia:** Como Administrador, quiero configurar la identidad del restaurante (nombre, moneda) y los parámetros operativos de inventario (umbral de alertas críticas FEFO y vida útil estándar), para adaptar el sistema a las reglas específicas del establecimiento.
+*   **Complejidad:** M
+*   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
+
+
+### US-019: Costeo de Insumos y Valorización Monetaria de Mermas
+*   **Historia:** Como Administrador, quiero registrar el costo unitario de cada insumo y visualizar el valor monetario de las mermas en el dashboard de reportes, para auditar la pérdida financiera real y no solo las cantidades físicas descartadas.
+*   **Complejidad:** S
+*   **Estado:** ✅ Done — Backend (`TK-078`) y Frontend (`TK-078-FE`) implementados y aprobados por revisión adversarial independiente — ver [Matriz de Trazabilidad](../05_agile_planning/13_matriz_trazabilidad.md).
+*   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
+*   **Decisiones de negocio consultadas con el humano:** El costo se captura por unidad de compra (ej. costo de 1 kg completo), no por unidad de consumo — coincide con `unitOfMeasure`, sin factor de conversión intermedio.
+*   **Criterios de Aceptación (BDD - Sintaxis Gherkin):**
+    *   **Escenario 1 (Insumo con costo registrado):**
+        *   **Given** Un insumo "Queso Mozzarella" con `unitCost` "1800.00" registrado.
+        *   **When** Se descartan 3.5kg de ese insumo por motivo "EXPIRATION" dentro del rango de fechas consultado.
+        *   **Then** El reporte de mermas retorna `totalDiscardedCost: "6300.00"` para esa fila.
+    *   **Escenario 2 (Insumo sin costo registrado):**
+        *   **Given** Un insumo "Salsa de Tomate" sin `unitCost` registrado (`null`).
+        *   **When** Se descarta 1L de ese insumo por motivo "DAMAGE_OR_DROP".
+        *   **Then** El reporte retorna `totalDiscardedCost: null` para esa fila, y la UI muestra "Sin costo registrado" — nunca `"$0"`, que subestimaría la pérdida real.
+
+
+### US-020: Indicador TRR Real en el Dashboard de Reportes
+*   **Historia:** Como Administrador, quiero visualizar el tiempo real promedio de rotación de remanentes (TRR efectivo) en el dashboard de reportes, para verificar si el objetivo de 72 horas definido en el producto se cumple en la práctica.
+*   **Complejidad:** M
+*   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
+*   **Decisiones de negocio consultadas con el humano:** Los remanentes descartados (merma) cuentan en el promedio con el tiempo transcurrido hasta su descarte — el TRR mide el ciclo de vida completo del remanente (éxito o fracaso), no solo el consumo exitoso.
+*   **Criterios de Aceptación (BDD - Sintaxis Gherkin):**
+    *   **Escenario 1 (Cálculo con muestra):**
+        *   **Given** 3 remanentes que alcanzaron estado terminal en el rango consultado, con tiempos de 24h, 48h y 96h respectivamente.
+        *   **When** El Administrador consulta el indicador TRR del dashboard.
+        *   **Then** El sistema retorna `averageTrrHours: 56.0`, `targetTrrHours: 72` y `sampleSize: 3`.
+    *   **Escenario 2 (Sin muestra en el rango):**
+        *   **Given** Ningún remanente alcanzó estado terminal en el rango de fechas consultado.
+        *   **When** El Administrador consulta el indicador TRR.
+        *   **Then** El sistema retorna `sampleSize: 0` y la UI muestra un estado vacío explícito — nunca `"0h"`, que se leería engañosamente como un resultado perfecto.
+
+
+### US-021: Advertencia de Apertura Duplicada al Extraer Insumo
+*   **Historia:** Como operario autorizado, quiero recibir una advertencia visual al intentar extraer un insumo de bodega si ya existe un remanente activo del mismo insumo en cocina, para evitar aperturas duplicadas y reducir la merma por insumos abiertos olvidados.
+*   **Complejidad:** M
+*   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
+*   **Decisiones de negocio consultadas con el humano:** La advertencia es no bloqueante (patrón "Soft Limits", consistente con la saturación de almacenes secundarios ya aprobada en `01_product_discovery.md §7`) y detecta remanentes activos en **cualquier** ubicación de cocina, no solo la ubicación de destino seleccionada.
+*   **Criterios de Aceptación (BDD - Sintaxis Gherkin):**
+    *   **Escenario 1 (Advertencia mostrada, extracción no bloqueada):**
+        *   **Given** Un remanente activo de "Queso Parmesano" con 2.3kg disponibles en "Heladera A - Línea de Fríos".
+        *   **When** El operario abre el modal de extracción de bodega y selecciona "Queso Parmesano".
+        *   **Then** El sistema muestra una advertencia no bloqueante indicando la ubicación y cantidad del remanente existente, y el operario puede confirmar la extracción igualmente.
+    *   **Escenario 2 (Sin remanente activo, sin advertencia):**
+        *   **Given** Ningún remanente activo de "Aceite de Oliva" en ninguna ubicación de cocina.
+        *   **When** El operario abre el modal de extracción y selecciona "Aceite de Oliva".
+        *   **Then** El sistema no muestra ninguna advertencia y permite continuar el flujo normal de extracción.
+
+
+### US-023: Navegación por Rutas y Shell de Aplicación FEFO
+*   **Historia:** Como operario o administrador, quiero que la aplicación tenga una barra de navegación de nivel superior con direcciones propias (Inventario, Estaciones, Recetas, Reportes, Ajustes) en vez de un único tablero con menús superpuestos, para orientarme de un vistazo, volver atrás con el navegador y compartir un enlace directo a la sección que estoy usando.
+*   **Complejidad:** L
+*   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
+*   **Decisiones de negocio consultadas con el humano (Guard 24/28/34):** Adoptar `react-router-dom@7.18.3` (data router) — enmienda aprobada en `docs/00_stack_manifest.md` §4 v1.13.0. Mapeo de nav: Inventario = Tablero FEFO de cocina; Estaciones = extracción de bodega + gestión de ubicaciones + reabastecimiento; Recetas = Recetario; Reportes = dashboard de mermas/KPIs; Ajustes = configuración + usuarios + roles + historial de movimientos. Control de acceso por ruta: **Reportes y Ajustes solo `ADMIN`** (ruta protegida redirige a Inventario si falta el rol); Inventario / Estaciones / Recetas visibles para cualquier operario autenticado. Las operaciones transitorias (Extraer, Preparar Receta, Conciliar Turno, Descartar) siguen como modales lanzados desde su ruta padre, no como rutas propias. Se adopta además el tratamiento espacial de la lámina "Aplicación" (barra lateral tipo comanda con wordmark vertical). Fuente de reglas de codificación (Guard 34): documentación oficial `reactrouter.com`.
+*   **Criterios de Aceptación (BDD - Sintaxis Gherkin):**
+    *   **Escenario 1 (Deep-link y botón atrás):**
+        *   **Given** Un operario autenticado que navega de Inventario a Recetas usando la barra superior.
+        *   **When** Recarga la página y luego pulsa el botón "atrás" del navegador.
+        *   **Then** La recarga lo mantiene en Recetas (la URL refleja la ruta) y el botón "atrás" lo devuelve a Inventario sin recargar la aplicación completa.
+    *   **Escenario 2 (Ruta protegida por rol):**
+        *   **Given** Un operario con rol distinto de `ADMIN` autenticado en Inventario.
+        *   **When** Intenta abrir la ruta de Reportes escribiendo su URL directamente.
+        *   **Then** El sistema lo redirige a Inventario sin exponer el contenido de Reportes, de forma consistente con el gating que hoy aplica el menú de Administración.
+
+
+### US-024: Contenido de Ruta Inline y Consistente
+*   **Historia:** Como administrador, quiero que Reportes y cada sección de Ajustes se abran como una página normal dentro de la aplicación (no como una ventana emergente flotante) y tengan su propia dirección enlazable, para navegar entre ellas de forma coherente con el resto de la app y poder recargar o compartir el enlace de una sección concreta.
+*   **Complejidad:** M
+*   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
+*   **Justificación:** `US-023` montó los componentes existentes bajo rutas "tal cual" (alcance frontend-only, sin reescribirlos). `ReportsDashboard` era un `<Modal>`, así que `/reportes` abre un overlay flotante mientras `/estaciones` y `/recetas` se ven inline — inconsistencia detectada en la verificación en vivo del stack. `/ajustes` además es una única pantalla con 5 modales, sin URL para cada sección.
+*   **Decisiones de negocio consultadas con el humano (Guard 28):** `/ajustes` pasa a **sub-rutas deep-linkables** (`/ajustes/configuracion`, `/ajustes/personal`, `/ajustes/roles`, `/ajustes/movimientos`, `/ajustes/catalogo`) con barra de pestañas compartida, no pestañas sin URL. `/reportes` y todas las sub-rutas de `/ajustes` siguen siendo solo `ADMIN`. Los formularios transitorios (alta de operario, alta de insumo/receta, reabastecimiento, edición de configuración, confirmaciones de borrado) **siguen siendo `<Modal>`** lanzados desde dentro de su ruta.
+*   **Criterios de Aceptación (BDD - Sintaxis Gherkin):**
+    *   **Escenario 1 (Reportes inline):**
+        *   **Given** Un administrador autenticado.
+        *   **When** Navega a Reportes.
+        *   **Then** El dashboard de mermas se muestra inline en la página, sin overlay oscuro ni card flotante ni botón "X" de cerrar; se sale navegando a otra sección.
+    *   **Escenario 2 (Sub-ruta de Ajustes deep-linkable):**
+        *   **Given** Un administrador que abre `/ajustes/personal` directamente en la barra de direcciones y recarga.
+        *   **When** Luego pulsa "Movimientos" en la barra de pestañas de Ajustes y después el botón "atrás" del navegador.
+        *   **Then** La recarga lo mantiene en Personal (URL `/ajustes/personal`); pulsar "Movimientos" cambia la URL a `/ajustes/movimientos`; y "atrás" lo devuelve a Personal — todo sin recargar la aplicación completa.
+    *   **Escenario 3 (Acceso por rol conservado):**
+        *   **Given** Un operario con rol distinto de `ADMIN`.
+        *   **When** Escribe `/ajustes/roles` en la barra de direcciones.
+
+### US-034: Panel de Configuración de Agentes IA
+*   **Historia:** Como administrador, quiero disponer de un panel de configuración en Ajustes (`/ajustes/ia`) para seleccionar y parametrizar el proveedor de IA (Google Gemini, OpenAI / Ollama compatible o Motor Heurístico local), ingresar credenciales seguras cifradas, probar la conexión y habilitar o deshabilitar módulos de IA, con el fin de gobernar el uso de modelos inteligentes en el restaurante de acuerdo a la infraestructura y conectividad disponible.
+*   **Complejidad:** M
+*   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
+*   **Decisiones de negocio consultadas con el humano (Guard 24/28):** Ruta protegida `/ajustes/ia` accesible solo por rol `ADMIN`. Credenciales almacenadas cifradas en base de datos con AES-256-GCM y enmascaradas en UI, con fallback a variable de entorno `AI_API_KEY`. Conector HTTP nativo (`fetch` de Node 24) sin dependencias pesadas de terceros. Parámetro `temperature` con cota máxima <=0.2 (Guard 9). Botón de prueba de conectividad ("Ping") con feedback visual no bloqueante.
+*   **Criterios de Aceptación (BDD - Sintaxis Gherkin):**
+    *   **Escenario 1 (Acceso restringido a ADMIN):**
+        *   **Given** Un operario con rol distinto de `ADMIN` autenticado en la aplicación.
+        *   **When** Intenta acceder directamente a `/ajustes/ia`.
+        *   **Then** El sistema lo redirige a `/inventario` sin exponer los controles de configuración de IA ni las credenciales.
+    *   **Escenario 2 (Configuración y enmascaramiento de API Key):**
+        *   **Given** Un administrador autenticado en `/ajustes/ia`.
+        *   **When** Selecciona proveedor "GEMINI", ingresa una nueva API Key y guarda la configuración.
+        *   **Then** El sistema persiste la clave cifrada, muestra un mensaje de confirmación y el campo de API Key se visualiza enmascarado indicando que la clave está configurada (`hasApiKey: true`).
+    *   **Escenario 3 (Prueba de conectividad exitosa):**
+        *   **Given** Un administrador en `/ajustes/ia` con credenciales configuradas o proveedor Heurístico.
+        *   **When** Hace clic en "Probar Conexión".
+        *   **Then** El sistema ejecuta un ping contra el endpoint y muestra una señal visual de estado exitoso con la latencia en milisegundos.
+
+### US-035: Generador de Recetas de Aprovechamiento Anti-Desperdicio
+*   **Historia:** Como chef o administrador, quiero que el sistema identifique automáticamente los remanentes abiertos con fecha de vencimiento inminente (<48 horas) y me proponga recetas dinámicas o preparaciones de aprovechamiento con la opción de basarse en el recetario propio del restaurante (100% privado, Zero Data Leakage) o en generación creativa asistida por IA, para minimizar el desperdicio monetario y transformar mermas potenciales en platos vendibles sin arriesgar secretos comerciales.
+*   **Complejidad:** L
+*   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
+*   **Decisiones de negocio consultadas con el humano (Guard 9/17/24/28):** Human-in-the-Loop estricto: la IA genera sugerencias en borrador, pero el Chef debe pulsar "Guardar en Catálogo" para hacerla oficial. Modo Dual con blindaje de propiedad intelectual (Guard 9): el usuario puede elegir entre (1) *Modo Catálogo Propio* (Zero Data Leakage: cruce de ingredientes resuelto 100% local en base de datos PostgreSQL, sin enviar datos a APIs externas) y (2) *Modo Creativo Libre* (asistido por IA/Heurística donde solo se transmiten nombres de insumos sobrantes genéricos sin recetas del restaurante). Fallback automático y transparente: si el proveedor externo de IA no está disponible o falla por timeout/red, el sistema conmuta inmediatamente a un algoritmo heurístico local determinista sin interrumpir la experiencia. Todas las cantidades y costos calculados estrictamente con `decimal.js` y `DecimalQuantity` (Guard 17).
+*   **Criterios de Aceptación (BDD - Sintaxis Gherkin):**
+    *   **Escenario 1 (Modo Catálogo Propio — Zero Data Leakage):**
+        *   **Given** Existen remanentes activos en cocina cuya caducidad es menor a 48 horas y el chef selecciona el modo "Recetas del Restaurante".
+        *   **When** El chef solicita propuestas de aprovechamiento.
+        *   **Then** El sistema cruza localmente en el servidor los ingredientes en riesgo contra las recetas del recetario propio, devuelve propuestas basadas exclusivamente en la carta y garantiza que ningún dato o receta fue enviado a un proveedor externo (`source: "CATALOG"`).
+    *   **Escenario 2 (Modo Creativo Asistido por IA con remanentes críticos):**
+        *   **Given** El chef activa el modo "Generación Creativa (IA)" con remanentes en riesgo.
+        *   **When** El chef solicita propuestas de aprovechamiento.
+        *   **Then** El sistema transmite exclusivamente los nombres de los ingredientes sobrantes genéricos y devuelve hasta 3 propuestas creativas estructuradas que aprovechan prioritariamente los insumos en riesgo, indicando ingredientes, cantidades y merma prevenida.
+    *   **Escenario 3 (Fallback heurístico transparente ante desconexión):**
+        *   **Given** En modo creativo la conectividad con el proveedor de IA externo falla o el modo Heurístico está activo.
+        *   **When** El chef solicita recetas de aprovechamiento.
+        *   **Then** El sistema genera sugerencias mediante el motor heurístico local sin arrojar error HTTP 500, indicando visualmente que se utilizó el motor determinista local.
+    *   **Escenario 4 (Conversión de sugerencia a receta del catálogo):**
+        *   **Given** Una propuesta de aprovechamiento mostrada en pantalla.
+        *   **When** El chef hace clic en "Guardar en Catálogo de Recetas".
+        *   **Then** El sistema crea una nueva receta en la base de datos con sus ingredientes asociados, lista para ser consumida mediante el flujo de consumo rápido (`US-007`).
 
 
 ---

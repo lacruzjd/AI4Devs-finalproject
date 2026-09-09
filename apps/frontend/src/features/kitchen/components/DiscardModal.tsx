@@ -38,15 +38,20 @@ const DiscardReasonSelect: React.FC<DiscardReasonSelectProps> = ({ value, onChan
   </div>
 );
 
+import { ErrorBanner } from '../../../shared/components/ErrorBanner.js';
+import { mapToUserFriendlyError } from '../../../shared/utils/errorMessageMapper.js';
+
 export const DiscardModal: React.FC<DiscardModalProps> = ({ remanente, onClose, onSuccess }) => {
   const [reason, setReason] = useState('EXPIRATION');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!remanente) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
       await KitchenService.discardRemanente(remanente.id, reason);
@@ -54,27 +59,31 @@ export const DiscardModal: React.FC<DiscardModalProps> = ({ remanente, onClose, 
       onClose();
     } catch (err) {
       console.error('[DiscardModal] Error registrando el descarte:', err);
-      alert('Error registrando el descarte');
+      const friendly = mapToUserFriendlyError(err);
+      setError(friendly.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
+
   return (
-    <Modal maxWidth="450px" width="90%">
+    <Modal size="sm">
       <ModalHeader
         icon={<AlertTriangle />}
         title="Registrar Descarte de Merma"
-        titleColor="var(--color-danger)"
+        danger
         onClose={onClose}
       />
 
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '0.95rem' }}>
+      <p className="text-secondary-color mb-4 fs-md">
         Se dará de baja el insumo <strong>{remanente.insumoName}</strong> ({formatQuantity(remanente.currentQuantity, remanente.unitOfMeasure)} {formatUnitLabel(remanente.unitOfMeasure)}) del inventario activo.
       </p>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <form onSubmit={handleSubmit} className="flex-column gap-4">
+        {error && <ErrorBanner message={error} />}
         <DiscardReasonSelect value={reason} onChange={setReason} />
+
 
         <ModalFooterActions
           onCancel={onClose}

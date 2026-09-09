@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import { PinPad } from './PinPad.js';
 import { AuthService, LoginPinResponse } from '../services/auth.service.js';
 import { Lock, UserCheck, AlertCircle } from 'lucide-react';
-import { Modal } from '../../../shared/components/Modal.js';
+import { AuthScreen } from '../../../shared/components/AuthScreen.js';
 import { ErrorBanner } from '../../../shared/components/ErrorBanner.js';
+import { getRecentOperatorIds, rememberOperatorId } from '../recentOperators.js';
+import styles from './PinLoginModal.module.css';
 
 interface PinLoginModalProps {
   onSuccess: (authData: LoginPinResponse) => void;
+  initialNotice?: string;
 }
+
 
 interface UserSelectorProps {
   selectedUserId: string;
@@ -25,67 +29,68 @@ interface UserSelectorProps {
  * lista que podría no reflejar los usuarios reales de este despliegue.
  */
 const UserSelector: React.FC<UserSelectorProps> = ({ selectedUserId, onChange, disabled }) => (
-  <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+  <div className="mb-5 text-left">
     <label
       htmlFor="input-pin-login-user"
-      style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '6px', display: 'block' }}
+      className="fs-sm text-secondary-color mb-2 d-block"
     >
       ID de Operario:
     </label>
     <input
       type="text"
       id="input-pin-login-user"
-      className="input-touch"
+      className="input-touch w-full"
       value={selectedUserId}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
       placeholder="ej. bootstrap-admin"
       autoComplete="off"
-      style={{ width: '100%' }}
     />
   </div>
 );
 
+/**
+ * Chips de operario reciente (TK-113-FE, US-031): atajo device-local, no una
+ * lista de usuarios del sistema (ver recentOperators.ts).
+ */
+const RecentOperatorChips: React.FC<{ onSelect: (id: string) => void }> = ({ onSelect }) => {
+  const recentIds = getRecentOperatorIds();
+  if (recentIds.length === 0) return null;
+
+  return (
+    <div className={styles['recent-operator-chips']} aria-label="Operarios recientes en este dispositivo">
+      {recentIds.map((id) => (
+        <button
+          key={id}
+          type="button"
+          className={styles['recent-operator-chip']}
+          onClick={() => onSelect(id)}
+        >
+          {id}
+        </button>
+      ))}
+    </div>
+  );
+};
+
 const PinDotsDisplay: React.FC<{ pinLength: number }> = ({ pinLength }) => (
-  <div
-    style={{
-      backgroundColor: 'var(--bg-root)',
-      border: '1px solid var(--border-card)',
-      borderRadius: '12px',
-      padding: '16px',
-      marginBottom: '16px',
-      minHeight: '56px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '12px',
-    }}
-  >
+  <div className="pin-dots-bar">
     {Array.from({ length: Math.max(4, pinLength) }).map((_, idx) => (
-      <div
-        key={idx}
-        style={{
-          width: '16px',
-          height: '16px',
-          borderRadius: '50%',
-          backgroundColor: idx < pinLength ? 'var(--color-primary)' : 'var(--border-card)',
-          transition: 'all 0.15s ease',
-        }}
-      />
+      <div key={idx} className={`pin-dot-indicator ${idx < pinLength ? 'active' : ''}`} />
     ))}
   </div>
 );
 
 const PinLoginHeader: React.FC = () => (
   <>
-    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-      <div className="card-badge-icon" style={{ width: '56px', height: '56px' }}>
+    <div className="modal-header-center">
+      <div className="card-badge-icon icon-badge-md">
         <Lock size={28} />
       </div>
     </div>
 
-    <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '4px' }}>Acceso Táctil de Operarios</h2>
-    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+    <h2 className="fs-xl fw-bold mb-1">Acceso Táctil de Operarios</h2>
+    <p className="text-secondary-color fs-md mb-5">
       Ingrese su ID de operario y su PIN de seguridad
     </p>
   </>
@@ -96,7 +101,7 @@ const PinSubmitButton: React.FC<{ disabled: boolean; isLoading: boolean; onClick
   isLoading,
   onClick,
 }) => (
-  <button type="button" disabled={disabled} onClick={onClick} className="btn-touch btn-primary" style={{ width: '100%', marginTop: '12px' }}>
+  <button type="button" disabled={disabled} aria-busy={isLoading} onClick={onClick} className="btn-touch btn-primary w-full mt-3">
     <UserCheck size={20} />
     {isLoading ? 'Verificando PIN...' : 'Ingresar a Cocina'}
   </button>
@@ -136,6 +141,7 @@ function usePinLoginForm(onSuccess: (authData: LoginPinResponse) => void) {
 
     try {
       const response = await AuthService.loginWithPin(selectedUserId, pin);
+      rememberOperatorId(selectedUserId);
       onSuccess(response);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'PIN incorrecto. Intente de nuevo.');
@@ -148,27 +154,48 @@ function usePinLoginForm(onSuccess: (authData: LoginPinResponse) => void) {
   return { selectedUserId, setSelectedUserId, pin, error, isLoading, handleDigitPress, handleDeletePress, handleLoginSubmit };
 }
 
-export const PinLoginModal: React.FC<PinLoginModalProps> = ({ onSuccess }) => {
+import { ForgotPinModal } from './ForgotPinModal.js';
+
+export const PinLoginModal: React.FC<PinLoginModalProps> = ({ onSuccess, initialNotice }) => {
   const form = usePinLoginForm(onSuccess);
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
 
   return (
-    <Modal maxWidth="420px" width="100%" textAlign="center">
-      <PinLoginHeader />
+    <>
+      <AuthScreen>
+        <PinLoginHeader />
 
-      <UserSelector selectedUserId={form.selectedUserId} onChange={form.setSelectedUserId} disabled={form.isLoading} />
-      <PinDotsDisplay pinLength={form.pin.length} />
+        <UserSelector selectedUserId={form.selectedUserId} onChange={form.setSelectedUserId} disabled={form.isLoading} />
+        <RecentOperatorChips onSelect={form.setSelectedUserId} />
+        <PinDotsDisplay pinLength={form.pin.length} />
 
-      {form.error && (
-        <ErrorBanner message={form.error} icon={<AlertCircle size={18} />} padding="10px 14px" fontSize="0.88rem" />
-      )}
+        {(form.error || initialNotice) && (
+          <ErrorBanner message={form.error || initialNotice || ''} icon={<AlertCircle size={18} />} compact />
+        )}
 
-      <PinPad onDigitPress={form.handleDigitPress} onDeletePress={form.handleDeletePress} disabled={form.isLoading} />
+        <PinPad onDigitPress={form.handleDigitPress} onDeletePress={form.handleDeletePress} disabled={form.isLoading} />
 
-      <PinSubmitButton
-        disabled={form.isLoading || form.pin.length < 4 || !form.selectedUserId.trim()}
-        isLoading={form.isLoading}
-        onClick={form.handleLoginSubmit}
+        <PinSubmitButton
+          disabled={form.isLoading || form.pin.length < 4 || !form.selectedUserId.trim()}
+          isLoading={form.isLoading}
+          onClick={form.handleLoginSubmit}
+        />
+
+        <div className="mt-3">
+          <button
+            type="button"
+            className={styles['btn-link']}
+            onClick={() => setIsForgotModalOpen(true)}
+          >
+            ¿Olvidó su PIN de Administrador?
+          </button>
+        </div>
+      </AuthScreen>
+
+      <ForgotPinModal
+        isOpen={isForgotModalOpen}
+        onClose={() => setIsForgotModalOpen(false)}
       />
-    </Modal>
+    </>
   );
 };

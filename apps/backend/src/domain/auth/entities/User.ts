@@ -1,7 +1,7 @@
 import { Pin } from '../value-objects/Pin.js';
 import { UserBlockedException } from '../errors/UserBlockedException.js';
 
-export type UserRole = 'ADMIN' | 'KITCHEN_STAFF';
+export type UserRole = string;
 export type UserStatusType = 'ACTIVE' | 'BLOCKED';
 
 export interface UserProps {
@@ -10,7 +10,11 @@ export interface UserProps {
   role: UserRole;
   pin: Pin;
   status: UserStatusType;
+  mustChangePin?: boolean;
   failedAttempts: number;
+  email?: string;
+  resetTokenHash?: string;
+  resetTokenExpires?: Date;
   createdAt?: Date;
 }
 
@@ -18,7 +22,10 @@ export class User {
   private readonly props: UserProps;
 
   constructor(props: UserProps) {
-    this.props = { ...props };
+    this.props = {
+      mustChangePin: true,
+      ...props,
+    };
   }
 
   public get id(): string {
@@ -41,8 +48,24 @@ export class User {
     return this.props.status;
   }
 
+  public get mustChangePin(): boolean {
+    return this.props.mustChangePin ?? true;
+  }
+
   public get failedAttempts(): number {
     return this.props.failedAttempts;
+  }
+
+  public get email(): string | undefined {
+    return this.props.email;
+  }
+
+  public get resetTokenHash(): string | undefined {
+    return this.props.resetTokenHash;
+  }
+
+  public get resetTokenExpires(): Date | undefined {
+    return this.props.resetTokenExpires;
   }
 
   public isBlocked(): boolean {
@@ -60,9 +83,6 @@ export class User {
     this.props.failedAttempts = 0;
   }
 
-  // Bloqueo/activacion administrativa (Guard: gestion minima de personal, TK-049) — distinto
-  // del bloqueo automatico por 5 intentos fallidos, pero mismo status: un ADMIN puede
-  // desactivar a un operario que deja el restaurante, o reactivar a uno bloqueado por error.
   public block(): void {
     this.props.status = 'BLOCKED';
   }
@@ -85,4 +105,38 @@ export class User {
     }
     return isValid;
   }
+
+  public changePin(newPin: Pin): void {
+    this.props.pin = newPin;
+    this.props.mustChangePin = false;
+  }
+
+  public setResetToken(tokenHash: string, expiresAt: Date): void {
+    this.props.resetTokenHash = tokenHash;
+    this.props.resetTokenExpires = expiresAt;
+  }
+
+  public clearResetToken(): void {
+    this.props.resetTokenHash = undefined;
+    this.props.resetTokenExpires = undefined;
+  }
+
+  public resetPin(newPin: Pin): void {
+    this.props.pin = newPin;
+    this.props.mustChangePin = false;
+    this.props.status = 'ACTIVE';
+    this.props.failedAttempts = 0;
+    this.clearResetToken();
+  }
+
+  public updateDetails(name?: string, role?: string, newPin?: Pin, email?: string): void {
+    if (name) this.props.name = name;
+    if (role) this.props.role = role;
+    if (email !== undefined) this.props.email = email;
+    if (newPin) {
+      this.props.pin = newPin;
+      this.props.mustChangePin = false;
+    }
+  }
 }
+

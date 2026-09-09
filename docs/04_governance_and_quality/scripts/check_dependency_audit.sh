@@ -17,6 +17,9 @@ set -uo pipefail
 ALLOWED_GHSAS=(
   "GHSA-fx2h-pf6j-xcff" # vite: server.fs.deny bypass — solo dev server, nunca en produccion. Fix real exige Vite 6 (fuera del major aprobado en stack_manifest.md).
   "GHSA-5xrq-8626-4rwp" # vitest: RCE via UI server — solo `vitest --ui`, nunca invocado en Dockerfile/ci.yml. Fix real exige Vitest 3 (fuera del major aprobado).
+  # TK-134: los 5 advisories de mysql2 / fast-uri (transitivos de Prisma 7) que estaban aqui como
+  # riesgo residual aceptado ya NO aplican — `pnpm.overrides` fuerza mysql2>=3.22.0 y fast-uri>=3.1.6.
+  # Se quitan de la lista a proposito: si volvieran a aparecer, el gate DEBE fallar, no dejarlos pasar.
 )
 
 echo "🔍 Auditando dependencias (pnpm audit --audit-level=high) con riesgo residual documentado..."

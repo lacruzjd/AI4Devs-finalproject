@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserPlus } from 'lucide-react';
 import { UsersService } from '../services/users.service.js';
+import { RolesService, RoleDto } from '../../security/services/roles.service.js';
 import { ErrorBanner } from '../../../shared/components/ErrorBanner.js';
 
 interface CreateUserFormProps {
@@ -10,13 +11,55 @@ interface CreateUserFormProps {
 interface CreateUserFieldsProps {
   name: string;
   onNameChange: (v: string) => void;
-  role: 'KITCHEN_STAFF' | 'ADMIN';
-  onRoleChange: (v: 'KITCHEN_STAFF' | 'ADMIN') => void;
+  role: string;
+  onRoleChange: (v: string) => void;
+  availableRoles: RoleDto[];
   pin: string;
   onPinChange: (v: string) => void;
 }
 
-const CreateUserFields: React.FC<CreateUserFieldsProps> = ({ name, onNameChange, role, onRoleChange, pin, onPinChange }) => (
+interface RoleSelectFieldProps {
+  role: string;
+  onRoleChange: (v: string) => void;
+  availableRoles: RoleDto[];
+}
+
+const RoleSelectField: React.FC<RoleSelectFieldProps> = ({ role, onRoleChange, availableRoles }) => (
+  <div>
+    <label htmlFor="select-new-user-role" className="form-label">
+      Rol del Personal:
+    </label>
+    <select
+      id="select-new-user-role"
+      className="input-touch"
+      value={role}
+      onChange={(e) => onRoleChange(e.target.value)}
+    >
+      {availableRoles.length > 0 ? (
+        availableRoles.map((r) => (
+          <option key={r.id} value={r.name}>
+            {r.name} {r.description ? `(${r.description})` : ''}
+          </option>
+        ))
+      ) : (
+        <>
+          <option value="KITCHEN_STAFF">Personal de Cocina (KITCHEN_STAFF)</option>
+          <option value="ADMIN">Administrador (ADMIN)</option>
+        </>
+      )}
+    </select>
+  </div>
+);
+
+const CreateUserFields: React.FC<CreateUserFieldsProps> = ({
+  name,
+  onNameChange,
+  role,
+  onRoleChange,
+  availableRoles,
+  pin,
+  onPinChange,
+}) => (
   <>
     <div>
       <label htmlFor="input-new-user-name" className="form-label">
@@ -33,20 +76,7 @@ const CreateUserFields: React.FC<CreateUserFieldsProps> = ({ name, onNameChange,
       />
     </div>
 
-    <div>
-      <label htmlFor="select-new-user-role" className="form-label">
-        Rol:
-      </label>
-      <select
-        id="select-new-user-role"
-        className="input-touch"
-        value={role}
-        onChange={(e) => onRoleChange(e.target.value as 'KITCHEN_STAFF' | 'ADMIN')}
-      >
-        <option value="KITCHEN_STAFF">Personal de Cocina (KITCHEN_STAFF)</option>
-        <option value="ADMIN">Administrador (ADMIN)</option>
-      </select>
-    </div>
+    <RoleSelectField role={role} onRoleChange={onRoleChange} availableRoles={availableRoles} />
 
     <div>
       <label htmlFor="input-new-user-pin" className="form-label">
@@ -67,7 +97,7 @@ const CreateUserFields: React.FC<CreateUserFieldsProps> = ({ name, onNameChange,
 );
 
 async function submitCreateUser(
-  data: { name: string; role: 'KITCHEN_STAFF' | 'ADMIN'; pin: string },
+  data: { name: string; role: string; pin: string },
   onCreated: (message: string) => void,
   reset: () => void,
   setError: (msg: string | null) => void
@@ -77,23 +107,39 @@ async function submitCreateUser(
     onCreated(`Operario "${created.name}" creado con estado ${created.status}.`);
     reset();
   } catch (err) {
-    // No se cae en un fallback de éxito silencioso — un alta de operario fallida
-    // debe verse como error real, nunca como si la cuenta se hubiera creado.
     setError(err instanceof Error ? err.message : 'Error creando el operario.');
   }
 }
 
 function useCreateUserForm(onCreated: (message: string) => void) {
   const [name, setName] = useState('');
-  const [role, setRole] = useState<'KITCHEN_STAFF' | 'ADMIN'>('KITCHEN_STAFF');
+  const [role, setRole] = useState('KITCHEN_STAFF');
+  const [availableRoles, setAvailableRoles] = useState<RoleDto[]>([]);
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    RolesService.fetchRoles()
+      .then((roles) => {
+        setAvailableRoles(roles);
+        if (roles.length > 0) {
+          const kitchenRole = roles.find((r) => r.name === 'KITCHEN_STAFF');
+          setRole(kitchenRole ? kitchenRole.name : roles[0].name);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const reset = () => {
     setName('');
     setPin('');
-    setRole('KITCHEN_STAFF');
+    if (availableRoles.length > 0) {
+      const kitchenRole = availableRoles.find((r) => r.name === 'KITCHEN_STAFF');
+      setRole(kitchenRole ? kitchenRole.name : availableRoles[0].name);
+    } else {
+      setRole('KITCHEN_STAFF');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,14 +150,14 @@ function useCreateUserForm(onCreated: (message: string) => void) {
     setIsSubmitting(false);
   };
 
-  return { name, setName, role, setRole, pin, setPin, error, isSubmitting, handleSubmit };
+  return { name, setName, role, setRole, availableRoles, pin, setPin, error, isSubmitting, handleSubmit };
 }
 
 export const CreateUserForm: React.FC<CreateUserFormProps> = ({ onCreated }) => {
   const form = useCreateUserForm(onCreated);
 
   return (
-    <form onSubmit={form.handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <form onSubmit={form.handleSubmit} className="flex-column flex-gap-md settings-form">
       {form.error && <ErrorBanner message={form.error} />}
 
       <CreateUserFields
@@ -119,15 +165,16 @@ export const CreateUserForm: React.FC<CreateUserFormProps> = ({ onCreated }) => 
         onNameChange={form.setName}
         role={form.role}
         onRoleChange={form.setRole}
+        availableRoles={form.availableRoles}
         pin={form.pin}
         onPinChange={form.setPin}
       />
 
       <button
         type="submit"
-        className="btn-touch btn-primary"
+        className="btn-touch btn-primary flex-center flex-gap-xs mt-1"
         disabled={form.isSubmitting}
-        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginTop: '4px' }}
+        aria-busy={form.isSubmitting}
       >
         <UserPlus size={18} />
         {form.isSubmitting ? 'Creando...' : 'Crear Operario'}

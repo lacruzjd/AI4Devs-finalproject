@@ -36,6 +36,24 @@ classDiagram
             +UnidadConsumo unidadConsumo
             +Int diasVidaUtilBodega
             +Int horasVidaUtilCocina
+            +DecimalMonetario? costoUnitario
+            +stockTotalBodega() CantidadDecimal
+            +tieneSaldoSuficiente(cantidad, subSectorId) Boolean
+            +descontarDeSector(cantidad, subSectorId)
+            +reabastecerSector(cantidad, subSectorId)
+        }
+
+        class LineaStockBodega {
+            +UUID id
+            +UUID subSectorId
+            +CantidadDecimal cantidad
+        }
+
+        class SubSectorBodega {
+            +UUID id
+            +String nombre
+            +TipoUbicacion tipo
+            +Boolean activo
         }
     }
 
@@ -69,6 +87,9 @@ classDiagram
         }
     }
 
+    Insumo "1" *-- "*" LineaStockBodega : distribuye_existencias_en
+    LineaStockBodega "*" -- "1" SubSectorBodega : ubicada_en
+    SubSectorBodega "1" -- "*" Remanente : destino_en_cocina
     Insumo "1" -- "*" Remanente : origina
     Receta "1" *-- "*" IngredienteReceta : contiene
     IngredienteReceta "*" -- "1" Insumo : requiere
@@ -78,11 +99,15 @@ classDiagram
 
 ---
 
+> **Agregado `Insumo` (US-025):** el `Insumo` es la raíz del agregado y contiene sus `LineaStockBodega` (una por cada sub-sector donde tiene existencias). El stock de bodega **no** es un escalar del `Insumo` sino la suma de sus líneas. Toda extracción o reabastecimiento opera sobre una línea concreta identificada por `subSectorId`; no existe una línea "por defecto". `SubSectorBodega` (`StorageLocation`) es un agregado propio del catálogo de configuración y se referencia por identidad.
+
+---
+
 ## 🔄 2. Ciclo de Vida y Transiciones de Estado del Remanente
 
 ```mermaid
 stateDiagram-v2
-    [*] --> ACTIVE : Extracción registrada desde Bodega Central
+    [*] --> ACTIVE : Extracción registrada desde un sub-sector de Bodega
     ACTIVE --> ACTIVE : Consumo parcial registrado (cantidadActual > 0)
     ACTIVE --> CONSUMED : Consumo total registrado (cantidadActual == 0)
     ACTIVE --> DISCARDED : Descarte por expiración / merma física
@@ -117,6 +142,12 @@ stateDiagram-v2
 
 ## 🛡️ 5. Invariantes de Dominio Innegociables
 
-- **Invariante 1 (No Saldos Negativos):** La `cantidadActual` de un `Remanente` nunca puede decrecer por debajo de `0.0000`.
+- **Invariante 1 (No Saldos Negativos):** La `cantidadActual` de un `Remanente` nunca puede decrecer por debajo de `0.0000`. **Extensión US-025:** la `cantidad` de cada `LineaStockBodega` tampoco puede ser negativa; una extracción que supere el saldo del **sub-sector de origen elegido** se rechaza atómicamente (`HTTP 422`) sin descontar de ninguna otra línea del mismo insumo.
+- **Invariante 4 (Sub-Sector con Existencias es Indeleble, US-025):** Un `SubSectorBodega` (`StorageLocation`) referenciado por al menos una `LineaStockBodega` con `cantidad > 0` no puede eliminarse ni marcarse como inactivo; la operación se rechaza con `HTTP 409 Conflict`.
 - **Invariante 2 (Caducidad Acelerada TRR):** Todo `Remanente` abierto en cocina hereda como límite máximo de vida útil el valor menor entre su vencimiento original y 24 horas.
 - **Invariante 3 (Trazabilidad e Inmutabilidad de Movimientos):** Un `MovimientoStock` registrado es inmutable.
+- **Invariante 5 (Área de Cocina con Remanentes Activos es Indeleble, US-026 / ADR-003):** Un `StorageLocation` con `type = KITCHEN` referenciado por al menos un `Remanente` en estado `ACTIVE` no puede eliminarse ni desactivarse (`HTTP 409`). El `Remanente.storageLocationId` pasa a ser una FK (antes literal libre).
+- **Invariante 6 (Cuadre de Preparación de Receta, ADR-003 / US-028):** Al cerrar una `RecipePreparation`, para cada ingrediente debe cumplirse exactamente `extraído = consumido + sobrante + merma` (aritmética Decimal). `merma > 0 ⇒ motivo obligatorio`.
+- **Invariante 7 (Devolución de Sobrante a Bodega solo si Intacto, ADR-003 / US-028):** Un `Remanente` solo puede reingresar su sobrante a un sub-sector de bodega si `isPristine == true` (cero consumo registrado) **y** el operario lo marca "envase sin abrir". El reloj FEFO (`expirationDate`) del sobrante que queda en cocina se conserva al reubicarlo.
+
+> **Nota — nuevo agregado `RecipePreparation` (ADR-003):** representa una tanda de preparación de una receta. Se abre automáticamente al extraer de bodega con `purpose = RECIPE` (`OPEN`), agrupa los `Remanente` de esa tanda (`Remanente.recipePreparationId`), y se resuelve con `close` (conciliación consumo/sobrante/merma → `RecipePreparationItem[]`) o `abandon`. Ver [`ADR-003`](adr/ADR-003-recipe-preparation-tracking.md).

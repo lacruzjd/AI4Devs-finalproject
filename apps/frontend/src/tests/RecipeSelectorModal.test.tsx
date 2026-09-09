@@ -7,9 +7,9 @@ describe('TK-061: RecipeSelectorModal conectado al catálogo real', () => {
     vi.unstubAllGlobals();
   });
 
-  it('carga las recetas reales del catálogo (GET /catalog/recipes) en vez de datos hardcodeados', async () => {
+  it('carga las recetas reales del catálogo (GET /recipes) en vez de datos hardcodeados', async () => {
     const fetchMock = vi.fn(async (url: string) => {
-      if (url.includes('/catalog/recipes')) {
+      if (url.endsWith('/recipes')) {
         return {
           ok: true,
           status: 200,
@@ -28,6 +28,19 @@ describe('TK-061: RecipeSelectorModal conectado al catálogo real', () => {
           ok: true,
           status: 200,
           json: async () => [{ id: 'ins-carne-1', name: 'Carne Molida', unitOfMeasure: 'KG', warehouseStock: '5.000' }],
+        };
+      }
+      if (url.includes('/availability')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            recipeId: 'rec-lasagna',
+            recipeName: 'Lasagna Boloñesa',
+            portions: 1,
+            ingredients: [{ insumoId: 'ins-carne-1', insumoName: 'Carne Molida', unitOfMeasure: 'KG', requiredQuantity: '0.200', availableQuantity: '5.000', isSufficient: true }],
+            isFullyAvailable: true,
+          }),
         };
       }
       return { ok: true, status: 200, json: async () => [] };
@@ -71,7 +84,7 @@ describe('TK-061: RecipeSelectorModal conectado al catálogo real', () => {
 
   it('confirma la preparación llamando a KitchenService.consumeRecipe con la receta real seleccionada', async () => {
     const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
-      if (url.includes('/catalog/recipes')) {
+      if (url.endsWith('/recipes')) {
         return {
           ok: true,
           status: 200,
@@ -95,8 +108,11 @@ describe('TK-061: RecipeSelectorModal conectado al catálogo real', () => {
     const onSuccess = vi.fn();
     render(<RecipeSelectorModal isOpen={true} onClose={() => {}} onSuccess={onSuccess} />);
 
+    // Esperar a que el botón esté habilitado (la vista previa de disponibilidad puede
+    // deshabilitarlo momentáneamente mientras carga) — evita un click no-op bajo carga (TK-134).
     await waitFor(() => {
       expect(screen.getByText('Lasagna Boloñesa')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Confirmar Preparación/i })).not.toBeDisabled();
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Confirmar Preparación/i }));

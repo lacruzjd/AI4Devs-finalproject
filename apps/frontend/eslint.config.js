@@ -6,7 +6,10 @@ import jsxA11y from 'eslint-plugin-jsx-a11y';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'coverage/**', 'node_modules/**'] },
+  // `.stryker-tmp/` y `reports/`: artefactos de las corridas de mutation testing (TK-138).
+  // Una corrida interrumpida deja el sandbox en disco y ESLint lintaba su código generado,
+  // rompiendo `pnpm run lint` por errores que no son del proyecto.
+  { ignores: ['dist/**', 'coverage/**', 'node_modules/**', '.stryker-tmp/**', 'reports/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   jsxA11y.flatConfigs.recommended,

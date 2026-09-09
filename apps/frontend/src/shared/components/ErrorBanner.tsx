@@ -1,39 +1,25 @@
 import React from 'react';
+import styles from './ErrorBanner.module.css';
 
 interface ErrorBannerProps {
   message: string;
   icon?: React.ReactNode;
-  padding?: string;
-  fontSize?: string;
-  marginBottom?: string;
+  compact?: boolean;
 }
 
 /**
  * Banner de error inline compartido, antes duplicado casi identico entre
  * RecipeSelectorModal y PinLoginModal.
+ *
+ * `compact` reemplaza los antiguos props de string libre (padding/fontSize/
+ * marginBottom): los 2 combos reales que existian en la app quedan fijos
+ * en la clase base vs. `.error-banner-compact` (Guard 29 extendido).
  */
-export const ErrorBanner: React.FC<ErrorBannerProps> = ({
-  message,
-  icon,
-  padding = '12px',
-  fontSize = '0.9rem',
-  marginBottom = '16px',
-}) => {
+export const ErrorBanner: React.FC<ErrorBannerProps> = ({ message, icon, compact = false }) => {
   return (
     <div
       role="alert"
-      style={{
-        backgroundColor: 'rgba(255, 42, 42, 0.15)',
-        border: '1px solid var(--color-danger)',
-        borderRadius: '8px',
-        padding,
-        marginBottom,
-        color: 'var(--color-danger)',
-        fontSize,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-      }}
+      className={`banner-alert banner-alert-danger flex-gap-xs mb-4 fs-md ${styles['p-3']}${compact ? ' error-banner-compact' : ''}`}
     >
       {icon}
       <span>{message}</span>

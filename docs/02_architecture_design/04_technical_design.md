@@ -297,17 +297,23 @@ sequenceDiagram
     participant RemanenteRepo as 🗄️ RemanenteRepository
     participant EventBus as ⚡ EventPublisher
 
-    Staff->>UC: execute({ insumoId, quantity, userId, destination })
+    Staff->>UC: execute({ insumoId, quantity, userId, fromStorageLocationId, destination })
     UC->>InsumoRepo: findById(insumoId)
-    InsumoRepo-->>UC: Insumo (Vida útil bodega vs cocina)
-    
+    InsumoRepo-->>UC: Insumo (agregado con líneas WarehouseStock por sub-sector)
+
+    UC->>UC: hasSufficientStockAt(quantity, fromStorageLocationId) — si falla → 422 InsufficientStockException (sin tocar otras líneas)
+    UC->>UC: deductStockAt(quantity, fromStorageLocationId)
+    UC->>InsumoRepo: save(insumo) — persiste el diff de la línea del sector
     UC->>UC: Calcula fechaExpiracionCalculada = min(expiracionBodega, now + horasVidaUtilCocina)
     UC->>RemanenteRepo: createRemanente({ insumoId, quantity, fechaExpiracionCalculada, status: "ACTIVE" })
     RemanenteRepo-->>UC: Nuevo Remanente Creado
-    
+    UC->>RemanenteRepo: recordMovement({ type: EXTRACTION, fromLoc: <sub-sector>, toLoc: destination })
+
     UC->>EventBus: publish(RemanenteCreadoEvent)
     UC-->>Staff: Remanente Activo Registrado (Etiqueta FEFO generada)
 ```
+
+> **US-025 — stock por sub-sector:** el agregado `Insumo` mantiene una `WarehouseStockLine` por cada sub-sector de bodega donde tiene existencias (`WarehouseStock` es `1:N` con FK a `StorageLocation`). No hay línea "por defecto": el alta (`CreateInsumoUseCase`) y el reabastecimiento (`RestockInsumoUseCase`) reciben `storageLocationId` obligatorio, y la extracción recibe `fromStorageLocationId`. El "stock de bodega" total del insumo es la suma de sus líneas; el saldo consumible se valida siempre a nivel de línea.
 
 ---
 
@@ -316,6 +322,10 @@ sequenceDiagram
 *   **Capa de Dominio (`domain/`):** Contiene entidades puras, Value Objects (`DecimalQuantity`, `PinHash`), reglas inmutables de negocio e interfaces de **Puertos** (Repositories/Services). **0% dependencias de Express, Prisma o React.**
 *   **Capa de Aplicación (`application/`):** Implementa los casos de uso específicos del sistema. Orquesta los flujos invocando entidades de dominio y utilizando los puertos.
 *   **Capa de Infraestructura (`infrastructure/`):** Adaptadores concretos (controladores HTTP Express, validadores Zod, repositorios Prisma, integraciones).
+
+### Frontend — Shell de Navegación (`US-023`)
+
+El cliente React adopta `react-router-dom@7.18.3` (data router) a partir de v1.13.0 del stack manifest. El componente raíz `<AppShell>` (barra lateral tipo comanda + topbar de navegación) envuelve un `<Outlet />` con las rutas de nivel superior (`/`, `/estaciones`, `/recetas`, `/reportes`, `/ajustes`). Un componente `<ProtectedRoute requiredRole?>` centraliza el gating por sesión y por rol (`ADMIN` para `/reportes` y `/ajustes`), reemplazando el gating disperso dentro de cada pantalla del menú de Administración. Las features verticales del cliente (`features/*`) no cambian de responsabilidad — solo se montan bajo una ruta en vez de un flag de modal. Detalle en [`05_ui_ux_design_system.md`](./05_ui_ux_design_system.md) §v4.1.0.
 
 ---
 

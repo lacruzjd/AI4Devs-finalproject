@@ -33,6 +33,7 @@ Antes de escribir cualquier línea de código:
 1. Revisa la carpeta `docs/04_governance_and_quality/rules/`.
 2. Ejecuta `bash .agents/scripts/check_rules_freshness.sh` para verificar de forma determinista (vía timestamps de git, no inferencia) si algún doc fuente cambió después que su regla derivada.
 3. Ejecuta la skill [SK-27 Extracción de Reglas](../skills/development/01_rules_extraction/SK-27_extract_project_rules.md) para sincronizar las reglas de gobernanza técnica solo si: (a) los archivos de reglas (`domain_rules.md`, `backend_rules.md`, `frontend_rules.md`, `database_rules.md`, `testing_rules.md`, `security_rules.md`, `git_rules.md`) no existen, o (b) el script reportó `⚠️ Posible drift` para algún archivo relevante al ticket en curso.
+4. **Guarda nueva descubierta a mitad de proyecto:** si este ticket agrega una guarda nueva de "prohibir/mandatar patrón X" a la sección 6 de `AGENTS.md` (el patrón `"Discovered in TK-XXX"` ya usado por la mayoría de las guardas existentes), el mismo ticket DEBE también agregar el bullet correspondiente a la lista enumerada del paso "Generación de Scripts de Gobernanza Ejecutable" de `SK-27` — nunca dejar la guarda solo en prosa. Un `AGENTS.md` con una regla nueva y ningún script que la verifique es, en sí mismo, deuda de gobernanza sin cerrar: la próxima vez que alguien corra `SK-27` en este proyecto (o lo instale en uno nuevo vía `install.sh`), esa guarda debe generarse como script ejecutable, no solo copiarse como texto.
 
 ---
 
@@ -65,8 +66,9 @@ Antes de dar por terminado el desarrollo:
 > El agente desarrollador (`SK-16`/`SK-17`) no puede auto-aprobar las Quality Gates. Se debe invocar a un **Reviewer Independiente** (subagente aislado) que realice una revisión adversarial sobre la rama de características:
 > 1. Inspecciona el diff del código buscando ausencia de tipos inseguros, cumplimiento de SOLID y sanitización de entradas HTTP.
 > 2. Verifica la ejecución exitosa de pruebas TDD y linter (`SK-19`).
-> 3. En tickets UI, verifica la auditoría de accesibilidad WCAG 2.1 y ergonomía de componentes (`SK-21`).
+> 3. En tickets UI, verifica la auditoría de accesibilidad WCAG 2.2 y ergonomía de componentes (`SK-21`).
 > 4. Emite un veredicto formal (**APROBADO** / **RECHAZADO**). Solo con veredicto APROBADO se procede al commit.
+> 5. Todo defecto encontrado aquí (o cualquier corrección que el humano haya hecho sobre una propuesta del agente en fases anteriores) se evalúa en FASE 5.C antes del commit — no toda corrección amerita una regla permanente, ver el filtro de sistemicidad ahí.
 
 ---
 
@@ -79,6 +81,22 @@ Si el ticket es de Frontend o interfaz de usuario:
 
 ### FASE 5.B: Verificación en Vivo del Stack Completo (TK-055, para tickets de integración full-stack)
 Si el ticket toca integración full-stack real (un endpoint nuevo consumido por UI, un flujo de autenticación, o cambios en el arranque/seed/migraciones del backend), ejecuta [09_live_stack_verification_workflow.md](09_live_stack_verification_workflow.md) — levanta la infraestructura real declarada en `docs/00_stack_manifest.md`, recorre el flujo crítico del ticket con el motor E2E declarado, y limpia el entorno de prueba por completo al terminar. No sustituye a `SK-20`/TDD, es la capa que verifica que las piezas ya probadas por separado funcionan juntas con infraestructura real — el mecanismo concreto detrás del Antipatrón B de `rules/04_verified_implementation_standard.md`.
+
+---
+
+### FASE 5.C: Promoción de Correcciones a Reglas Permanentes (Retrospectiva de Ticket)
+Antes del commit final, revisa las correcciones reales que ocurrieron durante este ticket: rechazos del Reviewer Independiente en FASE 4.B, y cualquier corrección explícita que el humano haya hecho sobre una propuesta del agente en cualquier fase anterior (código, diseño, o el texto de cualquier artefacto de `docs/`). Para cada una:
+
+1. **Filtro de sistemicidad (obligatorio antes de proponer nada):** pregúntate explícitamente *"¿esta corrección podría repetirse en un archivo o ticket distinto si no queda codificada en algún lado?"* Si la respuesta es no — fue un error puntual, un typo, una preferencia de una sola vez — NO propongas ninguna regla nueva. La mayoría de las correcciones de un ticket normal no deben pasar este filtro; si todas terminan proponiendo una regla, el filtro no se está aplicando con criterio real.
+2. **Si pasa el filtro, clasifica el destino** (nunca todo termina en `AGENTS.md`):
+   - Patrón de código prohibido/obligatorio y verificable de forma determinista → nueva Guard en la Sección 6 de `AGENTS.md` (formato `"Discovered in TK-XXX"`, igual que las guardas existentes) + evalúa si amerita también un bullet nuevo en la lista de generación de scripts de `SK-27_extract_project_rules.md` (ver FASE 1, punto 4 de este mismo workflow).
+   - Regla de negocio/dominio (ej. un rango válido, una invariante) → el archivo de reglas correspondiente en `docs/04_governance_and_quality/rules/` o el PRD en `docs/01_product_definition/`, nunca una Guard de código.
+   - Corrección de proceso/flujo de trabajo del propio agente → un paso nuevo o una aclaración en el workflow relevante (`01`-`09`), no una Guard de código.
+3. **Redacta la propuesta completa antes de presentarla**: texto exacto de la regla, archivo destino, y si aplica, si el script de verificación se genera ahora o queda explícitamente pendiente para una sesión de auditoría posterior (no todo requiere el costo de un script inmediato; sí requiere quedar registrado para que no se pierda — la Guard 29 vivió solo en prosa entre `TK-057-FE` y la auditoría que la cerró, precisamente por no quedar registrada como pendiente en ningún lado).
+4. **Presenta al humano para aprobación explícita** — reutiliza el gate HITL ya existente en `.agents/README.md` ("ningún cambio a `rules/`, `skills/` o `workflows/` gobierna nada sin confirmación explícita del humano"). No se escribe nada de este paso sin esa confirmación.
+5. Solo con aprobación, escribe el/los archivo(s) correspondiente(s).
+
+Si esta fase no encuentra ninguna corrección que pase el filtro del punto 1, repórtalo explícitamente como "Sin hallazgos sistémicos en este ticket" en el resumen de cierre — el silencio no debe interpretarse como que la fase no se ejecutó.
 
 ---
 

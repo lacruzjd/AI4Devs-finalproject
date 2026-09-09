@@ -30,6 +30,10 @@ function toActiveDTO(rem: Remanente, insumo: Insumo | undefined, now: Date): Act
     currentQuantity: rem.currentQuantity.toString(),
     initialQuantity: rem.initialQuantity.toString(),
     location: rem.location,
+    storageLocationId: rem.storageLocationId,
+    recipePreparationId: rem.recipePreparationId,
+    isPristine: rem.isPristine,
+    storageLocationName: rem.location,
     expirationDate: rem.expirationDate,
     hoursRemaining,
     isCriticalAlert: hoursRemaining < 24,
@@ -43,7 +47,10 @@ export class InMemoryRemanenteQueryRepository implements IRemanenteQueryReposito
 
   constructor(private readonly stockRepo?: InMemoryStockRepository) {}
 
-  public async findActiveRemanentes(location?: string): Promise<ActiveRemanenteDTO[]> {
+  public async findActiveRemanentes(
+    storageLocationId?: string,
+    insumoId?: string
+  ): Promise<ActiveRemanenteDTO[]> {
     let activeItems: ActiveRemanenteDTO[] = [];
 
     if (this.stockRepo && this.stockRepo.remanentes.size > 0) {
@@ -55,8 +62,18 @@ export class InMemoryRemanenteQueryRepository implements IRemanenteQueryReposito
       activeItems = [...this.remanentes].filter((r) => r.status === 'ACTIVE');
     }
 
-    if (location) {
-      activeItems = activeItems.filter((r) => r.location === location);
+    // TK-080: insumoId busca en cualquier ubicacion de cocina, no se combina con location (US-021).
+    if (insumoId) {
+      return activeItems
+        .filter((r) => r.insumoId === insumoId)
+        .sort((a, b) => new Date(a.expirationDate).getTime() - new Date(b.expirationDate).getTime());
+    }
+
+    if (storageLocationId) {
+      // US-026: acepta la FK del área o un literal legado en `location`.
+      activeItems = activeItems.filter(
+        (r) => r.storageLocationId === storageLocationId || r.location === storageLocationId
+      );
     }
 
     // Ordenamiento estricto FEFO: expirationDate ASC

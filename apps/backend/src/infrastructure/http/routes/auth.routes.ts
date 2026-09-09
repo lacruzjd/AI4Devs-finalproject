@@ -4,34 +4,70 @@ import { AuthenticateByPinUseCase } from '../../../application/auth/use-cases/Au
 import { CreateUserUseCase } from '../../../application/auth/use-cases/CreateUserUseCase.js';
 import { SetUserStatusUseCase } from '../../../application/auth/use-cases/SetUserStatusUseCase.js';
 import { ListUsersUseCase } from '../../../application/auth/use-cases/ListUsersUseCase.js';
+import { UpdateUserUseCase } from '../../../application/auth/use-cases/UpdateUserUseCase.js';
+import { ChangePinUseCase } from '../../../application/auth/use-cases/ChangePinUseCase.js';
+import { RequestAdminPinResetUseCase } from '../../../application/auth/use-cases/RequestAdminPinResetUseCase.js';
+import { ResetAdminPinUseCase } from '../../../application/auth/use-cases/ResetAdminPinUseCase.js';
 import { IUserRepository } from '../../../domain/auth/repositories/IUserRepository.js';
+import { IEmailService } from '../../../domain/auth/ports/IEmailService.js';
+import { IRoleRepository } from '../../../domain/security/repositories/IRoleRepository.js';
+import { ConsoleEmailService } from '../../notifications/ConsoleEmailService.js';
 import { createRateLimiter } from '../middlewares/rateLimiter.js';
 import { createAuthenticateJWTMiddleware } from '../middlewares/authenticateJWT.js';
-import { requireRole } from '../middlewares/requireRole.js';
+import { authorizePermissions } from '../../security/http/middleware/authorizePermissions.middleware.js';
 
 export function createAuthRouter(
   userRepository: IUserRepository,
-  jwtSecret: string
+  jwtSecret: string,
+  roleRepository: IRoleRepository,
+  emailService?: IEmailService,
+  loginRateLimit: { windowMs: number; max: number } = { windowMs: 15 * 60 * 1000, max: 10 },
+  allowedOrigins: string[] = ['*']
 ): Router {
   const router = Router();
-  const useCase = new AuthenticateByPinUseCase(userRepository, jwtSecret);
+  const mailer = emailService || new ConsoleEmailService();
+
+  // TK-121 (US-015 Esc. 2): el roleRepository proyecta los permisos del rol al JWT
+  // (solo para UX del cliente — la autorización real la resuelve authorizePermissions
+  // en vivo, por petición, más abajo en este mismo archivo).
+  const useCase = new AuthenticateByPinUseCase(userRepository, jwtSecret, roleRepository);
   const createUserUseCase = new CreateUserUseCase(userRepository);
   const setUserStatusUseCase = new SetUserStatusUseCase(userRepository);
   const listUsersUseCase = new ListUsersUseCase(userRepository);
-  const controller = new AuthController(useCase, createUserUseCase, setUserStatusUseCase, listUsersUseCase);
+  const updateUserUseCase = new UpdateUserUseCase(userRepository);
+  const changePinUseCase = new ChangePinUseCase(userRepository);
+  const requestAdminPinResetUseCase = new RequestAdminPinResetUseCase(userRepository, mailer, allowedOrigins);
+  const resetAdminPinUseCase = new ResetAdminPinUseCase(userRepository);
 
-  // Rate Limiting anti-fuerza bruta: max 10 intentos por cada 15 min por IP (Guard 16)
-  const loginLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10 });
+  const controller = new AuthController(
+    useCase,
+    createUserUseCase,
+    setUserStatusUseCase,
+    listUsersUseCase,
+    updateUserUseCase,
+    changePinUseCase,
+    requestAdminPinResetUseCase,
+    resetAdminPinUseCase
+  );
 
-  // login-pin es publico por diseno (es el propio mecanismo de autenticacion); las rutas de
-  // gestion de personal SI exigen JWT + rol ADMIN — construidas aqui porque este router se
-  // monta en app.ts SIN el guard global (Guard 15, TK-049).
+  // Rate Limiting anti-fuerza bruta por IP real (Guard 16). Parametrizable vía
+  // LOGIN_RATE_LIMIT_* (resuelto en app.ts); default 10 intentos / 15 min.
+  const loginLimiter = createRateLimiter(loginRateLimit);
+
   const authMiddleware = createAuthenticateJWTMiddleware(jwtSecret);
+  // TK-117 (US-015 Escenario 3): antes `requireRole('ADMIN')` fijo — sin cambio de
+  // acceso real hoy (KITCHEN_STAFF no tiene `users:manage`), pero un rol personalizado
+  // con `users:manage` concedido ahora también gestiona personal.
+  const manageUsers = authorizePermissions(roleRepository, 'users:manage');
 
   router.post('/login-pin', loginLimiter, controller.loginWithPin);
-  router.get('/users', authMiddleware, requireRole('ADMIN'), controller.listUsers);
-  router.post('/users', authMiddleware, requireRole('ADMIN'), controller.createUser);
-  router.patch('/users/:id/status', authMiddleware, requireRole('ADMIN'), controller.setUserStatus);
+  router.post('/forgot-pin', loginLimiter, controller.forgotPin);
+  router.post('/reset-pin', loginLimiter, controller.resetPin);
+  router.post('/change-pin', authMiddleware, controller.changePin);
+  router.get('/users', authMiddleware, manageUsers, controller.listUsers);
+  router.post('/users', authMiddleware, manageUsers, controller.createUser);
+  router.put('/users/:id', authMiddleware, manageUsers, controller.updateUser);
+  router.patch('/users/:id/status', authMiddleware, manageUsers, controller.setUserStatus);
 
   return router;
 }

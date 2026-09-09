@@ -12,7 +12,7 @@ describe('TK-001-FE: Frontend Core & Design System TDD', () => {
 
   it('debe renderizar el encabezado principal de RestoStock', () => {
     render(<App />);
-    const heading = screen.getByText(/RestoStock FEFO Dashboard/i);
+    const heading = screen.getByText(/Tablero FEFO de Cocina/i);
     expect(heading).toBeInTheDocument();
   });
 
@@ -23,11 +23,12 @@ describe('TK-001-FE: Frontend Core & Design System TDD', () => {
     expect(syncButton).toHaveClass('btn-touch');
   });
 
-  it('debe renderizar el boton de extraccion de bodega con la clase de accion principal .btn-primary', () => {
+  it('debe renderizar el boton de accion circular de extraccion (Sistema FEFO, TK-086-FE)', () => {
     render(<App />);
-    const extractionButton = screen.getByRole('button', { name: /Extraer Insumo de Bodega/i });
+    // El ActionButton circular reemplaza al antiguo btn-primary rectangular (US-023 lámina "Aplicación").
+    const extractionButton = screen.getByRole('button', { name: /Extraer de Bodega/i });
     expect(extractionButton).toBeInTheDocument();
-    expect(extractionButton).toHaveClass('btn-touch');
-    expect(extractionButton).toHaveClass('btn-primary');
+    expect(extractionButton).toHaveAttribute('type', 'button');
+    expect(extractionButton.className).toMatch(/circle--extract/);
   });
 });

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Utensils, CheckCircle, AlertTriangle } from 'lucide-react';
-import { KitchenService, RecipeItem } from '../services/kitchen.service.js';
+import { Utensils, CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
+import { KitchenService, RecipeItem, RecipeAvailability } from '../services/kitchen.service.js';
 import { Modal } from '../../../shared/components/Modal.js';
 import { ModalHeader } from '../../../shared/components/ModalHeader.js';
 import { ModalFooterActions } from '../../../shared/components/ModalFooterActions.js';
 import { ErrorBanner } from '../../../shared/components/ErrorBanner.js';
+import styles from './RecipeSelectorModal.module.css';
 
 interface RecipeSelectorModalProps {
   isOpen: boolean;
@@ -30,27 +31,18 @@ const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, isSelected, onSelect })
         onSelect(recipe.id);
       }
     }}
-    style={{
-      padding: '16px',
-      borderRadius: '12px',
-      border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--border-card)',
-      backgroundColor: isSelected ? 'rgba(0, 210, 190, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-      cursor: 'pointer',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    }}
+    className={`${styles['recipe-card']}${isSelected ? ` ${styles['recipe-card--selected']}` : ''}`}
   >
     <div>
-      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
+      <div className="fw-bold fs-base">
         {recipe.name}{' '}
-        <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: 'var(--bg-primary)', color: 'var(--color-primary)' }}>
+        <span className={styles['recipe-category-badge']}>
           {recipe.category}
         </span>
       </div>
-      <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{recipe.description}</div>
+      <div className="fs-sm text-secondary-color mt-1">{recipe.description}</div>
     </div>
-    {isSelected && <CheckCircle size={22} style={{ color: 'var(--color-primary)' }} />}
+    {isSelected && <CheckCircle size={22} className="text-primary-color" />}
   </div>
 );
 
@@ -66,8 +58,8 @@ interface RecipeListProps {
 }
 
 const RecipeList: React.FC<RecipeListProps> = ({ recipes, selectedRecipeId, onSelect }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-    <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+  <div className="flex-column gap-3 mb-5">
+    <span className="d-block fs-md fw-semibold text-secondary-color">
       Selecciona la Receta a Preparar:
     </span>
     {recipes.map((recipe) => (
@@ -82,8 +74,8 @@ interface PortionsSelectorProps {
 }
 
 const PortionsSelector: React.FC<PortionsSelectorProps> = ({ portions, onChange }) => (
-  <div style={{ marginBottom: '24px' }}>
-    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
+  <div className="mb-6">
+    <span className="fs-md fw-semibold text-secondary-color d-block mb-2">
       Número de Porciones / Platillos:
     </span>
     <PortionStepper portions={portions} onChange={onChange} />
@@ -91,33 +83,19 @@ const PortionsSelector: React.FC<PortionsSelectorProps> = ({ portions, onChange 
 );
 
 const PortionStepper: React.FC<PortionStepperProps> = ({ portions, onChange }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+  <div className="flex-gap-md">
     <button
-      className="btn-touch btn-secondary"
+      className="btn-touch btn-secondary icon-badge-md fs-xl fw-bold"
       onClick={() => onChange(Math.max(1, portions - 1))}
-      style={{ width: '56px', height: '56px', fontSize: '1.4rem', fontWeight: 700 }}
     >
       -
     </button>
-    <div
-      style={{
-        flex: 1,
-        textAlign: 'center',
-        fontSize: '1.8rem',
-        fontWeight: 800,
-        color: 'var(--color-primary)',
-        backgroundColor: 'var(--bg-primary)',
-        padding: '10px',
-        borderRadius: '8px',
-        border: '1px solid var(--border-card)',
-      }}
-    >
+    <div className={styles['portion-display']}>
       {portions} {portions === 1 ? 'porción' : 'porciones'}
     </div>
     <button
-      className="btn-touch btn-secondary"
+      className="btn-touch btn-secondary icon-badge-md fs-xl fw-bold"
       onClick={() => onChange(portions + 1)}
-      style={{ width: '56px', height: '56px', fontSize: '1.4rem', fontWeight: 700 }}
     >
       +
     </button>
@@ -149,6 +127,68 @@ function useAvailableRecipes(isOpen: boolean): { recipes: RecipeItem[]; isLoadin
   return { recipes, isLoadingRecipes };
 }
 
+// US-007 v1.1.0 / TK-111-FE: vista previa de disponibilidad por ingrediente, antes de
+// confirmar. `availability === null` cubre tanto "aún no consultó" como "la consulta
+// falló" — en ambos casos NO se bloquea el envío (falla-abierto: `consumeRecipe` sigue
+// siendo la autoridad final con su 422 si de verdad falta stock).
+function useRecipeAvailability(recipeId: string, portions: number): { availability: RecipeAvailability | null; isLoadingAvailability: boolean } {
+  const [availability, setAvailability] = useState<RecipeAvailability | null>(null);
+  const [isLoadingAvailability, setIsLoadingAvailability] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!recipeId) {
+      setAvailability(null);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingAvailability(true);
+    KitchenService.fetchRecipeAvailability(recipeId, portions)
+      .then((data) => {
+        if (!cancelled) setAvailability(data);
+      })
+      .catch((err) => {
+        console.error('[RecipeSelectorModal] Error consultando disponibilidad, sin bloquear el envío:', err);
+        if (!cancelled) setAvailability(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingAvailability(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [recipeId, portions]);
+
+  return { availability, isLoadingAvailability };
+}
+
+const IngredientAvailabilityList: React.FC<{ availability: RecipeAvailability | null; isLoading: boolean }> = ({ availability, isLoading }) => {
+  if (isLoading) {
+    return <div className={`fs-sm text-secondary-color ${styles['availability-status']}`}>Consultando disponibilidad...</div>;
+  }
+  // Defensivo: si la respuesta no trae `ingredients` (contrato inesperado / mock de
+  // prueba parcial), se omite la vista previa en vez de tumbar el modal completo.
+  if (!availability?.ingredients) return null;
+
+  return (
+    <div className={`flex-column gap-2 ${styles['availability-list']}`}>
+      <span className="fs-sm fw-semibold text-secondary-color">Disponibilidad por Ingrediente:</span>
+      {availability.ingredients.map((ing) => (
+        <div key={ing.insumoId} className={`flex-between fs-sm ${styles['availability-row']}${ing.isSufficient ? '' : ` ${styles['availability-row--insufficient']}`}`}>
+          <span className="flex-gap-xs">
+            {ing.isSufficient ? <CheckCircle size={16} className="text-success-color" /> : <XCircle size={16} className="text-danger-color" />}
+            {ing.insumoName}
+          </span>
+          <span>
+            {ing.requiredQuantity} / {ing.availableQuantity} {ing.unitOfMeasure}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 interface RecipeSelectionBodyProps {
   isLoadingRecipes: boolean;
   recipes: RecipeItem[];
@@ -156,6 +196,8 @@ interface RecipeSelectionBodyProps {
   onSelectRecipe: (id: string) => void;
   portions: number;
   onPortionsChange: (portions: number) => void;
+  availability: RecipeAvailability | null;
+  isLoadingAvailability: boolean;
 }
 
 const RecipeSelectionBody: React.FC<RecipeSelectionBodyProps> = ({
@@ -165,17 +207,19 @@ const RecipeSelectionBody: React.FC<RecipeSelectionBodyProps> = ({
   onSelectRecipe,
   portions,
   onPortionsChange,
+  availability,
+  isLoadingAvailability,
 }) => {
   if (isLoadingRecipes) {
     return (
-      <div style={{ color: 'var(--text-secondary)', padding: '24px 0', textAlign: 'center' }}>
+      <div className={styles['recipe-body-message']}>
         Cargando recetas del catálogo...
       </div>
     );
   }
   if (recipes.length === 0) {
     return (
-      <div style={{ color: 'var(--text-secondary)', padding: '24px 0', textAlign: 'center' }}>
+      <div className={styles['recipe-body-message']}>
         No hay recetas dadas de alta en el catálogo todavía.
       </div>
     );
@@ -184,6 +228,7 @@ const RecipeSelectionBody: React.FC<RecipeSelectionBodyProps> = ({
     <>
       <RecipeList recipes={recipes} selectedRecipeId={selectedRecipeId} onSelect={onSelectRecipe} />
       <PortionsSelector portions={portions} onChange={onPortionsChange} />
+      <IngredientAvailabilityList availability={availability} isLoading={isLoadingAvailability} />
     </>
   );
 };
@@ -219,6 +264,7 @@ export const RecipeSelectorModal: React.FC<RecipeSelectorModalProps> = ({
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>('');
   const [portions, setPortions] = useState<number>(1);
   const { isSubmitting, errorMsg, handlePrepareRecipe } = usePrepareRecipe(onSuccess, onClose);
+  const { availability, isLoadingAvailability } = useRecipeAvailability(selectedRecipeId, portions);
 
   useEffect(() => {
     setSelectedRecipeId((current) => (recipes.some((r) => r.id === current) ? current : (recipes[0]?.id ?? '')));
@@ -227,13 +273,11 @@ export const RecipeSelectorModal: React.FC<RecipeSelectorModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Modal maxWidth="560px" width="100%">
+    <Modal size="md">
       <ModalHeader
-        icon={<Utensils style={{ color: 'var(--color-primary)' }} />}
+        icon={<Utensils className="text-primary-color" />}
         title="Preparación de Recetas (Descuento FEFO)"
-        fontSize="1.4rem"
-        gap="10px"
-        marginBottom="20px"
+        size="lg"
         onClose={onClose}
       />
 
@@ -246,6 +290,8 @@ export const RecipeSelectorModal: React.FC<RecipeSelectorModalProps> = ({
         onSelectRecipe={setSelectedRecipeId}
         portions={portions}
         onPortionsChange={setPortions}
+        availability={availability}
+        isLoadingAvailability={isLoadingAvailability}
       />
 
       <ModalFooterActions
@@ -254,9 +300,12 @@ export const RecipeSelectorModal: React.FC<RecipeSelectorModalProps> = ({
         submittingLabel="Descontando FEFO..."
         confirmIcon={<Utensils size={20} />}
         confirmType="button"
+        // US-007 v1.1.0 / TK-111-FE: solo bloquea si la vista previa CONFIRMÓ que falta
+        // stock — `availability === null` (aún cargando o la consulta falló) no bloquea.
+        disabled={availability?.isFullyAvailable === false}
         onConfirm={() => handlePrepareRecipe(selectedRecipeId, portions)}
         isSubmitting={isSubmitting}
-        marginTop="0px"
+        noMarginTop
       />
     </Modal>
   );

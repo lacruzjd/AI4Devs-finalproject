@@ -1,0 +1,121 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# RestoStock — Blueprint de Render (TK-142, decidido en ADR-006)
+#
+# ⚠️ Carve-out explícito del Guard 22 (documentado en ADR-006 §3 y en
+#    docs/00_stack_manifest.md §6): el Guard exige OpenTofu, y esto es el formato
+#    declarativo nativo de Render. Cumple el espíritu (declarativo, versionado,
+#    revisable) pero no la letra. NO es una excepción silenciosa.
+#    `infrastructure/opentofu/` sigue siendo la IaC del stack local/Docker.
+#
+# ⚠️ NO VERIFICADO contra Render real desde el entorno de desarrollo
+#    (rules/04_verified_implementation_standard.md, Antipatrón B). Los nombres de
+#    campo y el direccionamiento entre servicios deben confirmarse contra la
+#    documentación vigente de Render en el primer despliegue. Ver "Verificación
+#    pendiente" al final.
+#
+# ── Por qué esta topología ─────────────────────────────────────────────────────
+# apps/frontend/src/shared/http/apiClient.ts fija `/api/v1` RELATIVO: el cliente
+# asume que la API vive en su mismo origen. Ese mismo origen es la fuerza decisiva
+# de ADR-005 (cookie httpOnly) y lo que permite `connect-src 'self'` en la CSP de
+# TK-141. Por eso el frontend se despliega como su IMAGEN DOCKER (que lleva nginx
+# dentro) y nginx hace de proxy inverso hacia el backend — no como Static Site.
+#
+# El navegador solo habla con el frontend. La llamada frontend→backend es
+# servidor a servidor, así que el mismo origen se conserva.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+databases:
+  - name: restostock-db
+    databaseName: restostock
+    user: restostock
+    plan: free          # ⚠️ el plan gratuito de Postgres CADUCA (~30 días)
+    region: oregon
+
+# Rama desplegada: `main`. Es la rama desplegable por convención, y tras fusionar la
+# entrega queda idéntica a `finalproject-JDLM`. Un push a `main` redespliega solo.
+services:
+  # ── Backend ───────────────────────────────────────────────────────────────────
+  # Idealmente sería un Private Service (`type: pserv`), para no exponerlo a
+  # internet. Se declara como `web` porque los private services NO están en el
+  # plan gratuito. Consecuencia asumida: el backend queda públicamente alcanzable.
+  # Si se pasa a plan de pago, cambiar a `type: pserv` y ajustar BACKEND_ORIGIN.
+  - type: web
+    name: restostock-backend
+    runtime: docker
+    repo: https://github.com/lacruzjd/AI4Devs-finalproject
+    branch: main
+    dockerfilePath: ./apps/backend/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    healthCheckPath: /health      # ⚠️ está en la RAÍZ, no bajo /api/v1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: restostock-db
+          property: connectionString
+      # Guard 14: sin estas el arranque aborta. ENCRYPTION_KEY debe DIFERIR de
+      # JWT_SECRET (AUDIT-SEC-004 F-1) — `generateValue` da un valor distinto a cada una.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      # 🔴 OBLIGATORIA: sin ella `seedProductionAdmin` omite el bootstrap y NO SE CREA
+      # NINGÚN ADMINISTRADOR — nadie podría entrar. `sync: false` = se define a mano
+      # en el dashboard, nunca en el repo.
+      - key: SEED_ADMIN_PIN
+        sync: false
+      - key: SEED_ADMIN_EMAIL
+        sync: false
+      # Origen público del frontend: allowlist de CORS y enlace del email de reset
+      # (AUDIT-SEC-004 F-2 — el header Origin nunca se confía si no está aquí).
+      - key: CORS_ALLOWED_ORIGINS
+        fromService:
+          name: restostock-frontend
+          type: web
+          property: host
+      - key: CLIENT_ORIGIN
+        fromService:
+          name: restostock-frontend
+          type: web
+          property: host
+
+  # ── Frontend (única puerta pública prevista) ──────────────────────────────────
+  - type: web
+    name: restostock-frontend
+    runtime: docker
+    repo: https://github.com/lacruzjd/AI4Devs-finalproject
+    branch: main
+    dockerfilePath: ./apps/frontend/Dockerfile
+    dockerContext: .
+    plan: free
+    region: oregon
+    envVars:
+      # TK-142: sustituye el alias `backend` de docker-compose, inexistente aquí.
+      - key: BACKEND_ORIGIN
+        fromService:
+          name: restostock-backend
+          type: web
+          property: host
+      # Render enruta al puerto que la imagen expone; 8080 es el de EXPOSE.
+      - key: NGINX_PORT
+        value: 8080
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Verificación pendiente en el primer despliegue (DoD de TK-142)
+#
+# 1. `property: host` devuelve el hostname SIN esquema. `BACKEND_ORIGIN` necesita
+#    `http(s)://…` para `proxy_pass`. Si Render no lo incluye, fijar el valor a
+#    mano: BACKEND_ORIGIN=https://restostock-backend.onrender.com
+# 2. Confirmar que el rate limiter no agrupa a todos los clientes en un bucket:
+#    `trust proxy` está en ['loopback','linklocal','uniquelocal'] y la red de
+#    Render podría no caer en rango privado (sería el bug que cerró TK-132).
+# 3. Recorrer el flujo real en el navegador (09_live_stack_verification_workflow):
+#    login, extracción de bodega, tablero FEFO, un reporte.
+# 4. Comprobar que el escáner de códigos (US-032) sigue funcionando bajo HTTPS —
+#    exige `camera=(self)` en Permissions-Policy (TK-141).
+# 5. Plan gratuito: el servicio se suspende por inactividad (arranque en frío de
+#    decenas de segundos) y la base de datos caduca. Avisar al revisor.
+# ═══════════════════════════════════════════════════════════════════════════════

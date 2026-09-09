@@ -31,7 +31,7 @@ describe('TK-057: Gestion de Catalogo Maestro (alta y listado de insumos)', () =
       const response = await request(app)
         .post('/api/v1/stock/insumos')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ name: 'Harina 000', unitOfMeasure: 'KG' });
+        .send({ name: 'Harina 000', unitOfMeasure: 'KG', storageLocationId: 'loc-1' });
 
       expect(response.status).toBe(201);
       expect(response.body).toMatchObject({ name: 'Harina 000', unitOfMeasure: 'KG', warehouseStock: '0.000' });
@@ -113,12 +113,12 @@ describe('TK-057: Gestion de Catalogo Maestro (alta y listado de insumos)', () =
       const created = await request(app)
         .post('/api/v1/stock/insumos')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ name: 'Aceite de Oliva', unitOfMeasure: 'L' });
+        .send({ name: 'Aceite de Oliva', unitOfMeasure: 'L', storageLocationId: 'loc-1' });
 
       const response = await request(app)
         .patch(`/api/v1/stock/insumos/${created.body.id}/restock`)
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ quantity: 20 });
+        .send({ quantity: 20, storageLocationId: 'loc-1' });
 
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
@@ -139,7 +139,7 @@ describe('TK-057: Gestion de Catalogo Maestro (alta y listado de insumos)', () =
       const response = await request(app)
         .patch('/api/v1/stock/insumos/ins-inexistente/restock')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ quantity: 5 });
+        .send({ quantity: 5, storageLocationId: 'loc-1' });
 
       expect(response.status).toBe(404);
     });
@@ -150,12 +150,12 @@ describe('TK-057: Gestion de Catalogo Maestro (alta y listado de insumos)', () =
       const created = await request(app)
         .post('/api/v1/stock/insumos')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ name: 'Sal Fina', unitOfMeasure: 'KG' });
+        .send({ name: 'Sal Fina', unitOfMeasure: 'KG', storageLocationId: 'loc-1' });
 
       const response = await request(app)
         .patch(`/api/v1/stock/insumos/${created.body.id}/restock`)
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ quantity: 0 });
+        .send({ quantity: 0, storageLocationId: 'loc-1' });
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('title', 'ValidationError');
@@ -167,7 +167,7 @@ describe('TK-057: Gestion de Catalogo Maestro (alta y listado de insumos)', () =
       const created = await request(app)
         .post('/api/v1/stock/insumos')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ name: 'Azucar Blanca', unitOfMeasure: 'KG' });
+        .send({ name: 'Azucar Blanca', unitOfMeasure: 'KG', storageLocationId: 'loc-1' });
 
       const response = await request(app)
         .patch(`/api/v1/stock/insumos/${created.body.id}/restock`)
@@ -183,6 +183,93 @@ describe('TK-057: Gestion de Catalogo Maestro (alta y listado de insumos)', () =
       const response = await request(app).patch('/api/v1/stock/insumos/ins-cualquiera/restock').send({ quantity: 5 });
 
       expect(response.status).toBe(401);
+    });
+  });
+
+  describe('PUT /api/v1/stock/insumos/:id (US-036/TK-130)', () => {
+    const app = () => createApp({ userRepository: userRepo, stockRepository: stockRepo, jwtSecret: secret });
+
+    async function createInsumo(body: Record<string, unknown>) {
+      const res = await request(app())
+        .post('/api/v1/stock/insumos')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ unitOfMeasure: 'KG', storageLocationId: 'loc-1', ...body });
+      return res.body.id as string;
+    }
+
+    it('Escenario 1: ADMIN edita name y fija unitCost (200), conservando unidad y stock', async () => {
+      const id = await createInsumo({ name: 'Harina 00', initialWarehouseStock: '5.000' });
+
+      const res = await request(app())
+        .put(`/api/v1/stock/insumos/${id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ name: 'Harina 000', unitCost: '820.00' });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({ id, name: 'Harina 000', unitCost: '820.00', unitOfMeasure: 'KG', warehouseStock: '5.000' });
+    });
+
+    it('Escenario 2: unitOfMeasure es inmutable → 400', async () => {
+      const id = await createInsumo({ name: 'Sal' });
+      const res = await request(app())
+        .put(`/api/v1/stock/insumos/${id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ unitOfMeasure: 'L' });
+      expect(res.status).toBe(400);
+      expect(res.body).toHaveProperty('title', 'ValidationError');
+    });
+
+    it('Escenario 3: renombrar a un nombre ya usado → 409', async () => {
+      await createInsumo({ name: 'Sal Fina' });
+      const id2 = await createInsumo({ name: 'Sal Gruesa' });
+      const res = await request(app())
+        .put(`/api/v1/stock/insumos/${id2}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ name: 'Sal Fina' });
+      expect(res.status).toBe(409);
+    });
+
+    it('Escenario 3b: barcode ya usado por otro insumo → 409', async () => {
+      await createInsumo({ name: 'Leche', barcode: '7791234567890' });
+      const id2 = await createInsumo({ name: 'Crema' });
+      const res = await request(app())
+        .put(`/api/v1/stock/insumos/${id2}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ barcode: '7791234567890' });
+      expect(res.status).toBe(409);
+    });
+
+    it('Escenario 4: KITCHEN_STAFF → 403; id inexistente → 404', async () => {
+      const id = await createInsumo({ name: 'Azúcar' });
+      const forbidden = await request(app())
+        .put(`/api/v1/stock/insumos/${id}`)
+        .set('Authorization', `Bearer ${staffToken}`)
+        .send({ name: 'Azúcar Rubia' });
+      expect(forbidden.status).toBe(403);
+
+      const notFound = await request(app())
+        .put('/api/v1/stock/insumos/ins-fantasma')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ name: 'X' });
+      expect(notFound.status).toBe(404);
+    });
+
+    it('Escenario 5: barcode:null limpia el código y conserva unitCost', async () => {
+      const id = await createInsumo({ name: 'Café', barcode: '7790000000001', unitCost: '3500.00' });
+
+      const res = await request(app())
+        .put(`/api/v1/stock/insumos/${id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ barcode: null });
+
+      expect(res.status).toBe(200);
+      expect(res.body.barcode).toBeNull();
+      expect(res.body.unitCost).toBe('3500.00');
+    });
+
+    it('rechaza con 401 sin token', async () => {
+      const res = await request(app()).put('/api/v1/stock/insumos/ins-x').send({ name: 'Y' });
+      expect(res.status).toBe(401);
     });
   });
 });

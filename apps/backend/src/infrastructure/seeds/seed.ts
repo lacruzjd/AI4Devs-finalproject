@@ -5,12 +5,12 @@ import {
   IRemanenteQueryRepository,
   ActiveRemanenteDTO,
 } from '../../domain/kitchen/repositories/IRemanenteQueryRepository.js';
-import { IRecipeRepository } from '../../domain/catalog/repositories/IRecipeRepository.js';
+import { IRecipeRepository } from '../../domain/recipes/repositories/IRecipeRepository.js';
 import { User } from '../../domain/auth/entities/User.js';
 import { Pin } from '../../domain/auth/value-objects/Pin.js';
 import { Insumo } from '../../domain/stock/entities/Insumo.js';
-import { Recipe } from '../../domain/catalog/entities/Recipe.js';
-import { RecipeIngredient } from '../../domain/catalog/entities/RecipeIngredient.js';
+import { Recipe } from '../../domain/recipes/entities/Recipe.js';
+import { RecipeIngredient } from '../../domain/recipes/entities/RecipeIngredient.js';
 import { Remanente } from '../../domain/stock/entities/Remanente.js';
 import { DecimalQuantity } from '../../domain/stock/value-objects/DecimalQuantity.js';
 
@@ -25,10 +25,23 @@ export interface SeedOptions {
   includeSyntheticFixtures?: boolean;
 }
 
+// Constante SÓLO para desarrollo/test, con el mismo patrón que `DEV_ONLY_ENCRYPTION_KEY`
+// de `CredentialEncryptionService` (TK-133). Sustituye al literal suelto `?? '1234'`, que
+// era el patrón que el Guard 14 prohíbe (`env.X ?? '<literal>'`) aunque aquí no llegue a
+// producción — ver la cabecera del módulo y TK-143.
+//
+// A DIFERENCIA de `resolveEncryptionMasterSecret`, aquí NO se añade un `throw` en
+// producción: este módulo es inalcanzable en producción por construcción
+// (`triggerDevSeedingIfNeeded`), así que un fail-fast sería un guard que nunca dispara —
+// aparentaría seguridad sin añadirla, justo lo que el principio Anti-Gate-Hueco censura.
+// El fail-fast real y efectivo vive donde sí corre: `prisma/seed.ts` → `seedProductionAdmin`
+// omite el bootstrap si falta `SEED_ADMIN_PIN`.
+const DEV_ONLY_SEED_PIN = '1234';
+
 // 1. 🌱 ESSENTIAL SEEDS (Catálogo y Usuarios Estructurales del Sistema)
 async function seedEssentialUsers(userRepo: IUserRepository): Promise<void> {
-  const kitchenPin = process.env.SEED_KITCHEN_PIN ?? '1234';
-  const adminPin = process.env.SEED_ADMIN_PIN ?? '1234';
+  const kitchenPin = process.env.SEED_KITCHEN_PIN ?? DEV_ONLY_SEED_PIN;
+  const adminPin = process.env.SEED_ADMIN_PIN ?? DEV_ONLY_SEED_PIN;
 
   const existingCarlos = await userRepo.findById('usr-carlos-1');
   if (!existingCarlos) {
@@ -52,6 +65,7 @@ async function seedEssentialUsers(userRepo: IUserRepository): Promise<void> {
         name: 'Maria Silva (Administrador)',
         role: 'ADMIN',
         pin: Pin.createFromRaw(adminPin),
+        email: process.env.SEED_ADMIN_EMAIL ?? 'admin@restostock.com',
         status: 'ACTIVE',
         failedAttempts: 0,
       })
@@ -172,13 +186,36 @@ async function seedSyntheticRemanentes(
 }
 
 /**
- * Módulo de Seeding Desacoplado e Idempotente de RestoStock.
- * Implementa los 5 Pilares del Seeding Profesional:
- * 1. Separación de Entornos (Essential vs Synthetic Fixtures).
- * 2. Idempotencia (Upsert / Chequeo de existencia previa).
- * 3. Desacoplamiento de Runtime (Runner invocable vía CLI / Standalone).
- * 4. Aislamiento en Tests (Opcional bajo demanda).
- * 5. Gobernanza PII (Identificadores sintéticos y hash seguro).
+ * ⚠️ SEED IN-PROCESS DE DESARROLLO — **NO es el seed de producción** (frontera
+ * documentada en TK-143).
+ *
+ * ┌─ Quién lo ejecuta ────────────────────────────────────────────────────────┐
+ * │ `triggerDevSeedingIfNeeded()` en `infrastructure/http/app.ts`, y sólo si:  │
+ * │     shouldSeed = !options.userRepository && NODE_ENV !== 'test'            │
+ * │ En producción la composición SÍ inyecta `userRepository` (repositorios     │
+ * │ Prisma), así que `shouldSeed` es false y este módulo **NUNCA se ejecuta**. │
+ * └───────────────────────────────────────────────────────────────────────────┘
+ *
+ * El seed que corre de verdad en producción es `apps/backend/prisma/seed.ts`,
+ * un fichero INDEPENDIENTE (sin relación de importación con éste, con su propio
+ * `hashPin` y su propio conjunto de usuarios) que el entrypoint del contenedor
+ * invoca en cada arranque.
+ *
+ * Por eso el `?? '1234'` de `seedEssentialUsers` no publica un PIN por defecto en
+ * producción: esa ruta es inalcanzable ahí. Así lo clasificó `AUDIT-SEC-004` (O-2,
+ * Info). **Aun así sigue siendo el patrón que prohíbe el Guard 14** — pendiente de
+ * decisión en TK-143, punto 2.
+ *
+ * Nota histórica: la versión anterior de esta cabecera decía "Runner invocable vía
+ * CLI / Standalone". Esa frase indujo un error de análisis real (2026-09-09): se
+ * leyó este módulo creyendo que era el que ejecuta el entrypoint, y sobre esa
+ * premisa falsa se reportó un riesgo de seguridad inexistente y se "corrigieron"
+ * dos afirmaciones de documentación que eran correctas. Todo se revirtió al
+ * verificar `Dockerfile:46`. Se elimina la frase por eso.
+ *
+ * Propiedades que sí cumple: separación de entornos (essential vs fixtures
+ * sintéticos), idempotencia por chequeo de existencia previa, aislamiento en tests
+ * bajo demanda, y gobernanza PII (identificadores sintéticos, hash seguro).
  */
 export async function runSeed(repos: SeedRepositories, options: SeedOptions = {}): Promise<void> {
   const includeFixtures = options.includeSyntheticFixtures ?? process.env.NODE_ENV !== 'production';

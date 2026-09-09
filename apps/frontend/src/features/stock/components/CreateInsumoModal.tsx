@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
+import { Package } from 'lucide-react';
 import { StockService, CreateInsumoDTO } from '../services/stock.service.js';
+import { ErrorBanner } from '../../../shared/components/ErrorBanner.js';
+import { Modal } from '../../../shared/components/Modal.js';
+import { StorageSectorSelect } from './StorageSectorSelect.js';
+import styles from './CreateInsumoModal.module.css';
 
 interface CreateInsumoModalProps {
   isOpen: boolean;
@@ -7,185 +12,165 @@ interface CreateInsumoModalProps {
   onSuccess: () => void;
 }
 
-export const CreateInsumoModal: React.FC<CreateInsumoModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const [name, setName] = useState('');
-  const [unitOfMeasure, setUnitOfMeasure] = useState<'KG' | 'L' | 'UNITS'>('KG');
-  const [initialWarehouseStock, setInitialWarehouseStock] = useState('0');
+type Unit = 'KG' | 'L' | 'UNITS';
+
+const TextField: React.FC<{ id: string; label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; step?: string; min?: string; maxLength?: number; required?: boolean }> = ({
+  id,
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  step,
+  min,
+  maxLength,
+  required,
+}) => (
+  <div className="mb-4">
+    <label htmlFor={id} className="form-label">
+      {label}
+    </label>
+    <input
+      id={id}
+      type={type}
+      step={step}
+      min={min}
+      maxLength={maxLength}
+      className="input-touch w-full"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      required={required}
+    />
+  </div>
+);
+
+const UnitToggle: React.FC<{ value: Unit; onChange: (u: Unit) => void }> = ({ value, onChange }) => (
+  <div className="mb-4">
+    <span className="form-label">Unidad de Medida *</span>
+    <div className="flex-gap-xs">
+      {(['KG', 'L', 'UNITS'] as const).map((unit) => (
+        <button
+          key={unit}
+          type="button"
+          onClick={() => onChange(unit)}
+          className={`flex-1 btn-touch ${value === unit ? styles['unit-toggle-btn--active'] : styles['unit-toggle-btn']}`}
+        >
+          {unit}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+interface FormState {
+  name: string;
+  unitOfMeasure: Unit;
+  initialWarehouseStock: string;
+  storageLocationId: string;
+  unitCost: string;
+  barcode: string;
+}
+
+function useCreateInsumoForm(onClose: () => void, onSuccess: () => void) {
+  const [state, setState] = useState<FormState>({
+    name: '',
+    unitOfMeasure: 'KG',
+    initialWarehouseStock: '0',
+    storageLocationId: '',
+    unitCost: '',
+    barcode: '',
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!isOpen) return null;
+  const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setState((s) => ({ ...s, [key]: value }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) {
-      setError('El nombre del insumo es obligatorio.');
-      return;
-    }
+    if (!state.name.trim()) return setError('El nombre del insumo es obligatorio.');
+    if (!state.storageLocationId) return setError('Debe seleccionar el sub-sector de bodega donde se deposita el insumo.');
 
     setLoading(true);
     setError(null);
-
     try {
       const payload: CreateInsumoDTO = {
-        name: name.trim(),
-        unitOfMeasure,
-        initialWarehouseStock: initialWarehouseStock || '0',
+        name: state.name.trim(),
+        unitOfMeasure: state.unitOfMeasure,
+        initialWarehouseStock: state.initialWarehouseStock || '0',
+        storageLocationId: state.storageLocationId,
+        unitCost: state.unitCost.trim() ? state.unitCost.trim() : undefined,
+        barcode: state.barcode.trim() ? state.barcode.trim() : undefined,
       };
       await StockService.createInsumo(payload);
       onSuccess();
       onClose();
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Ocurrio un error al registrar el insumo.');
-      }
+      setError(err instanceof Error ? err.message : 'Ocurrio un error al registrar el insumo.');
     } finally {
       setLoading(false);
     }
   };
 
+  return { state, set, loading, error, submit };
+}
+
+export const CreateInsumoModal: React.FC<CreateInsumoModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const { state, set, loading, error, submit } = useCreateInsumoForm(onClose, onSuccess);
+
+  if (!isOpen) return null;
+
   return (
-    <div
-      className="modal-backdrop"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
-    >
-      <div
-        className="modal-content"
-        style={{
-          backgroundColor: '#1E293B',
-          color: '#F8FAFC',
-          borderRadius: '12px',
-          padding: '24px',
-          width: '100%',
-          maxWidth: '480px',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-        }}
-      >
-        <h2 style={{ margin: '0 0 16px 0', fontSize: '1.25rem', fontWeight: 600 }}>
-          📦 Registrar Nuevo Insumo
-        </h2>
+    <Modal size="md">
+      <h2 className="flex-gap-xs mb-4 fs-lg fw-semibold">
+        <Package size={20} className="text-primary-color" />
+        Registrar Nuevo Insumo
+      </h2>
 
-        {error && (
-          <div
-            style={{
-              backgroundColor: '#7F1D1D',
-              color: '#FEE2E2',
-              padding: '12px',
-              borderRadius: '8px',
-              marginBottom: '16px',
-              fontSize: '0.875rem',
-            }}
-          >
-            {error}
-          </div>
-        )}
+      {error && <ErrorBanner message={error} />}
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '16px' }}>
-            <label htmlFor="insumo-name-input" style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', color: '#94A3B8' }}>
-              Nombre del Insumo *
-            </label>
-            <input
-              id="insumo-name-input"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ej. Queso Parmesano"
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #334155',
-                backgroundColor: '#0F172A',
-                color: '#F8FAFC',
-                fontSize: '1rem',
-              }}
-              required
-            />
-          </div>
-
-          <div style={{ marginBottom: '16px' }}>
-            <span style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', color: '#94A3B8' }}>
-              Unidad de Medida *
-            </span>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {(['KG', 'L', 'UNITS'] as const).map((unit) => (
-                <button
-                  key={unit}
-                  type="button"
-                  onClick={() => setUnitOfMeasure(unit)}
-                  style={{
-                    flex: 1,
-                    minHeight: '48px',
-                    borderRadius: '8px',
-                    border: unitOfMeasure === unit ? '2px solid var(--color-primary)' : '1px solid #334155',
-                    backgroundColor: unitOfMeasure === unit ? 'var(--color-primary)' : '#0F172A',
-                    color: '#F8FAFC',
-                    fontWeight: unitOfMeasure === unit ? 600 : 400,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {unit}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <label htmlFor="initial-stock-input" style={{ display: 'block', marginBottom: '6px', fontSize: '0.875rem', color: '#94A3B8' }}>
-              Stock Inicial en Bodega
-            </label>
-            <input
-              id="initial-stock-input"
-              type="number"
-              step="0.001"
-              min="0"
-              value={initialWarehouseStock}
-              onChange={(e) => setInitialWarehouseStock(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #334155',
-                backgroundColor: '#0F172A',
-                color: '#F8FAFC',
-                fontSize: '1rem',
-              }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="btn-touch btn-secondary"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-touch btn-primary"
-            >
-              {loading ? 'Guardando...' : 'Guardar Insumo'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+      <form onSubmit={submit}>
+        <TextField id="insumo-name-input" label="Nombre del Insumo *" value={state.name} onChange={(v) => set('name', v)} placeholder="Ej. Queso Parmesano" required />
+        <UnitToggle value={state.unitOfMeasure} onChange={(v) => set('unitOfMeasure', v)} />
+        <div className="mb-4">
+          <StorageSectorSelect id="insumo-sector-select" label="Sub-sector de Bodega *" value={state.storageLocationId} onChange={(v) => set('storageLocationId', v)} />
+        </div>
+        <TextField
+          id="initial-stock-input"
+          label="Stock Inicial en ese Sub-sector"
+          type="number"
+          step="0.001"
+          min="0"
+          value={state.initialWarehouseStock}
+          onChange={(v) => set('initialWarehouseStock', v)}
+        />
+        <TextField
+          id="unit-cost-input"
+          label={`Costo por ${state.unitOfMeasure} (Opcional)`}
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="Ej. 1800.00"
+          value={state.unitCost}
+          onChange={(v) => set('unitCost', v)}
+        />
+        <TextField
+          id="barcode-input"
+          label="Código de Barras (Opcional)"
+          placeholder="Ej. 7791234567890"
+          value={state.barcode}
+          onChange={(v) => set('barcode', v)}
+          maxLength={64}
+        />
+        <div className="modal-footer-actions justify-end no-margin-top">
+          <button type="button" onClick={onClose} disabled={loading} className="btn-touch btn-secondary">
+            Cancelar
+          </button>
+          <button type="submit" disabled={loading} className="btn-touch btn-primary">
+            {loading ? 'Guardando...' : 'Guardar Insumo'}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 };

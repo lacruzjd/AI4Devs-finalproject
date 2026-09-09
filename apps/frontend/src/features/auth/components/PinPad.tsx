@@ -1,22 +1,12 @@
 import React from 'react';
 import { Delete } from 'lucide-react';
+import styles from './PinPad.module.css';
 
 interface PinPadProps {
   onDigitPress: (digit: string) => void;
   onDeletePress: () => void;
   disabled?: boolean;
 }
-
-const DIGIT_BUTTON_STYLE: React.CSSProperties = {
-  width: '64px',
-  height: '64px',
-  borderRadius: '12px',
-  backgroundColor: 'var(--bg-card)',
-  border: '1px solid var(--border-card)',
-  color: 'var(--text-primary)',
-  fontSize: '1.4rem',
-  fontWeight: 700,
-};
 
 interface PinDigitButtonProps {
   digit: string;
@@ -25,7 +15,7 @@ interface PinDigitButtonProps {
 }
 
 const PinDigitButton: React.FC<PinDigitButtonProps> = ({ digit, disabled, onPress }) => (
-  <button type="button" disabled={disabled} onClick={() => onPress(digit)} className="btn-touch" style={DIGIT_BUTTON_STYLE}>
+  <button type="button" disabled={disabled} onClick={() => onPress(digit)} className={`btn-touch ${styles['pin-digit-btn']}`}>
     {digit}
   </button>
 );
@@ -34,21 +24,13 @@ export const PinPad: React.FC<PinPadProps> = ({ onDigitPress, onDeletePress, dis
   const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 64px)',
-        gap: '12px',
-        justifyContent: 'center',
-        margin: '20px auto',
-      }}
-    >
+    <div className={styles['pin-pad-grid']}>
       {digits.map((digit) => (
         <PinDigitButton key={digit} digit={digit} disabled={disabled} onPress={onDigitPress} />
       ))}
 
       {/* Fila inferior: espacio vacio, 0, y borrar */}
-      <div style={{ width: '64px', height: '64px' }} />
+      <div className={styles['pin-digit-spacer']} />
 
       <PinDigitButton digit="0" disabled={disabled} onPress={onDigitPress} />
 
@@ -57,15 +39,7 @@ export const PinPad: React.FC<PinPadProps> = ({ onDigitPress, onDeletePress, dis
         disabled={disabled}
         aria-label="Borrar digito"
         onClick={onDeletePress}
-        className="btn-touch"
-        style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: '12px',
-          backgroundColor: 'rgba(255, 42, 42, 0.15)',
-          border: '1px solid var(--color-danger)',
-          color: 'var(--color-danger)',
-        }}
+        className={`btn-touch ${styles['pin-delete-btn']}`}
       >
         <Delete size={24} />
       </button>
