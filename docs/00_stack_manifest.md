@@ -1,6 +1,6 @@
 ---
 document: stack_manifest
-version: 1.18.0
+version: 1.19.0
 status: approved
 approved_by: "Jose Lacruz <lacruzjd@gmail.com>"
 approved_at: "2026-09-09"
@@ -76,7 +76,7 @@ authority: "Fuente Única de Verdad (SSoT) para decisiones tecnológicas de agen
 | **Test Runner** | Vitest | **1.x** | Backend y Frontend |
 | **Testing Library** | React Testing Library | **14.x** | Para componentes React |
 | **E2E Browser** | Playwright | **1.x** | Page Object Model (POM) obligatorio |
-| **Mutation Testing** | Stryker | **8.x** | ⚠️ Score ≥70%: gate **local diff-scoped operativo** (`check_mutation_score.sh`, Guard 11), pero el paso de CI aún es full-scope + `continue-on-error` → `TK-138`. Ver nota abajo |
+| **Mutation Testing** | Stryker | **8.x** | Score ≥70% **por archivo**, gate diff-scoped en local **y en CI** (`check_mutation_score.sh`, Guard 11). En CI sigue `continue-on-error` **por decisión explícita**, no por omisión — ver nota abajo |
 | **Comando de Tests** | `pnpm test` | — | Ejecuta todos los workspaces |
 
 > **Nota de verificación — historia.**
@@ -87,9 +87,9 @@ authority: "Fuente Única de Verdad (SSoT) para decisiones tecnológicas de agen
 > 1. **El runner ya funciona.** Corrida real sobre `Temperature.ts`: *"Ran 32.90 tests per mutant on average"* (123.90 tras añadir el test de `TK-137`). El problema (1)-(2) del runner está resuelto — lo que queda es **wiring de CI**.
 > 2. **Gate local diff-scoped operativo.** `docs/04_governance_and_quality/scripts/check_mutation_score.sh` (Guard 11) invoca Stryker **una vez por archivo backend `domain/`/`application/` tocado por el ticket en curso**, con `thresholds.break` por archivo. Es el gate real del flujo de desarrollo (`02_cascading_dev_workflow.md`).
 > 3. **`TK-137` cerró el hallazgo colateral:** `Temperature.test.ts` directo → score `Temperature.ts` **60% → 100%** (10/10 mutantes `killed`, 0 `no coverage`).
-> 4. **Sigue pendiente (`TK-138`, post-entrega):** el paso de CI `Mutation Testing` es full-scope + `continue-on-error` (quema minutos, nunca bloquea); `check_mutation_score.sh` no es *base-ref aware* para CI; `apps/frontend` sin config de Stryker. Decisión abierta: gate diff-scoped **bloqueante** vs **informativo** en CI.
+> 4. ~~Pendiente (`TK-138`)~~ → **cerrado el 2026-09-09.** El paso de CI ya no es full-scope: usa el mismo `check_mutation_score.sh` del flujo local, ahora *base-ref aware* (sin argumento → archivos sin commitear; con un ref → `git diff <base>...HEAD`, porque en un checkout de CI no hay nada sin commitear y el modo local habría pasado en verde sin mutar nada — un Gate Hueco). El Job 3 gana `fetch-depth: 0`, sin el cual el ref base no existe en el historial local. `apps/frontend` ya tiene `stryker.conf.json` (acotado a sus `.ts`, no a los `.tsx`), pero **queda fuera del gate automático por una medición, no por omisión**: una corrida real sobre `errorMessageMapper.ts` tardó **10 min 42 s en UN fichero** (backend: 2:42), con **9.47 tests por mutante** frente a 32.9–123.9, y **24 de 89 mutantes fueron *timeouts*** —que Stryker contabiliza como detectados—, el mismo patrón que invalidó la medición de 2026-09-06. Se incluye sólo con `--with-frontend`, para análisis manual puntual.
 >
-> Hasta `TK-138`, **este manifiesto no debe leerse como si CI hiciera cumplir un score de mutación ≥70% repo-wide** — sí lo hace el gate local diff-scoped por ticket.
+> **Alcance real, sin adornos.** El gate aplica el umbral del 70 % **por archivo** (nunca agregado: agrupar deja que un archivo fuerte compense a uno débil, confirmado en vivo en `AUDIT-DEV-002`), y cubre lo que el diff toca — no el repositorio entero. En CI se mantiene `continue-on-error` **por decisión explícita del humano** (2026-09-09): primero se recogen datos reales de cuánto tarda por archivo en el runner, y promoverlo a bloqueante es una decisión aparte informada por esos datos. Por tanto **este manifiesto sigue sin acreditar un score ≥70 % repo-wide**; lo que acredita es que ningún archivo tocado por un ticket baja de 70 % sin que alguien lo vea.
 
 ---
 

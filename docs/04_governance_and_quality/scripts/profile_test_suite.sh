@@ -57,14 +57,29 @@ if [ -n "$TOTAL_TIME" ]; then
   echo "⏱️  Tiempo total de suite: $TOTAL_TIME"
 fi
 
-# Contar tests pasados y fallidos
-PASSED=$(grep -c "✓" "$REPORT_FILE" 2>/dev/null || echo "0")
-FAILED=$(grep -c "×\|FAIL" "$REPORT_FILE" 2>/dev/null || echo "0")
+# Contar tests pasados y fallidos.
+#
+# TK-144: antes se hacía `grep -c "×\|FAIL"` sobre TODO el log, lo que contaba también las
+# líneas de `stderr` que los tests emiten a propósito (mensajes de mock fallback, trazas de
+# error esperadas). En la corrida #14 de CI eso reportó "830 pasados / 4 fallidos" con la
+# suite entera en verde y el paso saliendo con código 0. Un paso informativo que inventa
+# fallos inexistentes erosiona la confianza en todo el resto del reporte.
+#
+# Ahora se derivan del resumen del propio runner (`Tests  N passed (N)` /
+# `Tests  N failed | M passed (T)`), que es la única línea con autoridad sobre el resultado.
+SUMMARY=$(grep -E "^[[:space:]]*Tests[[:space:]]+[0-9]" "$REPORT_FILE" 2>/dev/null || true)
+PASSED=$(echo "$SUMMARY" | grep -oE "[0-9]+ passed" | grep -oE "[0-9]+" | awk '{t+=$1} END {print t+0}')
+FAILED=$(echo "$SUMMARY" | grep -oE "[0-9]+ failed" | grep -oE "[0-9]+" | awk '{t+=$1} END {print t+0}')
 
 echo ""
 echo "📊 Resumen:"
-echo "   ✅ Tests pasados: $PASSED"
-echo "   ❌ Tests fallidos: $FAILED"
+if [ -z "$SUMMARY" ]; then
+  echo "   ⚠️  No se encontró la línea de resumen del runner — conteo no disponible."
+  echo "      (informativo: el veredicto real lo da el paso 'Run Test Suite', no este script)"
+else
+  echo "   ✅ Tests pasados: $PASSED"
+  echo "   ❌ Tests fallidos: $FAILED"
+fi
 
 rm -f "$REPORT_FILE"
 

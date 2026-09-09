@@ -3,7 +3,9 @@ import tseslint from 'typescript-eslint';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'coverage/**', 'reports/**', 'node_modules/**'] },
+  // `.stryker-tmp/`: sandbox de mutation testing (TK-138). Una corrida interrumpida lo deja
+  // en disco y ESLint lintaría su código generado, rompiendo el lint por errores ajenos.
+  { ignores: ['dist/**', 'coverage/**', 'reports/**', 'node_modules/**', '.stryker-tmp/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {

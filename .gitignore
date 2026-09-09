@@ -13,6 +13,10 @@ apps/backend/src/generated/
 
 # Binarios auto-descargados por ci_local.sh (TK-063) — cache local, no se commitea
 .ci-local-tools/
+
+# SBOM generado por `cdxgen` en el Job 3 (ci.yml lo publica como artefacto de CI;
+# ci_local.sh lo genera en la raíz desde TK-144). Es un artefacto de build, no fuente.
+sbom.json
 .next/
 out/
 .nuxt/

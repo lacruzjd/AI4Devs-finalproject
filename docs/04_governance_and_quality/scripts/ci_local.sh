@@ -2,7 +2,27 @@
 
 # TK-063: Orquestador que reproduce localmente los 3 jobs reales de
 # .github/workflows/ci.yml, en el mismo orden y con los mismos comandos — para detectar
-# fallos antes de hacer push, en vez de enterarse recién en GitHub Actions. No reemplaza
+# fallos antes de hacer push, en vez de enterarse recién en GitHub Actions.
+#
+# ┌─ QUÉ NO REPRODUCE (TK-144) ────────────────────────────────────────────────────────┐
+# │ Esta cabecera existe porque la promesa de "los mismos comandos" se rompió en        │
+# │ silencio: en la primera corrida real de CI (2026-09-09) este script daba 38 pasos   │
+# │ verdes mientras el pipeline fallaba en 2 de 3 jobs. Faltaban Semgrep y el SBOM, y   │
+# │ un paso usaba un comando distinto (`npx prisma` sin pinnear en ci.yml → resolvió a  │
+# │ un release candidate). Los tres huecos están cerrados; lo que sigue sin reproducir  │
+# │ se declara aquí para que un verde local se lea con su alcance real:                 │
+# │                                                                                     │
+# │   · Pasos de entorno del runner: checkout, setup-node, setup-pnpm, cachés.          │
+# │     Aquí se usan el Node/pnpm ya instalados en la máquina — una diferencia de       │
+# │     versión respecto a `lts/*` NO la detecta este script.                           │
+# │   · Subida de artefactos (`upload-artifact` del SBOM): se genera el fichero, pero   │
+# │     no se publica.                                                                  │
+# │   · Mutation testing: omitido salvo `--with-mutation` (informativo en CI, TK-138).  │
+# │   · Servicio PostgreSQL del Job 3: ci.yml levanta un contenedor efímero; aquí los   │
+# │     tests corren con los fakes InMemory salvo que el entorno ya tenga una BD.       │
+# │                                                                                     │
+# │ Al tocar `.github/workflows/ci.yml`, actualizar este script Y esta lista.           │
+# └─────────────────────────────────────────────────────────────────────────────────────┘ No reemplaza
 # el pipeline real (algunos pasos, como gitleaks/trivy/oasdiff/tofu, se auto-descargan
 # a una carpeta local cacheada si no están instalados, en vez de fallar duro), pero cubre
 # el mismo terreno: lint/tipos/OpenAPI/gobernanza .agents/, seguridad/CVEs/secretos, y
@@ -38,6 +58,8 @@ export PATH="$TOOLS_DIR:$PATH"
 TOFU_VERSION="1.6.0"
 OASDIFF_VERSION="1.29.1"
 GITLEAKS_VERSION="8.30.1"
+SEMGREP_VERSION="1.174.0"      # docs/00_stack_manifest.md §6 (SAST, Guard 33)
+CDXGEN_VERSION="13.0.1"        # docs/00_stack_manifest.md §6 (SBOM, Guard 33)
 
 FAILED_STEPS=()
 SKIPPED_STEPS=()
@@ -104,6 +126,31 @@ ensure_gitleaks() {
   local url="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
   curl -sL "$url" | tar -xz -C "$TOOLS_DIR" gitleaks 2>/dev/null || return 1
 }
+
+# Semgrep es un paquete Python, no un binario suelto: se instala en un venv dentro de
+# TOOLS_DIR para no tocar el Python del sistema. Se cachea entre corridas (TK-144).
+ensure_semgrep() {
+  command -v semgrep >/dev/null 2>&1 && return 0
+  [ -x "$TOOLS_DIR/semgrep-venv/bin/semgrep" ] && { SEMGREP_BIN="$TOOLS_DIR/semgrep-venv/bin/semgrep"; return 0; }
+  echo "   Instalando semgrep $SEMGREP_VERSION en $TOOLS_DIR/semgrep-venv (no instalado)..."
+  local venv="$TOOLS_DIR/semgrep-venv"
+  # Camino normal: venv con pip incluido (requiere `ensurepip`, ausente en Debian/Ubuntu
+  # si no está instalado python3-venv completo).
+  if ! python3 -m venv "$venv" >/dev/null 2>&1; then
+    # Fallback verificado en vivo (TK-144): crear el venv SIN pip y arrancarlo con
+    # get-pip.py. Sin esto el bootstrap fallaba en silencio y el paso se saltaba —
+    # justo el agujero que este ticket viene a cerrar.
+    rm -rf "$venv"
+    python3 -m venv --without-pip "$venv" >/dev/null 2>&1 || return 1
+  fi
+  if [ ! -x "$venv/bin/pip" ]; then
+    curl -sS https://bootstrap.pypa.io/get-pip.py -o "$TOOLS_DIR/get-pip.py" 2>/dev/null || return 1
+    "$venv/bin/python" "$TOOLS_DIR/get-pip.py" --quiet >/dev/null 2>&1 || return 1
+  fi
+  "$venv/bin/pip" install --quiet "semgrep==$SEMGREP_VERSION" >/dev/null 2>&1 || return 1
+  SEMGREP_BIN="$venv/bin/semgrep"
+}
+SEMGREP_BIN="semgrep"
 
 echo "════════════════════════════════════════════════════════════════"
 echo "  CI Local — reproduce .github/workflows/ci.yml antes del push"
@@ -175,6 +222,15 @@ else
     skip_step "Scan for hardcoded secrets (gitleaks)" "no se pudo descargar gitleaks (¿sin red?)"
   fi
 
+  # TK-144: Semgrep faltaba por completo. Es un paso BLOQUEANTE de ci.yml (Guard 33) y su
+  # ausencia hizo que ci_local diera 38 pasos verdes mientras el pipeline real fallaba.
+  if ensure_semgrep; then
+    run_step "Static Application Security Testing (Semgrep)" \
+      "$SEMGREP_BIN" scan --config=p/security-audit --error --metrics=off
+  else
+    skip_step "Static Application Security Testing (Semgrep)" "no se pudo instalar semgrep (¿sin red o sin python3-venv?)"
+  fi
+
   run_step "Dependency Vulnerability Audit" \
     bash docs/04_governance_and_quality/scripts/check_dependency_audit.sh
 
@@ -209,6 +265,11 @@ run_step "Run Test Suite (Vitest)" \
 
 run_step "Run Production Build" \
   pnpm run build
+
+# TK-144: el SBOM tampoco se reproducia. En ci.yml es un paso del Job 3 (Guard 33,
+# OWASP Top 10:2025 A03) que ademas publica el fichero como artefacto verificable.
+run_step "Generate SBOM (CycloneDX)" \
+  pnpm dlx @cdxgen/cdxgen@${CDXGEN_VERSION} -o sbom.json .
 
 if [ "$WITH_MUTATION" -eq 1 ]; then
   run_step_soft "Mutation Testing — Domain & Application (target 70%)" \

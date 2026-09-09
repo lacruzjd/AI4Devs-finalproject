@@ -153,6 +153,12 @@ importers:
       '@playwright/test':
         specifier: ^1.62.1
         version: 1.62.1
+      '@stryker-mutator/core':
+        specifier: ^8.7.1
+        version: 8.7.1
+      '@stryker-mutator/vitest-runner':
+        specifier: ^8.7.1
+        version: 8.7.1(@stryker-mutator/core@8.7.1)(vitest@1.6.1(@types/node@22.20.1)(jsdom@24.1.3))
       '@testing-library/jest-dom':
         specifier: ^6.4.2
         version: 6.10.0(@testing-library/dom@10.4.1)
@@ -5153,6 +5159,14 @@ snapshots:
       '@stryker-mutator/util': 8.7.1
       tslib: 2.7.0
       vitest: 1.6.1(@types/node@20.19.43)(jsdom@24.1.3)
+
+  '@stryker-mutator/vitest-runner@8.7.1(@stryker-mutator/core@8.7.1)(vitest@1.6.1(@types/node@22.20.1)(jsdom@24.1.3))':
+    dependencies:
+      '@stryker-mutator/api': 8.7.1
+      '@stryker-mutator/core': 8.7.1
+      '@stryker-mutator/util': 8.7.1
+      tslib: 2.7.0
+      vitest: 1.6.1(@types/node@22.20.1)(jsdom@24.1.3)
 
   '@testing-library/dom@10.4.1':
     dependencies:

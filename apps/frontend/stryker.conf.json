@@ -1,0 +1,37 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "pnpm",
+  "testRunner": "vitest",
+  "plugins": ["@stryker-mutator/vitest-runner"],
+  "reporters": ["progress", "clear-text", "html"],
+  "coverageAnalysis": "perTest",
+  "_comment_mutate": [
+    "TK-138: acotado deliberadamente a los .ts, NO a los .tsx.",
+    "Los .ts del frontend son logica pura — hooks compartidos, services de cada feature,",
+    "utils y el shell de app: ahi el mutation testing rinde igual que en el dominio backend.",
+    "Los .tsx son componentes React, donde la tecnica da mucha menos senal por minuto:",
+    "gran parte de los mutantes caen en JSX y sobreviven sin significar un test debil.",
+    "Ampliar a .tsx es una decision aparte, no una omision.",
+    "",
+    "MEDIDO 2026-09-09 sobre src/shared/utils/errorMessageMapper.ts:",
+    "  10 min 42 s UN fichero (backend: 2:42) · score 64.04% · 9.47 tests/mutante",
+    "  (backend: 32.9-123.9) · 24 de 89 mutantes son TIMEOUTS, que Stryker cuenta como",
+    "  detectados — el score real es peor que el numero.",
+    "Por eso el frontend NO entra en el gate automatico de CI: esta config existe para",
+    "analisis manual (`pnpm --filter @restostock/frontend run test:mutation`) y se incluye",
+    "en check_mutation_score.sh solo con --with-frontend."
+  ],
+  "mutate": [
+    "src/**/*.ts",
+    "!src/**/*.test.ts",
+    "!src/**/*.d.ts",
+    "!src/test/**",
+    "!src/tests/**",
+    "!src/main.tsx"
+  ],
+  "thresholds": {
+    "high": 80,
+    "low": 70,
+    "break": 70
+  }
+}
