@@ -1,3 +1,25 @@
+/**
+ * ✅ SEED CANÓNICO DE PRODUCCIÓN (TK-051 · frontera documentada en TK-143).
+ *
+ * ┌─ Quién lo ejecuta ────────────────────────────────────────────────────────┐
+ * │ `apps/backend/docker-entrypoint.sh` → `node apps/backend/dist/prisma/seed.js`
+ * │ en CADA arranque de contenedor, tras `prisma migrate deploy`.
+ * │ Se compila STANDALONE en `apps/backend/Dockerfile` (paso `tsc prisma/seed.ts
+ * │ --outDir dist --rootDir .`) porque `tsconfig.json` fija `rootDir: ./src` y
+ * │ deja `prisma/` fuera del build principal a propósito.
+ * └───────────────────────────────────────────────────────────────────────────┘
+ *
+ * Política de PIN según entorno (`main()`, al final del fichero):
+ *   - `NODE_ENV === 'production'` → `seedProductionAdmin`: exige `SEED_ADMIN_PIN`
+ *     y, si falta, **AVISA Y OMITE** el bootstrap. Nunca usa un PIN por defecto.
+ *     Consecuencia: sin esa variable NO se crea administrador y nadie puede entrar
+ *     (`POST /api/v1/auth/users` ya exige ser ADMIN).
+ *   - Fuera de producción → `seedDevelopmentUsers` + fixtures sintéticos.
+ *
+ * ⚠️ NO CONFUNDIR con `src/infrastructure/seeds/seed.ts`, que es un módulo
+ * DISTINTO e independiente (sin relación de importación con éste), inalcanzable
+ * en producción. Confundirlos ya causó un error de análisis real: ver TK-143.
+ */
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import dotenv from 'dotenv';
