@@ -21,10 +21,20 @@
 RestoStock es un sistema inteligente y ágil de trazabilidad e inventario para cocinas de restaurantes. Está diseñado para mitigar la merma de alimentos mediante la ordenación FEFO (First Expired, First Out) de remanentes e insumos abiertos en tiempo real, calculando dinámicamente la fecha de expiración acelerada tras su apertura.
 
 ### **0.4. URL del proyecto:**
-No hay despliegue público en vivo — el proyecto corre localmente vía `pnpm dev` o `docker compose up` (ver sección de arquitectura y `docs/00_stack_manifest.md` para instrucciones).
+
+## 🌐 **https://restostock-frontend.onrender.com**
+
+Desplegado en Render con la topología de [`ADR-006`](docs/02_architecture_design/adr/ADR-006-render-deployment-topology.md): el backend es un **servicio privado**, no alcanzable desde internet; la única puerta pública es el SPA. Acceso con el usuario `bootstrap-admin` y el PIN facilitado por separado — el primer acceso exige rotarlo (Guard 36).
+
+Detalle de la verificación contra el despliegue real y de la puesta en marcha local reproducible en **§1.5**.
 
 ### **0.5. URL o archivo comprimido del repositorio:**
-https://github.com/lacruzjd/AI4Devs-finalproject
+
+**Repositorio:** https://github.com/lacruzjd/AI4Devs-finalproject
+
+**Rama de la entrega final:** [`finalproject-JDLM`](https://github.com/lacruzjd/AI4Devs-finalproject/tree/finalproject-JDLM) · etiqueta de release [`v1.0-final-JDLM`](https://github.com/lacruzjd/AI4Devs-finalproject/releases/tag/v1.0-final-JDLM)
+
+**Pull Request:** [LIDR-academy/AI4Devs-finalproject#316](https://github.com/LIDR-academy/AI4Devs-finalproject/pull/316)
 
 ---
 
@@ -275,7 +285,7 @@ El despliegue y aprovisionamiento están automatizados mediante **GitHub Actions
 | Entorno | Declaración | Estado |
 | :--- | :--- | :--- |
 | Local / Docker | [`docker-compose.yml`](docker-compose.yml) + [`infrastructure/opentofu/main.tf`](infrastructure/opentofu/main.tf) | ✅ Verificado end-to-end (ver §1.5) |
-| Revisión en la nube | [`render.yaml`](render.yaml) — 3 servicios, topología decidida en [`ADR-006`](docs/02_architecture_design/adr/ADR-006-render-deployment-topology.md) | ⚠️ Declarado; despliegue real pendiente ([`TK-142`](docs/05_agile_planning/12_tickets/shared/frontend/TK-142.md)) |
+| Revisión en la nube | [`render.yaml`](render.yaml) — 3 servicios, topología decidida en [`ADR-006`](docs/02_architecture_design/adr/ADR-006-render-deployment-topology.md) | ✅ **Desplegado y verificado** en https://restostock-frontend.onrender.com ([`TK-142`](docs/05_agile_planning/12_tickets/shared/frontend/TK-142.md)) |
 
 El `nginx` que sirve el SPA hace de proxy inverso hacia el backend (`/api/`), preservando el **mismo origen** — premisa de la que dependen la decisión de almacenamiento de sesión ([`ADR-005`](docs/02_architecture_design/adr/ADR-005-session-token-storage.md)) y la política `connect-src 'self'` de la CSP. Su upstream y puerto están parametrizados (`${BACKEND_ORIGIN}` / `${NGINX_PORT}`) para que el mismo artefacto sirva en local y en la nube sin cambios de código.
 
