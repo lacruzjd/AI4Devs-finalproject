@@ -24,7 +24,15 @@ RestoStock es un sistema inteligente y ágil de trazabilidad e inventario para c
 
 ## 🌐 **https://restostock-frontend.onrender.com**
 
-Desplegado en Render con la topología de [`ADR-006`](docs/02_architecture_design/adr/ADR-006-render-deployment-topology.md): el backend es un **servicio privado**, no alcanzable desde internet; la única puerta pública es el SPA. Acceso con el usuario `bootstrap-admin` y el PIN facilitado por separado — el primer acceso exige rotarlo (Guard 36).
+**Credenciales de prueba:**
+
+| Usuario | PIN |
+| :--- | :--- |
+| `bootstrap-admin` | `1234` |
+
+> ⚠️ **El primer acceso exige rotar el PIN** (Guard 36, `mustChangePin`). Una vez rotado, `1234` deja de ser válido y estas credenciales quedan obsoletas. Son de un **entorno de revisión con datos sintéticos**, nunca de producción real.
+
+Desplegado en Render con la topología de [`ADR-006`](docs/02_architecture_design/adr/ADR-006-render-deployment-topology.md): el backend es un **servicio privado**, no alcanzable desde internet; la única puerta pública es el SPA.
 
 Detalle de la verificación contra el despliegue real y de la puesta en marcha local reproducible en **§1.5**.
 
@@ -158,7 +166,7 @@ Es el camino probado end-to-end: levanta PostgreSQL 15, el backend (que aplica l
 
 > ## **https://restostock-frontend.onrender.com**
 
-**Acceso:** usuario `bootstrap-admin` con el PIN facilitado por separado. En el primer acceso el sistema **exige rotar el PIN** (Guard 36).
+**Acceso:** usuario `bootstrap-admin`, PIN `1234` (ver §0.4). En el primer acceso el sistema **exige rotar el PIN** (Guard 36), tras lo cual esas credenciales dejan de ser válidas.
 
 Desplegado con el Blueprint de [`render.yaml`](render.yaml) según la topología decidida en [`ADR-006`](docs/02_architecture_design/adr/ADR-006-render-deployment-topology.md) e implementada en [`TK-142`](docs/05_agile_planning/12_tickets/shared/frontend/TK-142.md): **el backend es un servicio privado**, no alcanzable desde internet. La única puerta pública es el SPA, y `nginx` hace de proxy inverso hacia el backend por la red interna — lo que preserva el **mismo origen** del que dependen [`ADR-005`](docs/02_architecture_design/adr/ADR-005-session-token-storage.md) y la política `connect-src 'self'` de la CSP.
 
