@@ -31,6 +31,8 @@ databases:
     plan: free          # ⚠️ el plan gratuito de Postgres CADUCA (~30 días)
     region: oregon
 
+# Rama desplegada: `main`. Es la rama desplegable por convención, y tras fusionar la
+# entrega queda idéntica a `finalproject-JDLM`. Un push a `main` redespliega solo.
 services:
   # ── Backend ───────────────────────────────────────────────────────────────────
   # Idealmente sería un Private Service (`type: pserv`), para no exponerlo a
@@ -41,7 +43,7 @@ services:
     name: restostock-backend
     runtime: docker
     repo: https://github.com/lacruzjd/AI4Devs-finalproject
-    branch: finalproject-JDLM
+    branch: main
     dockerfilePath: ./apps/backend/Dockerfile
     dockerContext: .
     plan: free
@@ -85,7 +87,7 @@ services:
     name: restostock-frontend
     runtime: docker
     repo: https://github.com/lacruzjd/AI4Devs-finalproject
-    branch: finalproject-JDLM
+    branch: main
     dockerfilePath: ./apps/frontend/Dockerfile
     dockerContext: .
     plan: free
