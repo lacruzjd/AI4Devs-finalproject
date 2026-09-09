@@ -83,10 +83,11 @@ La aplicación sigue el **Sistema de Diseño FEFO** (`US-022`/`US-023`, ver [`DE
 *   OpenTofu (versión 1.6 o superior) / Docker Compose (PostgreSQL 15)
 
 #### Pasos para la puesta en marcha local
-1.  **Clonar el repositorio:**
+1.  **Clonar el repositorio y situarse en la rama de la entrega final:**
     ```bash
-    git clone https://github.com/usuario/restostock.git
+    git clone https://github.com/lacruzjd/AI4Devs-finalproject.git
     cd AI4Devs-finalproject
+    git checkout finalproject-JDLM
     ```
 2.  **Instalar dependencias del monorepo:**
     ```bash
@@ -111,7 +112,55 @@ La aplicación sigue el **Sistema de Diseño FEFO** (`US-022`/`US-023`, ver [`DE
     ```bash
     pnpm dev
     ```
-    *(O alternativamente vía contenedores Docker: `docker compose up --build`)*
+
+---
+
+#### 🚀 Puesta en marcha con Docker (recomendado — la vía verificada)
+
+Es el camino probado end-to-end: levanta PostgreSQL 15, el backend (que aplica las migraciones al arrancar) y nginx sirviendo el frontend.
+
+1.  **Configurar el entorno.** `docker-compose.yml` arranca con `NODE_ENV=production`, así que la validación *Fail-Fast* (Guard 14) **aborta el arranque si falta alguna clave**:
+    ```bash
+    cp .env.example .env
+    ```
+    Edita `.env` y sustituye **todos** los `YOUR_KEY_HERE`. Tres son obligatorios y no tienen valor por defecto:
+
+    | Variable | Requisito |
+    | :--- | :--- |
+    | `JWT_SECRET` | ≥ 32 caracteres de entropía real |
+    | `ENCRYPTION_KEY` | ≥ 16 caracteres y **distinta de `JWT_SECRET`** (`AUDIT-SEC-004`) |
+    | `SEED_ADMIN_PIN` | 4–6 dígitos. **Sin ella no se crea ningún administrador y no podrás iniciar sesión** |
+
+2.  **Levantar la pila completa:**
+    ```bash
+    docker compose up --build
+    ```
+
+3.  **Abrir la aplicación** en `http://localhost:8080` e iniciar sesión con el PIN definido en `SEED_ADMIN_PIN`. En el primer acceso el sistema **exige rotar el PIN** (Guard 36).
+
+> **Comprobación rápida de salud:** `curl http://localhost:3000/health` debe responder `200`. Los tres contenedores deben figurar como `healthy` en `docker compose ps`.
+
+---
+
+### **1.5. Evidencia de despliegue**
+
+**Entorno público:** _(pendiente — el Blueprint de Render está declarado en [`render.yaml`](render.yaml); ver [`ADR-006`](docs/02_architecture_design/adr/ADR-006-render-deployment-topology.md) y [`TK-142`](docs/05_agile_planning/12_tickets/shared/frontend/TK-142.md))_
+
+**Despliegue local reproducible — verificado end-to-end el 2026-09-09.** No es una afirmación de documentación: se ejecutó el recorrido exacto de §1.4 partiendo de una base de datos vacía y de un `.env` recién copiado de `.env.example`.
+
+| Comprobación | Resultado |
+| :--- | :--- |
+| `docker compose config` con un `.env` derivado de la plantilla | ✅ válido, 14/14 variables declaradas |
+| Arranque del backend con `NODE_ENV=production` | ✅ `healthy` — la validación *Fail-Fast* (Guard 14) acepta la configuración |
+| Migraciones de base de datos | ✅ **18 migraciones aplicadas automáticamente** por `docker-entrypoint.sh` sobre una BD vacía |
+| `GET /health` | ✅ `200` |
+| `POST /api/v1/auth/login-pin` con `bootstrap-admin` | ✅ devuelve un JWT válido con la matriz de permisos del rol `ADMIN` |
+| Cabeceras de seguridad del SPA | ✅ CSP + `X-Content-Type-Options` + `Referrer-Policy` + `X-Frame-Options` + `Permissions-Policy` |
+| Fallback de rutas del SPA (`/estaciones`) | ✅ `200`, no 404 |
+
+**Pila desplegada:** 3 contenedores (`restostock_postgres`, `restostock_backend`, `restostock_frontend`), los tres `healthy`. La aplicación queda en `http://localhost:8080`.
+
+> ⚠️ **`SEED_ADMIN_PIN` es obligatoria.** El *bootstrap* del primer administrador se **omite** si no está definida (`seedProductionAdmin`), y sin administrador no es posible iniciar sesión — `POST /api/v1/auth/users` exige ya ser `ADMIN`. En el primer acceso el sistema fuerza la rotación del PIN (Guard 36).
 
 ---
 
