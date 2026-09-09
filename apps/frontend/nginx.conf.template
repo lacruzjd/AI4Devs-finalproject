@@ -1,5 +1,5 @@
 server {
-    listen 8080;
+    listen ${NGINX_PORT};
     server_name localhost;
 
     # ── Cabeceras de seguridad del SPA (TK-141, ADR-005 fuerza 3) ──────────────
@@ -65,7 +65,8 @@ server {
     }
 
     # Reenvía las llamadas del cliente al backend por su alias de red interno
-    # ("backend" en docker-compose.yml y en infrastructure/opentofu/main.tf) —
+    # (`${BACKEND_ORIGIN}`, TK-142: por defecto el alias `backend` de docker-compose /
+    # infrastructure/opentofu/main.tf; en Render, el hostname interno del servicio privado) —
     # sin esto, fetch('/api/v1/...') desde el navegador resolvía contra este mismo
     # nginx (que solo sirve estáticos) en vez de contra el backend real.
     # Deliberadamente SIN cabeceras de seguridad propias (TK-141): el backend ya
@@ -75,7 +76,7 @@ server {
     # no se heredan cuando el location define las suyas, así que basta con no
     # declararlas en este bloque.
     location /api/ {
-        proxy_pass http://backend:3000;
+        proxy_pass ${BACKEND_ORIGIN};
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

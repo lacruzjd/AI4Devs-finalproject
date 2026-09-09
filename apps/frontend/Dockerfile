@@ -22,7 +22,19 @@ FROM nginx:stable-alpine AS runner
 # base y no vería los fixes. Determinista: trae la versión corregida desde el repo de Alpine.
 RUN apk --no-cache upgrade
 
-COPY apps/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+# TK-142: la config es una PLANTILLA. La imagen oficial de nginx ejecuta
+# /docker-entrypoint.d/20-envsubst-on-templates.sh, que expande /etc/nginx/templates/*.template
+# hacia /etc/nginx/conf.d/ al arrancar. Sin esto el upstream quedaba hardcodeado al alias
+# `backend` de docker-compose, inexistente en cualquier otro entorno (ADR-006).
+COPY apps/frontend/nginx.conf.template /etc/nginx/templates/default.conf.template
+
+# Defaults = el comportamiento previo EXACTO, para que docker-compose y OpenTofu sigan
+# funcionando sin cambios. Render los sobreescribe con su hostname interno y su PORT.
+ENV BACKEND_ORIGIN=http://backend:3000
+ENV NGINX_PORT=8080
+# Acota envsubst a estas dos variables: sin filtro tambien sustituiria las propias de nginx
+# ($uri, $host, $remote_addr, $scheme) y la $spa_csp que define TK-141.
+ENV NGINX_ENVSUBST_FILTER='^(BACKEND_ORIGIN|NGINX_PORT)$'
 
 RUN addgroup -S restostock && adduser -S restostock -G restostock && \
     sed -i '/user  nginx;/d' /etc/nginx/nginx.conf && \
@@ -39,6 +51,6 @@ EXPOSE 8080
 # solo escucha en IPv4:8080 — el healthcheck con `localhost` daba "unhealthy"
 # pese a que la app respondía correctamente.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:8080 || exit 1
+  CMD wget -qO- "http://127.0.0.1:${NGINX_PORT}" || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
