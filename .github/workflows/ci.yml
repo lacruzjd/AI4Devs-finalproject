@@ -195,6 +195,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          # TK-138: el gate diff-scoped de mutacion necesita el ref base en el historial
+          # local. Con el checkout shallow por defecto, `git diff BASE...HEAD` no lo encuentra.
+          fetch-depth: 0
 
       - name: Setup Node.js (Node 24 LTS)
         uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
@@ -262,9 +266,25 @@ jobs:
           JWT_SECRET: test-jwt-secret-key-12345
         run: bash docs/04_governance_and_quality/scripts/profile_test_suite.sh
 
-      - name: Mutation Testing — Domain & Application (informational, target 70%)
+      # TK-138: antes era `test:mutation` full-scope — cientos de archivos, horas de
+      # ejecución, `continue-on-error` para que nunca bloqueara. Quemaba minutos de runner
+      # sin producir señal. Ahora usa el mismo gate diff-scoped del flujo local
+      # (Guard 27: el check vive en docs/04_governance_and_quality/scripts/, no inline),
+      # acotado a los archivos que el PR realmente toca y con el umbral aplicado POR
+      # ARCHIVO para que ninguno compense a otro (AUDIT-DEV-002).
+      #
+      # Sigue `continue-on-error` a propósito (decisión del humano, 2026-09-09): primero
+      # se recogen datos reales de cuánto tarda por archivo en el runner; promoverlo a
+      # bloqueante es una decisión aparte, informada por esos datos.
+      - name: Mutation Testing — diff-scoped (informational, target 70% per file)
         continue-on-error: true
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/restostock_test?schema=public
           JWT_SECRET: test-jwt-secret-key-12345
-        run: pnpm --filter @restostock/backend run test:mutation
+        run: |
+          BASE="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            echo "Sin ref base utilizable (push inicial o rama nueva) — se omite el gate diff-scoped."
+            exit 0
+          fi
+          bash docs/04_governance_and_quality/scripts/check_mutation_score.sh "$BASE"

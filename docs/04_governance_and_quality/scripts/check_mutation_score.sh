@@ -31,48 +31,109 @@
 # versión agregada anterior no detectaba.
 set -uo pipefail
 
+# TK-138: dos modos, una sola fuente de verdad (Guard 27 — el check vive aquí, nunca
+# inline en el workflow).
+#
+#   sin argumento  → LOCAL: archivos sin commitear (working tree + staged + nuevos).
+#                    Es el flujo de 02_cascading_dev_workflow.md, sin cambios.
+#   con un ref     → CI: diff contra ese ref base (`<base>...HEAD`). En un checkout de CI
+#                    no hay nada sin commitear, así que el modo local no encontraría nada
+#                    y el gate pasaría en verde sin mutar un solo archivo — un Gate Hueco.
+BASE_REF=""
+WITH_FRONTEND=0
+for arg in "$@"; do
+  case "$arg" in
+    --with-frontend) WITH_FRONTEND=1 ;;
+    *) BASE_REF="$arg" ;;
+  esac
+done
+
 collect_changed() {
-  git diff --name-only --diff-filter=ACMR -- '*.ts'
-  git diff --name-only --staged --diff-filter=ACMR -- '*.ts'
-  git ls-files --others --exclude-standard -- '*.ts'
+  if [ -n "$BASE_REF" ]; then
+    git diff --name-only --diff-filter=ACMR "$BASE_REF...HEAD" -- '*.ts'
+  else
+    git diff --name-only --diff-filter=ACMR -- '*.ts'
+    git diff --name-only --staged --diff-filter=ACMR -- '*.ts'
+    git ls-files --others --exclude-standard -- '*.ts'
+  fi
 }
 
-MUTATE_TARGETS=$(collect_changed | sort -u | grep -E '^apps/backend/src/(domain|application)/' | grep -v '\.test\.ts$' | sed 's#^apps/backend/##' || true)
+# TK-138: dos workspaces. Backend → domain/application (logica de negocio pura).
+# Frontend → sus .ts (hooks, services, utils); los .tsx quedan fuera a proposito, ver
+# el comentario de apps/frontend/stryker.conf.json.
+BACKEND_TARGETS=$(collect_changed | sort -u | grep -E '^apps/backend/src/(domain|application)/' | grep -v '\.test\.ts$' | sed 's#^apps/backend/##' || true)
+# El frontend queda FUERA del gate automatico por defecto — decision medida, no omision.
+# Corrida real 2026-09-09 sobre `src/shared/utils/errorMessageMapper.ts`:
+#   · 10 min 42 s UN solo fichero (vs 2:42 en backend, ~4x)
+#   · "Ran 9.47 tests per mutant" (vs 32.9-123.9 en backend)
+#   · 24 de 89 mutantes son TIMEOUTS, que Stryker cuenta como "detectados" — el mismo
+#     patron que invalido la medicion del backend el 2026-09-06: el score esta inflado.
+# Un PR que toque 3 ficheros de front sumaria ~32 min de runner para producir un numero
+# que sabemos poco fiable. La config (`apps/frontend/stryker.conf.json`) se conserva para
+# analisis manual puntual; se incluye en el gate solo con `--with-frontend`.
+FRONTEND_TARGETS=""
+if [ "$WITH_FRONTEND" -eq 1 ]; then
+  FRONTEND_TARGETS=$(collect_changed | sort -u | grep -E '^apps/frontend/src/' | grep -vE '\.test\.ts$|/tests?/' | sed 's#^apps/frontend/##' || true)
+fi
+MUTATE_TARGETS="$BACKEND_TARGETS"
 
-echo "🔍 Verificando Guard 11 (Mutation Score Stryker >= 70%, por archivo) — acotado a domain/application tocados por el ticket en curso..."
+if [ -n "$BASE_REF" ]; then
+  echo "🔍 Verificando Guard 11 (Mutation Score Stryker >= 70%, por archivo) — acotado al diff contra '$BASE_REF'..."
+else
+  echo "🔍 Verificando Guard 11 (Mutation Score Stryker >= 70%, por archivo) — acotado a domain/application tocados por el ticket en curso..."
+fi
 echo ""
 
-if [ -z "$MUTATE_TARGETS" ]; then
-  echo "✨ El ticket en curso no toca archivos en apps/backend/src/{domain,application}/ — nada que mutar."
+if [ -z "$BACKEND_TARGETS" ] && [ -z "$FRONTEND_TARGETS" ]; then
+  if [ "$WITH_FRONTEND" -eq 1 ]; then
+    echo "✨ Nada que mutar: el diff no toca apps/backend/src/{domain,application}/ ni los .ts de apps/frontend/src/."
+  else
+    echo "✨ Nada que mutar: el diff no toca apps/backend/src/{domain,application}/."
+    echo "   (frontend excluido por defecto — usar --with-frontend; ver el porqué medido en este script)"
+  fi
   exit 0
 fi
 
-echo "📄 Archivos a mutar (uno por uno, para que ninguno compense a otro):"
-echo "$MUTATE_TARGETS" | sed 's/^/   - /'
-echo ""
-
-cd apps/backend || exit 1
-
+REPO_ROOT="$(pwd)"
 FAILED_FILES=""
-while IFS= read -r file; do
-  [ -z "$file" ] && continue
-  echo "▶️  Mutando: $file"
-  if npx stryker run --mutate "$file" > /tmp/stryker_output_$$.log 2>&1; then
-    echo "   ✅ OK"
-  else
-    echo "   ❌ Por debajo del umbral 70%"
-    FAILED_FILES="${FAILED_FILES}${file}"$'\n'
-    tail -30 /tmp/stryker_output_$$.log | sed 's/^/      /'
-  fi
-  rm -f /tmp/stryker_output_$$.log
+
+# Muta UN archivo por invocación a propósito (AUDIT-DEV-002): el `thresholds.break` del
+# motor se aplica al score AGREGADO de la corrida, así que agrupar archivos deja que uno
+# con tests fuertes compense estadísticamente a otro débil y el gate aprueba igual.
+mutate_workspace() {
+  local workspace="$1" targets="$2"
+  [ -z "$targets" ] && return 0
+
+  echo "📦 Workspace: $workspace"
+  echo "📄 Archivos a mutar (uno por uno, para que ninguno compense a otro):"
+  echo "$targets" | sed 's/^/   - /'
   echo ""
-done <<< "$MUTATE_TARGETS"
+
+  cd "$REPO_ROOT/$workspace" || return 1
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    echo "▶️  Mutando: $workspace/$file"
+    if npx stryker run --mutate "$file" > "/tmp/stryker_output_$$.log" 2>&1; then
+      echo "   ✅ OK"
+    else
+      echo "   ❌ Por debajo del umbral 70%"
+      FAILED_FILES="${FAILED_FILES}${workspace}/${file}"$'\n'
+      tail -30 "/tmp/stryker_output_$$.log" | sed 's/^/      /'
+    fi
+    rm -f "/tmp/stryker_output_$$.log"
+    echo ""
+  done <<< "$targets"
+  cd "$REPO_ROOT" || return 1
+}
+
+mutate_workspace "apps/backend" "$BACKEND_TARGETS"
+mutate_workspace "apps/frontend" "$FRONTEND_TARGETS"
 
 if [ -n "$FAILED_FILES" ]; then
   echo "❌ Mutation Score por debajo del umbral 70% (Guard 11) en:"
   echo "$FAILED_FILES" | sed '/^$/d' | sed 's/^/   - /'
-  echo "   Revisa el reporte HTML en apps/backend/reports/mutation/ (se sobreescribe en cada corrida — mira el de la última falla) y refuerza los tests que no matan mutantes sobrevivientes."
+  echo "   Revisa el reporte HTML en <workspace>/reports/mutation/ (se sobreescribe en cada corrida — mira el de la última falla) y refuerza los tests que no matan mutantes sobrevivientes."
   exit 1
 fi
 
-echo "✨ Mutation Score >= 70% en TODOS los archivos tocados por el ticket en curso (verificado por archivo, ninguno compensa a otro)."
+echo "✨ Mutation Score >= 70% en TODOS los archivos tocados (verificado por archivo, ninguno compensa a otro)."

@@ -35,7 +35,7 @@ Barrido final antes del push de la Entrega Final. Los pendientes se resolvieron 
 
 Residual de calidad de mutation testing (auditoría 2026-09-06, `docs/00_stack_manifest.md` §5):
 - **`TK-137`** (`done`, 2026-09-09) — `Temperature.ts` sin test unitario directo: añadido `Temperature.test.ts`, score de ese archivo 60 % → 100 %.
-- **`TK-138`** (`approved`, post-entrega) — el paso de CI `Mutation Testing` es full-scope + `continue-on-error`; `check_mutation_score.sh` no es *base-ref aware*; `apps/frontend` sin config de Stryker. Decisión abierta: gate diff-scoped bloqueante vs informativo.
+- **`TK-138`** (`done`, 2026-09-09) — el paso de CI `Mutation Testing` es full-scope + `continue-on-error`; `check_mutation_score.sh` no es *base-ref aware*; `apps/frontend` sin config de Stryker. Decisión abierta: gate diff-scoped bloqueante vs informativo.
 
 Residual de gobernanza de `.agents/` (auditoría de patrones de prompt, 2026-09-09) — **cerrado**:
 - **`TK-139`** (`done`) — nueva `SK-36` que genera y gobierna los ADRs, **ejecutada de verdad** contra una decisión abierta real (hallazgo `O-1` de `AUDIT-SEC-004`) → [`ADR-005`](../../02_architecture_design/adr/ADR-005-session-token-storage.md). `SK-13` 3.2.0 audita ADRs huérfanos en ambos sentidos; framework 2.14.0 → 2.15.0. Excluido a propósito: el wiring en `01_cascading_spec_workflow.md`.
