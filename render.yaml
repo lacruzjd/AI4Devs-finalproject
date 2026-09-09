@@ -28,25 +28,25 @@ databases:
   - name: restostock-db
     databaseName: restostock
     user: restostock
-    plan: free          # ⚠️ el plan gratuito de Postgres CADUCA (~30 días)
+    plan: basic-256mb   # ⚠️ confirmar el nombre exacto del plan en el dashboard
     region: oregon
 
 # Rama desplegada: `main`. Es la rama desplegable por convención, y tras fusionar la
 # entrega queda idéntica a `finalproject-JDLM`. Un push a `main` redespliega solo.
 services:
-  # ── Backend ───────────────────────────────────────────────────────────────────
-  # Idealmente sería un Private Service (`type: pserv`), para no exponerlo a
-  # internet. Se declara como `web` porque los private services NO están en el
-  # plan gratuito. Consecuencia asumida: el backend queda públicamente alcanzable.
-  # Si se pasa a plan de pago, cambiar a `type: pserv` y ajustar BACKEND_ORIGIN.
-  - type: web
+  # ── Backend (Private Service — NO expuesto a internet) ────────────────────────
+  # Restaura la decisión original de ADR-006. Estuvo como `web` solo mientras el
+  # despliegue iba en plan gratuito, donde los private services no existen; esa
+  # desviación quedó declarada en el ADR y ahora se revierte.
+  # La única puerta pública es el SPA; el backend solo es alcanzable desde él.
+  - type: pserv
     name: restostock-backend
     runtime: docker
     repo: https://github.com/lacruzjd/AI4Devs-finalproject
     branch: main
     dockerfilePath: ./apps/backend/Dockerfile
     dockerContext: .
-    plan: free
+    plan: starter
     region: oregon
     healthCheckPath: /health      # ⚠️ está en la RAÍZ, no bajo /api/v1
     envVars:
@@ -81,6 +81,9 @@ services:
           name: restostock-frontend
           type: web
           property: host
+      # El private service escucha en su puerto interno; Render inyecta PORT.
+      - key: PORT
+        value: 3000
 
   # ── Frontend (única puerta pública prevista) ──────────────────────────────────
   - type: web
@@ -90,15 +93,15 @@ services:
     branch: main
     dockerfilePath: ./apps/frontend/Dockerfile
     dockerContext: .
-    plan: free
+    plan: starter
     region: oregon
     envVars:
       # TK-142: sustituye el alias `backend` de docker-compose, inexistente aquí.
       - key: BACKEND_ORIGIN
         fromService:
           name: restostock-backend
-          type: web
-          property: host
+          type: pserv
+          property: hostport
       # Render enruta al puerto que la imagen expone; 8080 es el de EXPOSE.
       - key: NGINX_PORT
         value: 8080
@@ -106,9 +109,13 @@ services:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Verificación pendiente en el primer despliegue (DoD de TK-142)
 #
-# 1. `property: host` devuelve el hostname SIN esquema. `BACKEND_ORIGIN` necesita
-#    `http(s)://…` para `proxy_pass`. Si Render no lo incluye, fijar el valor a
-#    mano: BACKEND_ORIGIN=https://restostock-backend.onrender.com
+# 1. `property: hostport` deberia dar `host:puerto` del servicio privado, pero
+#    `proxy_pass` necesita esquema. Lo mas probable es que haya que fijarlo a mano:
+#    BACKEND_ORIGIN=http://restostock-backend:3000   (http, no https: la red interna
+#    de Render no lleva TLS entre servicios). Sintoma si falla: el SPA carga pero
+#    toda llamada a /api/ devuelve 502.
+# 1b. Nombres de plan (`starter`, `basic-256mb`): confirmar contra el dashboard, la
+#    nomenclatura de Render cambia con el tiempo y NO esta verificada desde aqui.
 # 2. Confirmar que el rate limiter no agrupa a todos los clientes en un bucket:
 #    `trust proxy` está en ['loopback','linklocal','uniquelocal'] y la red de
 #    Render podría no caer en rango privado (sería el bug que cerró TK-132).
