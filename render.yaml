@@ -74,16 +74,20 @@ services:
         sync: false
       # Origen público del frontend: allowlist de CORS y enlace del email de reset
       # (AUDIT-SEC-004 F-2 — el header Origin nunca se confía si no está aquí).
+      #
+      # Valor LITERAL por la MISMA razón que BACKEND_ORIGIN: `property: host` devuelve
+      # el hostname pelado, sin esquema. El despliegue #2 abortó con
+      #   Guard 14: "CLIENT_ORIGIN debe ser una URL válida"
+      # porque `environment.ts` lo valida con `z.string().url()`. CORS_ALLOWED_ORIGINS
+      # no reventó —es `z.string()` sin validar— pero habría roto el CORS en silencio,
+      # que es peor. Los dos se fijan enteros, con esquema.
+      #
+      # ⚠️ Si Render asigna al frontend un hostname distinto (por colisión de nombre),
+      # corregir AMBOS aquí con la URL real que muestre el dashboard.
       - key: CORS_ALLOWED_ORIGINS
-        fromService:
-          name: restostock-frontend
-          type: web
-          property: host
+        value: https://restostock-frontend.onrender.com
       - key: CLIENT_ORIGIN
-        fromService:
-          name: restostock-frontend
-          type: web
-          property: host
+        value: https://restostock-frontend.onrender.com
       # El private service escucha en su puerto interno; Render inyecta PORT.
       - key: PORT
         value: 3000
@@ -123,6 +127,16 @@ services:
 #    (la línea del `proxy_pass`). No fue un 502 como preví: el contenedor ni siquiera
 #    llega a servir — falla en el arranque, que es preferible a fallar en caliente.
 #    BACKEND_ORIGIN pasa a valor literal con esquema.
+# 1b. ✅ MISMA CAUSA, segundo despliegue: el backend abortó con
+#      Guard 14: "CLIENT_ORIGIN debe ser una URL válida"
+#    `property: host` devuelve el hostname pelado y `environment.ts` valida con
+#    `z.string().url()`. CORS_ALLOWED_ORIGINS compartía el defecto sin dar la cara
+#    (es `z.string()` sin validar) — habría roto el CORS en silencio, peor que el
+#    fallo ruidoso. Los dos pasan a literal con `https://`.
+#
+#    LECCIÓN: en este blueprint, NINGUNA referencia `fromService` sirve donde se
+#    espera una URL — `host` y `hostport` devuelven siempre valores sin esquema.
+#    Antes de añadir una variable nueva de tipo URL, usar valor literal.
 # 1b. Nombres de plan (`starter`, `basic-256mb`): confirmar contra el dashboard, la
 #    nomenclatura de Render cambia con el tiempo y NO esta verificada desde aqui.
 # 2. Confirmar que el rate limiter no agrupa a todos los clientes en un bucket:
