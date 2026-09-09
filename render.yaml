@@ -100,11 +100,16 @@ services:
     region: oregon
     envVars:
       # TK-142: sustituye el alias `backend` de docker-compose, inexistente aquí.
+      #
+      # Valor LITERAL, no `fromService`. El primer despliegue falló con
+      #   nginx: [emerg] invalid URL prefix in /etc/nginx/conf.d/default.conf:79
+      # porque `property: hostport` devuelve `restostock-backend:3000` SIN esquema y
+      # `proxy_pass` exige `http://`. render.yaml no permite concatenar un literal con
+      # una referencia `fromService`, así que se fija entero: el nombre del servicio
+      # privado está declarado en este mismo fichero, luego es determinista.
+      # `http`, no `https`: la red interna de Render no lleva TLS entre servicios.
       - key: BACKEND_ORIGIN
-        fromService:
-          name: restostock-backend
-          type: pserv
-          property: hostport
+        value: http://restostock-backend:3000
       # Render enruta al puerto que la imagen expone; 8080 es el de EXPOSE.
       - key: NGINX_PORT
         value: 8080
@@ -112,11 +117,12 @@ services:
 # ═══════════════════════════════════════════════════════════════════════════════
 # Verificación pendiente en el primer despliegue (DoD de TK-142)
 #
-# 1. `property: hostport` deberia dar `host:puerto` del servicio privado, pero
-#    `proxy_pass` necesita esquema. Lo mas probable es que haya que fijarlo a mano:
-#    BACKEND_ORIGIN=http://restostock-backend:3000   (http, no https: la red interna
-#    de Render no lleva TLS entre servicios). Sintoma si falla: el SPA carga pero
-#    toda llamada a /api/ devuelve 502.
+# 1. ✅ RESUELTO en el primer despliegue (2026-09-09). `property: hostport` devuelve
+#    `host:puerto` SIN esquema y nginx abortó al arrancar con
+#      nginx: [emerg] invalid URL prefix in /etc/nginx/conf.d/default.conf:79
+#    (la línea del `proxy_pass`). No fue un 502 como preví: el contenedor ni siquiera
+#    llega a servir — falla en el arranque, que es preferible a fallar en caliente.
+#    BACKEND_ORIGIN pasa a valor literal con esquema.
 # 1b. Nombres de plan (`starter`, `basic-256mb`): confirmar contra el dashboard, la
 #    nomenclatura de Render cambia con el tiempo y NO esta verificada desde aqui.
 # 2. Confirmar que el rate limiter no agrupa a todos los clientes en un bucket:
