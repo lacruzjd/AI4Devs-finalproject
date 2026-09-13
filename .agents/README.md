@@ -1,7 +1,7 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.24.0"
+version: "2.25.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
@@ -54,7 +54,7 @@ El marco opera bajo una arquitectura desacoplada: una capa de entrada (comandos)
 
 ```mermaid
 flowchart TD
-    subgraph CAPA0 ["0. CAPA DE ENTRADA (21 comandos /momoy-*, estándar Agent Skills)"]
+    subgraph CAPA0 ["0. CAPA DE ENTRADA (22 comandos /momoy-*, estándar Agent Skills)"]
         CMD["skills/momoy*/SKILL.md — puntos de entrada delgados hacia workflows o SK-NN"]
     end
 
@@ -66,7 +66,7 @@ flowchart TD
     end
 
     subgraph CAPA2 ["2. CAPA DE HABILIDADES PROCEDIMENTALES (36 Skills)"]
-        S_Spec["Skills de Specs (SK-01 a SK-15, SK-35 a SK-37, SK-39)"]
+        S_Spec["Skills de Specs (SK-01 a SK-15, SK-35 a SK-37, SK-39, SK-40)"]
         S_Dev["Skills de Dev (SK-16 a SK-34, SK-38)"]
     end
 
@@ -114,6 +114,7 @@ momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [
 | `/momoy-incident [stacktrace]` | Incidencia de producción → ticket ([`07`](workflows/07_production_observability_workflow.md)) | Llega un error real de producción |
 | `/momoy-postmortem [PM-NNN o incidencia]` | Postmortem sin culpa de una incidencia resuelta ([`SK-38`](skills/development/07_performance_and_observability/SK-38_write_blameless_postmortem.md)) | Incidencia crítica o alta resuelta, en los 5 días siguientes |
 | `/momoy-release [X.Y.Z]` | Release a producción con gates previos, estrategia, rollback ensayado y aprobación humana ([`10`](workflows/10_release_workflow.md)) | Hay tickets cerrados listos para producción |
+| `/momoy-operate [diseñar o ensayar]` | SLOs, alertas con runbook, backups y simulacros de recuperación ([`SK-40`](skills/specs/04_governance_and_quality/SK-40_design_service_operations.md)) | Antes del primer release a producción, o cuando toca un simulacro |
 | `/momoy-smoke [URL]` | Validación post-despliegue; rollback solo con aprobación humana ([`08`](workflows/08_smoke_test_deploy_validation.md)) | Justo después de cada deploy |
 | `/momoy-verify-live [flujo]` | Prueba de la app en vivo con navegador real ([`09`](workflows/09_live_stack_verification_workflow.md)) | Demostrar que un ticket funciona de verdad |
 | `/momoy-pr [PR o rama]` | Documentación veraz de PRs e historial de entregas ([`SK-15`](skills/specs/05_agile_planning/SK-15_document_pull_requests.md)) | Al abrir o cerrar un PR |
@@ -163,7 +164,7 @@ Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestruc
 *   **Persistencia y APIs:** `docs/03_persistence_and_api/` (Esquemas de Base de Datos y OpenAPI 3.0).
 *   **Gobernanza y Calidad:** `docs/04_governance_and_quality/` (Estrategias de prueba, seguridad, CI/CD e informes).
 *   **Gestión Ágil:** `docs/05_agile_planning/` (User Stories INVEST y Tickets Técnicos).
-*   **Release y Operación:** `docs/06_release_and_operations/` (postmortems; releases, SLOs y runbooks en próximas versiones).
+*   **Release y Operación:** `docs/06_release_and_operations/` (releases, SLOs, runbooks, backups, simulacros y postmortems).
 
 ---
 
@@ -179,7 +180,7 @@ Las 35 habilidades son runbooks especializados organizados por fases y roles té
 *   **05_agile_planning:** [SK-11 Historias de Usuario (INVEST)](skills/specs/05_agile_planning/SK-11_generate_user_stories.md), [SK-12 Planificación de Tickets](skills/specs/05_agile_planning/SK-12_generate_backlog_tickets.md), [SK-13 Matriz de Trazabilidad](skills/specs/05_agile_planning/SK-13_generate_traceability_matrix.md), [SK-14 Mapa del Backlog](skills/specs/05_agile_planning/SK-14_generate_backlog_map.md) y [SK-15 Registro de PRs](skills/specs/05_agile_planning/SK-15_document_pull_requests.md).
 
 ### Fase DevSecOps & Gobernanza de Seguridad (DevSecOps Lead & Auditor Roles)
-*   **Seguridad Shift-Left & CI/CD:** [SK-08 Estrategia de Seguridad](skills/specs/04_governance_and_quality/SK-08_define_security_strategy.md), [SK-10 Pipeline CI/CD Node 24 & OpenTofu IaC](skills/specs/04_governance_and_quality/SK-10_configure_cicd_pipeline.md), [SK-23 Seguridad en Dependencias Anti-Slopsquatting](skills/development/05_quality_and_lint/SK-23_audit_dependency_security.md) y [SK-25 Auditoría de Validación de Contratos](skills/development/05_quality_and_lint/SK-25_audit_contract_validation.md).
+*   **Seguridad Shift-Left & CI/CD:** [SK-08 Estrategia de Seguridad](skills/specs/04_governance_and_quality/SK-08_define_security_strategy.md), [SK-10 Pipeline CI/CD Node 24 & OpenTofu IaC](skills/specs/04_governance_and_quality/SK-10_configure_cicd_pipeline.md), [SK-23 Seguridad en Dependencias Anti-Slopsquatting](skills/development/05_quality_and_lint/SK-23_audit_dependency_security.md) y [SK-25 Auditoría de Validación de Contratos](skills/development/05_quality_and_lint/SK-25_audit_contract_validation.md) y [SK-40 Operación del Servicio](skills/specs/04_governance_and_quality/SK-40_design_service_operations.md).
 *   **Workflows de Auditoría Adversarial:** [Workflow 03 Auditoría de Especificaciones](workflows/03_spec_audit_workflow.md), [Workflow 04 Auditoría Adversarial DevSecOps](workflows/04_dev_audit_workflow.md) y [Workflow 07 Observabilidad en Producción Shift-Right](workflows/07_production_observability_workflow.md).
 
 ### Fase de Codificación y Calidad (Developer, QA & Automation Roles)

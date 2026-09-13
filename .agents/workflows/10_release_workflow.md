@@ -1,11 +1,11 @@
 ---
 name: 10_release_workflow
 description: "Workflow de release: lleva un conjunto de tickets cerrados a producción sin riesgo. Fija la versión SemVer, pasa los gates previos, declara la estrategia de liberación, clasifica las migraciones, verifica la configuración de despliegue, planifica y ensaya el rollback cuando corresponde, escribe las notas de versión y solo despliega con aprobación humana, validando después con el workflow 08."
-version: "1.0.0"
+version: "1.1.0"
 category: "workflows/deployment"
 ---
 
-# Workflow 10: Release (v1.0.0)
+# Workflow 10: Release (v1.1.0)
 
 > **DIRECTIVA PARA EL AGENTE:**
 > Actúa como un **Release Manager** con mentalidad SRE. Desplegar es poner el código en producción; liberar es que el usuario lo vea. Tu trabajo es que ambos pasos sean predecibles, verificados y reversibles.
@@ -31,6 +31,8 @@ El registro del release vive en `docs/06_release_and_operations/releases/vX.Y.Z.
 
 1. `python3 .agents/scripts/check_spec_artifacts.py --changed` y los gates de calidad y seguridad del proyecto declarados en `AGENTS.md` (build, lint, tests, auditoría de dependencias con `/momoy-deps`).
 2. Cualquier gate en rojo detiene el release. No se "libera ahora y se arregla después".
+3. **Operación previa (etapa 9):** antes del **primer** release a producción deben existir `docs/06_release_and_operations/slos.md` y `backup_and_recovery.md`, diseñados con [`/momoy-operate`](../skills/specs/04_governance_and_quality/SK-40_design_service_operations.md).
+4. **Presupuesto de error:** si algún SLO de `slos.md` tiene el presupuesto `agotado`, el release **solo puede incluir correcciones y mejoras de fiabilidad**: ningún ticket de funcionalidad (los que apuntan a una historia de usuario). El gate `release` lo verifica.
 
 ## Paso 3 — Estrategia de Liberación
 
