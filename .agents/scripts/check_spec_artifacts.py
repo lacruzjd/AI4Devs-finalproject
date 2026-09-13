@@ -11,7 +11,7 @@ SK-01/SK-02 (KPIs), SK-11 (historias), SK-12 (tickets), SK-13 (matriz) y SK-36 (
 declaran obligatorio. Solo depende de la taxonomía fija de docs/ que momoy impone, no del
 stack del proyecto (CONTRIBUTING.md, regla de .agents/scripts/).
 
-Ocho gates:
+Nueve gates:
   kpi          Cada KPI está en una tabla con fuente, línea base, umbral, ventana y fecha de revisión.
   resultado    Cada OUT-NNN (SK-39) tiene veredicto por KPI sostenido por datos del repo y una
                recomendación coherente con su estado; un KPI con la fecha de revisión vencida y sin
@@ -20,6 +20,9 @@ Ocho gates:
                estrategia justificada, migraciones clasificadas (un contract solo tras su expand
                desplegado), flags con ticket de retirada, ensayo de rollback si hay migración o cambio
                de despliegue y, si se desplegó, etiqueta git y sección de CHANGELOG coincidentes.
+  operacion    Un servicio con un release desplegado tiene SLOs de disponibilidad y latencia, cada uno
+               con alerta y runbook ensayado con éxito, y backup con RPO/RTO y un simulacro de
+               restauración exitoso de hace menos de 90 días que cumple el RTO (SK-40).
   postmortem   Cada PM-NNN (SK-38) tiene línea de tiempo con horas, análisis de por qué ningún gate lo
                detectó y, si está cerrado, acciones trazadas; uno crítico o alto sin cerrar pasados
                5 días desde la resolución es un hallazgo.
@@ -117,6 +120,21 @@ RELEASE_SECTIONS = {
 }
 CHANGELOG = "CHANGELOG.md"
 
+# Operación (etapa 9, SK-40).
+OPS_DIR = "docs/06_release_and_operations"
+SLOS_DOC = f"{OPS_DIR}/slos.md"
+BACKUP_DOC = f"{OPS_DIR}/backup_and_recovery.md"
+RUNBOOKS_DIR = f"{OPS_DIR}/runbooks"
+DRILLS_DIR = f"{OPS_DIR}/drills"
+SLO_COLUMNS = ("slo", "sli", "objetivo", "ventana", "fuente", "alerta", "presupuesto")
+BUDGET_STATES = ("disponible", "en_riesgo", "agotado")
+DRILL_TYPES = ("restauracion", "alerta", "runbook", "rollback")
+DRILL_RESULTS = ("exitoso", "parcial", "fallido")
+RESTORE_DRILL_MAX_AGE_DAYS = 90
+RUNBOOK_SECTIONS = {"Síntoma": ("sintoma",), "Diagnóstico": ("diagnostico",), "Mitigación": ("mitigacion",), "Escalado": ("escalado",)}
+DRILL_SECTIONS = {"Objetivo": ("objetivo",), "Procedimiento seguido": ("procedimiento",), "Resultado": ("resultado",), "Evidencia": ("evidencia",)}
+BACKUP_SECTIONS = {"Mecanismo de backup": ("mecanismo",), "Procedimiento de restauración": ("procedimiento de restauracion",)}
+
 KPI_DOCS = ("docs/01_product_definition/01_product_discovery.md", "docs/01_product_definition/02_prd.md")
 STORIES_DIR = "docs/05_agile_planning/11_user_stories"
 TICKETS_DIR = "docs/05_agile_planning/12_tickets"
@@ -135,6 +153,10 @@ EXPERIMENT_FILE = re.compile(r"^(EXP-\d+).*\.md$")
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
 RELEASE_FILE = re.compile(r"^v(\d+\.\d+\.\d+)(?:-[a-z0-9-]+)?\.md$")
 RELEASE_REF = re.compile(r"\bv(\d+\.\d+\.\d+)\b")
+RUNBOOK_FILE = re.compile(r"^(RB-\d+).*\.md$")
+DRILL_FILE = re.compile(r"^(DRILL-\d+).*\.md$")
+RUNBOOK_ID = re.compile(r"RB-\d+")
+DURATION = re.compile(r"^(\d+(?:[.,]\d+)?)\s*(min|h|d)$")
 OUTCOME_FILE = re.compile(r"^(OUT-\d+).*\.md$")
 POSTMORTEM_FILE = re.compile(r"^(PM-\d+).*\.md$")
 ISO_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:\d{2})$")
@@ -374,7 +396,7 @@ def release_statuses(root):
     return statuses
 
 
-def check_release(root, path, tickets, releases, findings, tags=None):
+def check_release(root, path, tickets, releases, findings, tags=None, budget_exhausted=False):
     text = read(os.path.join(root, path))
     fm = frontmatter(text)
     if fm is None:
@@ -418,8 +440,10 @@ def check_release(root, path, tickets, releases, findings, tags=None):
         for ticket in included:
             if ticket not in tickets:
                 findings.add("release", path, "ticket incluido que no existe", ticket)
-            elif tickets[ticket] != "done":
-                findings.add("release", path, "ticket incluido sin cerrar", f"{ticket}: {tickets[ticket]}")
+            elif tickets[ticket].get("status") != "done":
+                findings.add("release", path, "ticket incluido sin cerrar", f"{ticket}: {tickets[ticket].get('status')}")
+            elif budget_exhausted and status == "planned" and STORY_ID.search(tickets[ticket].get("related_story", "")):
+                findings.add("release", path, "presupuesto de error agotado: el release incluye funcionalidades", ticket)
 
     if fm.get("includes_migration") == "si":
         migrations = bullets(section_lines(text, ("migraciones",)))
@@ -465,6 +489,168 @@ def check_release(root, path, tickets, releases, findings, tags=None):
         changelog = os.path.join(root, CHANGELOG)
         if not (os.path.isfile(changelog) and re.search(rf"^##\s*\[{re.escape(release)}\]", read(changelog), re.M)):
             findings.add("release", path, f"release desplegado sin sección en {CHANGELOG}")
+
+
+# ---------------------------------------------------------- gate: operacion
+
+def duration_minutes(value):
+    match = DURATION.match(value.strip())
+    if not match:
+        return None
+    amount = float(match.group(1).replace(",", "."))
+    return amount * {"min": 1, "h": 60, "d": 1440}[match.group(2)]
+
+
+def slo_rows(root):
+    path = os.path.join(root, SLOS_DOC)
+    if not os.path.isfile(path):
+        return []
+    rows = []
+    for table in markdown_tables(read(path)):
+        header = [norm(c) for c in table_cells(table[0])]
+        if set(SLO_COLUMNS) <= set(header):
+            rows.extend(dict(zip(header, table_cells(r))) for r in table_rows(table))
+    return rows
+
+
+def error_budget_exhausted(root):
+    return any(row.get("presupuesto", "").strip() == "agotado" for row in slo_rows(root))
+
+
+def check_operations(root, findings, deployed, today=None):
+    """Devuelve cuántos artefactos de operación revisó."""
+    checked = 0
+    runbooks = list_top_level(root, RUNBOOKS_DIR, RUNBOOK_FILE)
+    drills = list_top_level(root, DRILLS_DIR, DRILL_FILE)
+    runbook_ids = {RUNBOOK_FILE.match(os.path.basename(p)).group(1) for p in runbooks}
+
+    drill_records = []
+    for path in drills:
+        checked += 1
+        text = read(os.path.join(root, path))
+        fm = frontmatter(text)
+        if fm is None:
+            findings.add("operacion", path, "sin frontmatter")
+            continue
+        drill_id = DRILL_FILE.match(os.path.basename(path)).group(1)
+        if fm.get("document") != "drill":
+            findings.add("operacion", path, "document distinto de 'drill'", fm.get("document", "(ausente)"))
+        if fm.get("id") != drill_id:
+            findings.add("operacion", path, "id ausente o distinto del nombre de archivo", fm.get("id", "(ausente)"))
+        for field, allowed in (("type", DRILL_TYPES), ("result", DRILL_RESULTS)):
+            if fm.get(field) not in allowed:
+                findings.add("operacion", path, f"{field} fuera del vocabulario", fm.get(field, "(ausente)"))
+        if not ISO_DATE.match(fm.get("executed_on", "")):
+            findings.add("operacion", path, "executed_on no es AAAA-MM-DD", fm.get("executed_on", "(ausente)"))
+        if not fm.get("environment", "").strip():
+            findings.add("operacion", path, "simulacro sin entorno declarado")
+        kind, target = fm.get("type"), fm.get("target", "").strip()
+        coherent = ((kind == "restauracion" and target == "backup")
+                    or (kind in ("alerta", "runbook") and RUNBOOK_ID.fullmatch(target) and target in runbook_ids)
+                    or (kind == "rollback" and RELEASE_REF.fullmatch(target)))
+        if kind in DRILL_TYPES and not coherent:
+            findings.add("operacion", path, "target incoherente con el tipo de simulacro", f"{kind} → {target or '(vacío)'}")
+        if kind == "restauracion" and duration_minutes(fm.get("measured_rto", "")) is None:
+            findings.add("operacion", path, "simulacro de restauración sin measured_rto")
+        found = headings(text)
+        for label, options in DRILL_SECTIONS.items():
+            if not has_section(found, options):
+                findings.add("operacion", path, f"sin sección '{label}'")
+        evidence = files_under(os.path.join(root, DRILLS_DIR, "evidence", drill_id))
+        if not evidence:
+            findings.add("operacion", path, f"simulacro sin evidencia en drills/evidence/{drill_id}/")
+        for evidence_file in evidence:
+            content = read(evidence_file)
+            if EMAIL.search(content) or PHONE.search(content):
+                findings.add("operacion", path, "posibles datos personales en la evidencia (correo o teléfono)", os.path.basename(evidence_file))
+        drill_records.append(fm)
+
+    successful = [d for d in drill_records if d.get("result") == "exitoso" and ISO_DATE.match(d.get("executed_on", ""))]
+
+    slos_path = os.path.join(root, SLOS_DOC)
+    if os.path.isfile(slos_path):
+        checked += 1
+        text = read(slos_path)
+        fm = frontmatter(text) or {}
+        if fm.get("document") != "slos":
+            findings.add("operacion", SLOS_DOC, "document distinto de 'slos'", fm.get("document", "(ausente)"))
+        rows = slo_rows(root)
+        if not rows:
+            findings.add("operacion", SLOS_DOC, "sin tabla de SLOs", "columnas: SLO | SLI | Objetivo | Ventana | Fuente | Alerta | Presupuesto")
+        names = " ".join(norm(r.get("slo", "")) for r in rows)
+        for required in ("disponibilidad", "latencia"):
+            if rows and required not in names:
+                findings.add("operacion", SLOS_DOC, f"falta SLO de {required}")
+        for row in rows:
+            name = row.get("slo", "?") or "?"
+            for column in ("sli", "objetivo", "ventana", "fuente"):
+                if not row.get(column, "").strip():
+                    findings.add("operacion", SLOS_DOC, f"SLO sin '{column}'", name)
+            alerts = RUNBOOK_ID.findall(row.get("alerta", ""))
+            if not alerts:
+                findings.add("operacion", SLOS_DOC, "SLO sin alerta que lo mida", name)
+            for alert in alerts:
+                if alert not in runbook_ids:
+                    findings.add("operacion", SLOS_DOC, "alerta apunta a un runbook que no existe", f"{name}: {alert}")
+            if row.get("presupuesto", "").strip() not in BUDGET_STATES:
+                findings.add("operacion", SLOS_DOC, "presupuesto fuera del vocabulario", f"{name}: {row.get('presupuesto', '').strip() or '(vacío)'}")
+        if not has_section(headings(text), ("politica de presupuesto",)):
+            findings.add("operacion", SLOS_DOC, "sin sección 'Política de presupuesto de error'")
+    elif deployed:
+        findings.add("operacion", SLOS_DOC, "servicio desplegado sin slos.md")
+
+    for path in runbooks:
+        checked += 1
+        text = read(os.path.join(root, path))
+        fm = frontmatter(text)
+        if fm is None:
+            findings.add("operacion", path, "sin frontmatter")
+            continue
+        rb_id = RUNBOOK_FILE.match(os.path.basename(path)).group(1)
+        if fm.get("document") != "runbook":
+            findings.add("operacion", path, "document distinto de 'runbook'", fm.get("document", "(ausente)"))
+        if fm.get("id") != rb_id:
+            findings.add("operacion", path, "id ausente o distinto del nombre de archivo", fm.get("id", "(ausente)"))
+        if fm.get("severity") not in SEVERITIES:
+            findings.add("operacion", path, "severity fuera del vocabulario", fm.get("severity", "(ausente)"))
+        if not fm.get("alert", "").strip():
+            findings.add("operacion", path, "runbook sin alerta asociada")
+        found = headings(text)
+        for label, options in RUNBOOK_SECTIONS.items():
+            if not has_section(found, options):
+                findings.add("operacion", path, f"sin sección '{label}'")
+        if not any(d.get("type") in ("alerta", "runbook") and d.get("target", "").strip() == rb_id for d in successful):
+            findings.add("operacion", path, "runbook nunca ensayado con éxito")
+
+    backup_path = os.path.join(root, BACKUP_DOC)
+    if os.path.isfile(backup_path):
+        checked += 1
+        text = read(backup_path)
+        fm = frontmatter(text) or {}
+        if fm.get("document") != "backup_recovery":
+            findings.add("operacion", BACKUP_DOC, "document distinto de 'backup_recovery'", fm.get("document", "(ausente)"))
+        rto = duration_minutes(fm.get("rto", ""))
+        for field in ("rpo", "rto"):
+            if duration_minutes(fm.get(field, "")) is None:
+                findings.add("operacion", BACKUP_DOC, f"{field} no es un número con unidad (min, h, d)", fm.get(field, "(ausente)"))
+        found = headings(text)
+        for label, options in BACKUP_SECTIONS.items():
+            if not has_section(found, options):
+                findings.add("operacion", BACKUP_DOC, f"sin sección '{label}'")
+        restores = sorted((d for d in successful if d.get("type") == "restauracion"), key=lambda d: d["executed_on"])
+        if not restores:
+            findings.add("operacion", BACKUP_DOC, "backup sin simulacro de restauración exitoso")
+        else:
+            latest = restores[-1]
+            if today and today - date.fromisoformat(latest["executed_on"]) > timedelta(days=RESTORE_DRILL_MAX_AGE_DAYS):
+                findings.add("operacion", BACKUP_DOC, f"último simulacro de restauración exitoso hace más de {RESTORE_DRILL_MAX_AGE_DAYS} días",
+                             latest["executed_on"])
+            measured = duration_minutes(latest.get("measured_rto", ""))
+            if rto is not None and measured is not None and measured > rto:
+                findings.add("operacion", BACKUP_DOC, "restauración más lenta que el RTO", f"{latest.get('measured_rto')} > {fm.get('rto')}")
+    elif deployed:
+        findings.add("operacion", BACKUP_DOC, "servicio desplegado sin backup_and_recovery.md")
+    return checked
 
 
 # --------------------------------------------------------- gate: postmortem
@@ -827,11 +1013,16 @@ def run_checks(root, scope=None, ticket=None, today=None, tags=None):
             check_postmortem(root, path, ticket_ids, findings, today)
             checked += 1
     releases = release_statuses(root)
-    ticket_statuses = {ticket_id(p): (frontmatter(read(os.path.join(root, p))) or {}).get("status") for p in tickets}
+    ticket_info = {ticket_id(p): frontmatter(read(os.path.join(root, p))) or {} for p in tickets}
+    exhausted = error_budget_exhausted(root)
     for path in list_top_level(root, RELEASES_DIR, RELEASE_FILE):
         if in_scope(path):
-            check_release(root, path, ticket_statuses, releases, findings, tags)
+            check_release(root, path, ticket_info, releases, findings, tags, exhausted)
             checked += 1
+    ops_prefixes = (SLOS_DOC, BACKUP_DOC, RUNBOOKS_DIR + "/", DRILLS_DIR + "/")
+    if scope is None or any(s.startswith(ops_prefixes) for s in scope):
+        deployed = any(status in ("deployed", "rolled_back") for status in releases.values())
+        checked += check_operations(root, findings, deployed, today)
     experiments = experiment_decisions(root)
     for path in list_experiments(root):
         experiment_id = EXPERIMENT_FILE.match(os.path.basename(path)).group(1)
@@ -882,7 +1073,7 @@ def main():
     else:
         by_gate = Counter(gate for gate, *_ in findings.items)
         by_kind = Counter((gate, kind) for gate, _, kind, _ in findings.items)
-        for gate in ("kpi", "resultado", "experimento", "historia", "ready", "trazabilidad", "release", "postmortem"):
+        for gate in ("kpi", "resultado", "experimento", "historia", "ready", "trazabilidad", "release", "operacion", "postmortem"):
             print(f"\n[{gate}] {by_gate.get(gate, 0)} hallazgos")
             for (g, kind), count in sorted(by_kind.items(), key=lambda kv: -kv[1]):
                 if g == gate:

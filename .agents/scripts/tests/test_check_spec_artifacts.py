@@ -216,6 +216,109 @@ Workflow 08 en PASS: salud 200 y rutas protegidas responden 401.
 
 RELEASE_PATH = "docs/06_release_and_operations/releases/v1.0.0.md"
 DONE_TICKET_PATH = "docs/05_agile_planning/12_tickets/stock/backend/TK-003.md"
+OPS = "docs/06_release_and_operations"
+SLOS_PATH = f"{OPS}/slos.md"
+BACKUP_PATH = f"{OPS}/backup_and_recovery.md"
+
+SLOS = """---
+document: slos
+version: 1.0.0
+---
+
+# SLOs del Servicio
+
+## Recorrido crítico
+Registrar una extracción de stock desde la cocina.
+
+## SLOs
+
+| SLO | SLI | Objetivo | Ventana | Fuente | Alerta | Presupuesto |
+|---|---|---|---|---|---|---|
+| Disponibilidad | % de peticiones sin error 5xx | 99,5% | 30 días | monitor declarado | RB-001 | disponible |
+| Latencia del registro | p95 de POST de extracción | < 300 ms | 30 días | monitor declarado | RB-002 | disponible |
+
+## Política de presupuesto de error
+Con el presupuesto agotado solo se liberan correcciones y mejoras de fiabilidad.
+"""
+
+BACKUP = """---
+document: backup_recovery
+version: 1.0.0
+rpo: 24 h
+rto: 4 h
+---
+
+# Backups y Recuperación
+
+## Mecanismo de backup
+Copia diaria gestionada por la plataforma, retenida 7 días.
+
+## Procedimiento de restauración
+Restaurar la última copia en una base efímera y verificar los conteos.
+"""
+
+
+def runbook(rb_id, alert):
+    return f"""---
+document: runbook
+id: {rb_id}
+version: 1.0.0
+alert: {alert}
+severity: alta
+last_tested_on: 2026-09-01
+---
+
+# {rb_id}: {alert}
+
+## Síntoma
+Los usuarios reciben errores al registrar.
+
+## Diagnóstico
+Revisar el panel de errores y el estado de la base de datos.
+
+## Mitigación
+Volver a la versión anterior con aprobación humana.
+
+## Escalado
+Avisar al responsable del servicio.
+"""
+
+
+def drill(drill_id, kind, target, result="exitoso", executed_on="2026-09-01", measured_rto="35 min"):
+    rto_line = f"measured_rto: {measured_rto}\n" if measured_rto is not None else ""
+    return f"""---
+document: drill
+id: {drill_id}
+version: 1.0.0
+type: {kind}
+target: {target}
+environment: base de datos efímera local
+executed_on: {executed_on}
+result: {result}
+{rto_line}---
+
+# {drill_id}: ensayo de {kind}
+
+## Objetivo
+Comprobar que el procedimiento funciona tal como está escrito.
+
+## Procedimiento seguido
+Se siguió el procedimiento paso a paso.
+
+## Resultado
+Resultado {result}.
+
+## Evidencia
+evidence/{drill_id}/
+"""
+
+
+DRILLS = {
+    "DRILL-001": ("restauracion", "backup"),
+    "DRILL-002": ("alerta", "RB-001"),
+    "DRILL-003": ("runbook", "RB-002"),
+}
+
 PM_PATH = "docs/06_release_and_operations/postmortems/PM-001-despliegue.md"
 OUT_PATH = "docs/01_product_definition/outcomes/OUT-001-merma.md"
 OUT_DATA = "docs/01_product_definition/outcomes/data/OUT-001/merma.csv"
@@ -245,6 +348,13 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         self._write(OUT_DATA, "semana,merma\n1,0.08\n")
         self._write(DONE_TICKET_PATH, TICKET.replace("id: TK-001", "id: TK-003").replace("status: approved", "status: done"))
         self._write(RELEASE_PATH, RELEASE)
+        self._write(SLOS_PATH, SLOS)
+        self._write(BACKUP_PATH, BACKUP)
+        self._write(f"{OPS}/runbooks/RB-001-errores.md", runbook("RB-001", "Tasa de error alta"))
+        self._write(f"{OPS}/runbooks/RB-002-latencia.md", runbook("RB-002", "Latencia alta en registro"))
+        for drill_id, (kind, target) in DRILLS.items():
+            self._write(f"{OPS}/drills/{drill_id}-ensayo.md", drill(drill_id, kind, target))
+            self._write(f"{OPS}/drills/evidence/{drill_id}/salida.txt", "tiempo total: 35 min\n")
         self._write("CHANGELOG.md", "# Changelog\n\n## [1.0.0] - 2026-09-09\n- Primera versión.\n")
 
     def tearDown(self):
@@ -263,7 +373,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         findings, checked = run_checks(self.root)
 
         self.assertEqual(findings.items, [])
-        self.assertEqual(checked, 10)
+        self.assertEqual(checked, 17)
 
     # kpi
     def test_prose_kpis_without_table_are_detected(self):
@@ -761,6 +871,96 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
         self.assertEqual(checked, 1)
         self.assertEqual(self._kinds(findings), ["estrategia 'completo' sin justificación"])
+
+    # operación (etapa 9)
+    def test_deployed_service_without_slos_or_backup_is_detected(self):
+        os.remove(os.path.join(self.root, SLOS_PATH))
+        os.remove(os.path.join(self.root, BACKUP_PATH))
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "operacion")
+        self.assertIn("servicio desplegado sin slos.md", kinds)
+        self.assertIn("servicio desplegado sin backup_and_recovery.md", kinds)
+
+    def test_slo_table_gaps_are_detected(self):
+        broken = (SLOS.replace("| Latencia del registro | p95 de POST de extracción | < 300 ms | 30 días | monitor declarado | RB-002 | disponible |",
+                               "| Errores de pago | % de pagos fallidos | < 1% | 30 días | monitor declarado |  | quemado |")
+                  .replace("| RB-001 |", "| RB-009 |").replace("## Política de presupuesto de error", "## Notas"))
+        self._write(SLOS_PATH, broken)
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "operacion")
+        for expected in ("falta SLO de latencia", "SLO sin alerta que lo mida", "alerta apunta a un runbook que no existe",
+                         "presupuesto fuera del vocabulario", "sin sección 'Política de presupuesto de error'"):
+            self.assertIn(expected, kinds)
+
+    def test_runbook_never_successfully_drilled_is_detected(self):
+        self._write(f"{OPS}/drills/DRILL-003-ensayo.md", drill("DRILL-003", "runbook", "RB-002", result="fallido"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual([(k, os.path.basename(p)) for g, p, k, d in findings.items if g == "operacion"],
+                         [("runbook nunca ensayado con éxito", "RB-002-latencia.md")])
+
+    def test_backup_restore_drill_must_exist_be_recent_and_meet_rto(self):
+        self._write(f"{OPS}/drills/DRILL-001-ensayo.md", drill("DRILL-001", "restauracion", "backup", measured_rto="5 h"))
+        slow, _ = run_checks(self.root, today=date(2026, 9, 13))
+        self._write(f"{OPS}/drills/DRILL-001-ensayo.md", drill("DRILL-001", "restauracion", "backup"))
+        stale, _ = run_checks(self.root, today=date(2026, 12, 1))
+        self._write(f"{OPS}/drills/DRILL-001-ensayo.md", drill("DRILL-001", "restauracion", "backup", result="fallido"))
+        never, _ = run_checks(self.root, today=date(2026, 9, 13))
+
+        self.assertIn("restauración más lenta que el RTO", self._kinds(slow, "operacion"))
+        self.assertIn("último simulacro de restauración exitoso hace más de 90 días", self._kinds(stale, "operacion"))
+        self.assertIn("backup sin simulacro de restauración exitoso", self._kinds(never, "operacion"))
+
+    def test_drill_without_evidence_or_measurement_or_coherent_target_is_detected(self):
+        os.remove(os.path.join(self.root, f"{OPS}/drills/evidence/DRILL-002/salida.txt"))
+        self._write(f"{OPS}/drills/DRILL-001-ensayo.md", drill("DRILL-001", "restauracion", "backup", measured_rto=None))
+        self._write(f"{OPS}/drills/DRILL-004-ensayo.md", drill("DRILL-004", "alerta", "backup"))
+        self._write(f"{OPS}/drills/evidence/DRILL-004/salida.txt", "ok\n")
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "operacion")
+        self.assertIn("simulacro sin evidencia en drills/evidence/DRILL-002/", kinds)
+        self.assertIn("simulacro de restauración sin measured_rto", kinds)
+        self.assertIn("target incoherente con el tipo de simulacro", kinds)
+
+    def test_personal_data_in_drill_evidence_is_detected(self):
+        self._write(f"{OPS}/drills/evidence/DRILL-001/salida.txt", "restaurado por soporte@example.com\n")
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("posibles datos personales en la evidencia (correo o teléfono)", self._kinds(findings, "operacion"))
+
+    def test_changed_drill_evidence_triggers_operations_check(self):
+        self._write(f"{OPS}/drills/DRILL-003-ensayo.md", drill("DRILL-003", "runbook", "RB-002", result="fallido"))
+
+        findings, checked = run_checks(self.root, scope={f"{OPS}/drills/evidence/DRILL-003/salida.txt"})
+
+        self.assertGreater(checked, 0)
+        self.assertIn("runbook nunca ensayado con éxito", self._kinds(findings, "operacion"))
+
+    def test_exhausted_error_budget_blocks_features_in_a_planned_release(self):
+        self._write(SLOS_PATH, SLOS.replace("| RB-001 | disponible |", "| RB-001 | agotado |"))
+        self._write("docs/05_agile_planning/12_tickets/stock/backend/TK-004.md",
+                    TICKET.replace("id: TK-001", "id: TK-004").replace("status: approved", "status: done")
+                    .replace("related_story: US-001", "related_story: N/A (Técnico — corrección)"))
+        self._write("docs/05_agile_planning/13_matriz_trazabilidad.md", MATRIX + "| REQ-004 | — | [TK-004](12_tickets/stock/backend/TK-004.md) |\n")
+        self._write("docs/05_agile_planning/12_tickets/stock/backend/TK-003.md",
+                    TICKET.replace("id: TK-001", "id: TK-003").replace("status: approved", "status: done"))
+        planned = (RELEASE.replace("release: 1.0.0", "release: 1.1.0").replace("# Release v1.0.0", "# Release v1.1.0")
+                   .replace("status: deployed", "status: planned").replace("deployed_at: 2026-09-09T18:54:00-03:00", "deployed_at:")
+                   .replace("- TK-003 — Entrega inicial", "- TK-003 — Nueva función\n- TK-004 — Corrección"))
+        self._write("docs/06_release_and_operations/releases/v1.1.0.md", planned)
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual([(k, d) for g, p, k, d in findings.items if g == "release"],
+                         [("presupuesto de error agotado: el release incluye funcionalidades", "TK-003")])
 
     # modos
     def test_changed_scope_ignores_untouched_debt(self):
