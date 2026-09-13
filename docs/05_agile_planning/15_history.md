@@ -689,3 +689,5 @@ inputs:
 - **Verificado:** `pnpm audit --audit-level=high` → HIGH baja de 3 a 2 (los 2 HIGH + 2 CRITICAL restantes son los residuales dev-only ya documentados: `esbuild`/`vite`/`vitest`). `check_dependency_audit.sh` → exit 0. `pnpm -r run lint` verde (`js-yaml` solo lo usa eslint).
 - **Ventana de barrido:** entre hoy y el push del 2026-09-10 pueden aparecer más advisories; antes de recomendar el push se re-corre `pnpm audit` + `trivy image` una última vez (hallazgos dev-only → `pnpm.overrides` dentro del alcance de este ticket; hallazgos de runtime de producción → ticket propio).
 - **Estado:** sin push.
+
+2026-09-09 | INC-001 | alta | El primer despliegue en Render no arrancaba (URLs sin esquema en el blueprint) | TK-145 generado | PM-001 | Fix: resuelto en `3baca93` y `8c48eb8`; defecto latente pendiente en TK-145
