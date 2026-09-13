@@ -4,7 +4,7 @@ tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, l
 version: "2.16.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
-transparency: "EU AI Act Compliant / Synthetic AI-Driven Architecture"
+transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
 license: "MIT"
 ---
 
@@ -13,7 +13,7 @@ license: "MIT"
 
 **momoy** es el nombre del framework; `.agents/` es la carpeta donde se instala en cada proyecto.
 
-Este directorio contiene las meta-directivas, reglas de gobernanza y habilidades procedimentales que guían el comportamiento de los asistentes de desarrollo basados en Inteligencia Artificial (Google Antigravity, Gemini, etc.) en el proyecto.
+Este directorio contiene las meta-directivas, reglas de gobernanza y habilidades procedimentales que guían el comportamiento de cualquier asistente de desarrollo basado en Inteligencia Artificial que lea `AGENTS.md` (Claude Code, Gemini, Google Antigravity, Codex, etc.) en el proyecto.
 
 > [!IMPORTANT]
 > **✋ REGLA INNEGOCIABLE DE APROBACIÓN PREVIA (HUMAN-IN-THE-LOOP):**
@@ -94,7 +94,7 @@ flowchart TD
 | **Auditar Especificaciones (Docs):** | `@.agents/workflows/03_spec_audit_workflow.md Audita las especificaciones en docs/` |
 | **Revisión por Reviewer Independiente:** | `@.agents/workflows/04_dev_audit_workflow.md Actúa como Reviewer y audita el ticket TK-XXX` |
 | **Ejecutar Bucle Autónomo TDD:** | `@.agents/workflows/05_test_runner_workflow.md Corre la suite TDD para el ticket TK-XXX` |
-| **Ejecutar Pipeline QA SOTA:** | `@.agents/workflows/06_full_qa_pipeline.md Ejecuta la verificación completa de QA` |
+| **Ejecutar Pipeline QA Completo:** | `@.agents/workflows/06_full_qa_pipeline.md Ejecuta la verificación completa de QA` |
 | **Incidencia Producción → Ticket:** | `@.agents/workflows/07_production_observability_workflow.md Analiza esta incidencia de producción: [stacktrace]` |
 | **Validar Despliegue Post-Deploy:** | `@.agents/workflows/08_smoke_test_deploy_validation.md Valida el despliegue en: [URL]` |
 | **Probar la App de Punta a Punta (Local, Navegador Real):** | `@.agents/workflows/09_live_stack_verification_workflow.md Prueba la app: [flujo de usuario]` |
@@ -113,7 +113,7 @@ Para asegurar que el desarrollo se realice bajo el enfoque **Verified Spec-Drive
 *   **[Auditoría de Especificaciones VSDD Workflow](workflows/03_spec_audit_workflow.md):** Meta-prompt de auditoría en 7 fases para auditar la suficiencia de la documentación viva antes de codificar (`docs/`).
 *   **[Auditoría de Código y Calidad VSDD Workflow](workflows/04_dev_audit_workflow.md):** Meta-prompt de auditoría en 7 fases para la revisión adversarial del Reviewer Independiente sobre el código antes de hacer commit (`apps/`).
 *   **[Agente Autónomo de Testing Workflow](workflows/05_test_runner_workflow.md):** Subagente especializado en el bucle autónomo TDD (Red-Green-Refactor).
-*   **[Pipeline QA Completo SOTA v2.1 Workflow](workflows/06_full_qa_pipeline.md):** Pipeline QA completo con Mutation Score >= 70% y veredicto JSON Schema.
+*   **[Pipeline QA Completo v2.1 Workflow](workflows/06_full_qa_pipeline.md):** Pipeline QA completo con Mutation Score >= 70% y veredicto JSON Schema.
 *   **[Observabilidad en Producción Shift-Right Workflow v2.0](workflows/07_production_observability_workflow.md):** Captura logs/stacktraces de producción, genera BDD Gherkin, pruebas de regresión y cierra el bucle convirtiendo incidencias en tickets `TK-XXX` del backlog.
 *   **[Smoke Test & Deploy Validation Workflow](workflows/08_smoke_test_deploy_validation.md):** Valida post-despliegue ejecutando health checks, smoke tests de contratos HTTP (3 Oráculos) y verifica seguridad de cabeceras. Emite veredicto PASS/FAIL con rollback automático OpenTofu si falla.
 *   **[Verificación en Vivo del Stack Completo Workflow](workflows/09_live_stack_verification_workflow.md):** Levanta la infraestructura real declarada en `docs/00_stack_manifest.md` (nunca asumida), recorre el flujo crítico del ticket con el motor E2E declarado, captura evidencia, y limpia el entorno de prueba por completo al terminar — el procedimiento accionable detrás del Antipatrón B de `rules/04_verified_implementation_standard.md`.

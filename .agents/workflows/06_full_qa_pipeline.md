@@ -1,11 +1,11 @@
 ---
 name: 06_full_qa_pipeline
-description: "Pipeline QA completo SOTA v2.1: (0) Pre-Flight Check proactivo, (1) Análisis Anti-N+1, Mass-Assignment y contratos, (2) Diseño de tests Few-Shot RAG, (3) Auto-Loop TDD & Mutación Stryker >= 70% con veredicto en JSON Schema estricto."
-version: "2.1.0"
+description: "Pipeline QA completo v2.1: (0) Pre-Flight Check proactivo, (1) Análisis Anti-N+1, Mass-Assignment y contratos, (2) Diseño de tests Few-Shot RAG, (3) Auto-Loop TDD & Mutación Stryker >= 70% con veredicto en JSON Schema estricto."
+version: "2.1.1"
 category: "workflows/quality"
 ---
 
-# 🧪 Full QA Pipeline SOTA (v2.1.0)
+# 🧪 Full QA Pipeline (v2.1.1)
 
 Este workflow ejecuta el pipeline de aseguramiento de calidad de forma interactiva, segura y determinista sobre el proyecto.
 

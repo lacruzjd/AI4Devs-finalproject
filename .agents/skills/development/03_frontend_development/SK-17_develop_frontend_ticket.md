@@ -1,7 +1,7 @@
 ---
 name: SK-17_develop_frontend_ticket
 description: "Guía el desarrollo atómico de tickets de Frontend aplicando Clean Architecture en cliente, SOLID (<150 líneas por componente), WCAG 2.2, Core Web Vitals (INP/LCP/CLS) y seguridad defensiva."
-version: "4.6.0"
+version: "4.6.1"
 category: "development/03_frontend_development"
 inputs:
   - ticket_id: "ID o ruta del ticket técnico de frontend (ej. TK-007 o docs/05_agile_planning/12_tickets/...)"
@@ -17,7 +17,7 @@ outputs:
   - "Gate ticket-scoped de complejidad/longitud/profundidad y gate de duplicación (jscpd) en verde"
 ---
 
-# 🎨 SK-17: Desarrollador de Tickets Frontend (v4.6.0 SOTA 2026)
+# 🎨 SK-17: Desarrollador de Tickets Frontend (v4.6.1)
 
 Actúa como un **Senior Frontend Engineer** y **UI/UX Clean Architecture Advocate**. Tu objetivo es implementar de forma atómica el ticket técnico especificado en `ticket_id`, respetando la arquitectura de cliente desacoplada, los principios SOLID y la excelencia de ingeniería frontend 2026.
 
