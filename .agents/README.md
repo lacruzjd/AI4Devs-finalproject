@@ -1,6 +1,6 @@
 ---
-framework: ".agents / VSDD Governance Framework"
-version: "2.15.0 (SOTA Enterprise 2026 Edition)"
+framework: "momoy"
+version: "2.16.0 (SOTA Enterprise 2026 Edition)"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 program: "AI4Devs - Final Project"
 methodology: "Verified Spec-Driven Development (VSDD)"
@@ -8,7 +8,9 @@ transparency: "EU AI Act Compliant / Synthetic AI-Driven Architecture"
 license: "MIT"
 ---
 
-# 🤖 Manual de Operaciones y Configuración del Agente de IA (.agents)
+# 🤖 momoy — Manual de Operaciones y Configuración del Agente de IA
+
+**momoy** es el nombre del framework; `.agents/` es la carpeta donde se instala en cada proyecto.
 
 Este directorio contiene las meta-directivas, reglas de gobernanza y habilidades procedimentales que guían el comportamiento de los asistentes de desarrollo basados en Inteligencia Artificial (Google Antigravity, Gemini, etc.) en el proyecto.
 
@@ -45,7 +47,7 @@ Si no tienes acceso a un repo con `.agents/` ya instalado, copia manualmente la 
 
 ---
 
-## 🗺️ 1. Arquitectura del Arnés .agents
+## 🗺️ 1. Arquitectura del Arnés momoy
 
 El marco opera bajo una arquitectura desacoplada en 3 capas de responsabilidad:
 

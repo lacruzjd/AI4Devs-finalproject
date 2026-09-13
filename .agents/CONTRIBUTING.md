@@ -1,4 +1,4 @@
-# 🤝 Contribuir a `.agents/`
+# 🤝 Contribuir a momoy (`.agents/`)
 
 `.agents/` es agnóstico y portátil — estas reglas mantienen esa promesa cuando se añade o modifica una skill, workflow o regla.
 

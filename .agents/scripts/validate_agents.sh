@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# 🛡️ .agents Framework Integrity & Link Validator Script
+# 🛡️ momoy (.agents/) Framework Integrity & Link Validator Script
 set -euo pipefail
 
-echo "🔍 Validando integridad del Framework .agents..."
+echo "🔍 Validando integridad de momoy (.agents/)..."
 
 # Check directories exist
 for dir in workflows skills rules examples; do
@@ -32,4 +32,4 @@ python3 .agents/scripts/check_links.py
 # Run Agnosticism Guard (TK-038): .agents/scripts/ nunca debe acoplarse al stack de un proyecto
 python3 .agents/scripts/check_agnosticism.py
 
-echo "🎉 Arnés .agents verificado exitosamente sin errores de integridad ni enlaces rotos."
+echo "🎉 Arnés momoy (.agents/) verificado exitosamente sin errores de integridad ni enlaces rotos."

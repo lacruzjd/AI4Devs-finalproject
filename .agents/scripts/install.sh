@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Instala .agents/ en un proyecto nuevo (mismo o distinto repo) junto con los
+# Instala momoy (.agents/) en un proyecto nuevo (mismo o distinto repo) junto con los
 # entrypoints mínimos que cada herramienta de IA necesita para descubrirlo.
 #
 # Uso: bash .agents/scripts/install.sh /ruta/al/proyecto/destino
@@ -22,7 +22,7 @@ if [ "$TARGET_DIR" = "$(dirname "$SOURCE_AGENTS_DIR")" ]; then
   exit 1
 fi
 
-echo "📦 Instalando .agents/ en: $TARGET_DIR"
+echo "📦 Instalando momoy (.agents/) en: $TARGET_DIR"
 
 if [ -d "$TARGET_DIR/.agents" ]; then
   echo "⚠️  $TARGET_DIR/.agents ya existe. Cancelando para no sobrescribir un framework ya instalado."
@@ -44,14 +44,14 @@ FRAMEWORK_VERSION="$(grep -m1 '^version:' "$SOURCE_AGENTS_DIR/README.md" 2>/dev/
 INSTALL_TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 cat > "$TARGET_DIR/.agents/INSTALLED_FROM.md" <<EOF
-# 📦 Procedencia de esta instalación de \`.agents/\`
+# 📦 Procedencia de esta instalación de momoy (\`.agents/\`)
 
 Generado automáticamente por \`install.sh\` (\`TK-065\`) — no editar a mano.
 
 - **Ruta de origen:** \`$SOURCE_AGENTS_DIR\`
 - **Remote git de origen:** \`$SOURCE_REMOTE\`
 - **Commit de origen:** \`$SOURCE_COMMIT\`
-- **Versión del framework instalada:** \`$FRAMEWORK_VERSION\`
+- **Versión de momoy instalada:** \`$FRAMEWORK_VERSION\`
 - **Fecha de instalación (UTC):** \`$INSTALL_TIMESTAMP\`
 
 Este archivo no tiene efecto sobre el comportamiento del agente — es solo un registro para
@@ -67,7 +67,7 @@ ENTRYPOINT_CONTENT_BOOTSTRAPPED='# 🤖 AI Assistant Entrypoint
 
 AGENTS_STUB='# 🤖 AI Assistant Entrypoint (proyecto sin bootstrapear)
 
-> Este proyecto tiene `.agents/` instalado pero **todavía no fue bootstrapeado** — este archivo es un stub temporal, no el contrato operativo real.
+> Este proyecto tiene momoy (`.agents/`) instalado pero **todavía no fue bootstrapeado** — este archivo es un stub temporal, no el contrato operativo real.
 
 ## Próximo paso obligatorio
 
@@ -96,5 +96,5 @@ for entry in CLAUDE.md GEMINI.md; do
 done
 
 echo ""
-echo "🎉 Instalación completa. Siguiente paso: abre el proyecto en $TARGET_DIR con tu asistente de IA"
+echo "🎉 Instalación de momoy completa. Siguiente paso: abre el proyecto en $TARGET_DIR con tu asistente de IA"
 echo "   y pídele que lea AGENTS.md — el stub lo guiará al workflow de bootstrap correcto."

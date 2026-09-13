@@ -1,6 +1,6 @@
 # 📜 Universal Static Rules & Scope Guard (.agents/rules)
 
-Static universal behavior rules and non-goals protection active at all times across any project using `.agents`.
+Static universal behavior rules and non-goals protection active at all times across any project using momoy (`.agents/`).
 
 ---
 
