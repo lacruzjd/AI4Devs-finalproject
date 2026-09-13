@@ -1,7 +1,7 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.17.0"
+version: "2.18.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
@@ -32,7 +32,7 @@ Desde un repositorio que ya tenga `.agents/` (como este), instala una copia en o
 ```bash
 bash .agents/scripts/install.sh /ruta/al/proyecto/destino
 ```
-Copia `.agents/` completo y genera `AGENTS.md` (stub de arranque, no el contrato final), `CLAUDE.md` y `GEMINI.md` en el destino — sin sobrescribir nada si el destino ya tiene un `.agents/` o entrypoints propios. El stub de `AGENTS.md` indica al agente qué workflow de bootstrap invocar (`00_greenfield_bootstrap_workflow.md` o `00_brownfield_adoption_workflow.md`); ese workflow, vía `SK-35`, reemplaza el stub por el contrato operativo real. También genera `.agents/INSTALLED_FROM.md` (`TK-065`) con la ruta/remote/commit de origen y la versión copiada, para poder diferenciar esta instalación contra el origen más adelante si se sospecha de drift.
+Copia `.agents/` completo y genera `AGENTS.md` (stub de arranque, no el contrato final), `CLAUDE.md`, `GEMINI.md` y las copias de los comandos en `.claude/skills/` (vía `sync_claude_skills.sh`) en el destino — sin sobrescribir nada si el destino ya tiene un `.agents/` o entrypoints propios. El stub de `AGENTS.md` indica al agente qué workflow de bootstrap invocar (`00_greenfield_bootstrap_workflow.md` o `00_brownfield_adoption_workflow.md`); ese workflow, vía `SK-35`, reemplaza el stub por el contrato operativo real. También genera `.agents/INSTALLED_FROM.md` (`TK-065`) con la ruta/remote/commit de origen y la versión copiada, para poder diferenciar esta instalación contra el origen más adelante si se sospecha de drift.
 
 Si no tienes acceso a un repo con `.agents/` ya instalado, copia manualmente la carpeta `.agents/` completa al proyecto destino y crea a mano los 3 archivos de entrypoint con el contenido que genera `install.sh` — no hay dependencia de build ni paquete que instalar, son archivos markdown planos.
 
@@ -40,20 +40,24 @@ Si no tienes acceso a un repo con `.agents/` ya instalado, copia manualmente la 
 
 `.agents/` no genera nada por sí solo — guía a un agente de IA a través de un flujo progresivo, con aprobación humana explícita en cada paso (ver banner HITL arriba):
 
-1. **Instala** (arriba) y abre el proyecto destino con tu asistente de IA; pídele que lea `AGENTS.md` — el stub generado te dirige al workflow de bootstrap correcto.
-2. **Bootstrap, una única vez por proyecto:** `00_greenfield_bootstrap_workflow.md` si el proyecto está vacío, o `00_brownfield_adoption_workflow.md` si ya hay código. Decide el stack contigo y genera `docs/00_stack_manifest.md` (Guard 24) + el esqueleto mínimo de `docs/`.
-3. **Por cada idea/feature nueva:** `01_cascading_spec_workflow.md` — cascada de specs (PRD → dominio → schema de BD → contrato API → tickets `TK-XXX`) **antes** de escribir una sola línea de código (Guard 26).
-4. **Por cada ticket, uno a la vez:** `02_cascading_dev_workflow.md Implementa el ticket TK-XXX` — TDD real, migraciones, linter, commit atómico.
-5. **Según haga falta:** los workflows `03`-`09` cubren auditoría de specs/código, QA, observabilidad de producción y validación de despliegue — ver la tabla completa en la sección 2 y el mapa end-to-end en [`00_master_vsdd_workflow.md`](workflows/00_master_vsdd_workflow.md).
+1. **Instala** (arriba) y abre el proyecto destino con tu asistente de IA. Si no sabes por dónde seguir, escribe `/momoy`: diagnostica el estado del proyecto y te dice qué comando toca.
+2. **Bootstrap, una única vez por proyecto:** `/momoy-greenfield [idea]` si el proyecto está vacío, o `/momoy-brownfield [ruta]` si ya hay código. Decide el stack contigo y genera `docs/00_stack_manifest.md` (Guard 24) + el esqueleto mínimo de `docs/`.
+3. **Por cada idea/feature nueva:** `/momoy-spec [idea]` — cascada de specs (PRD → dominio → schema de BD → contrato API → tickets `TK-XXX`) **antes** de escribir una sola línea de código (Guard 26).
+4. **Por cada ticket, uno a la vez:** `/momoy-dev TK-XXX` — TDD real, migraciones, linter, commit atómico.
+5. **Según haga falta:** el resto de comandos cubre auditoría de specs/código, QA, observabilidad de producción y validación de despliegue — ver la tabla completa en la sección 2 y el mapa end-to-end en [`00_master_vsdd_workflow.md`](workflows/00_master_vsdd_workflow.md).
 
 ---
 
 ## 1. Arquitectura del Arnés momoy
 
-El marco opera bajo una arquitectura desacoplada en 3 capas de responsabilidad:
+El marco opera bajo una arquitectura desacoplada: una capa de entrada (comandos) sobre 3 capas de responsabilidad:
 
 ```mermaid
 flowchart TD
+    subgraph CAPA0 ["0. CAPA DE ENTRADA (13 comandos /momoy-*, estándar Agent Skills)"]
+        CMD["skills/momoy*/SKILL.md — puntos de entrada delgados, sin lógica propia"]
+    end
+
     subgraph CAPA1 ["1. CAPA DE ORQUESTACION (12 Workflows)"]
         W00["00_* Bootstrap/Adopción (una sola vez): master, greenfield, brownfield"]
         W01["01_cascading_spec_workflow.md"]
@@ -72,6 +76,10 @@ flowchart TD
         Rules["docs/04_governance_and_quality/rules/ (generado por SK-27)"]
     end
 
+    CMD --> W00
+    CMD --> W01
+    CMD --> W02
+    CMD --> W0X
     W00 --> S_Spec
     W01 --> S_Spec
     W02 --> S_Dev
@@ -83,21 +91,39 @@ flowchart TD
 
 ---
 
-## 2. Guía de Invocación Rápida (Cheatsheet de Prompts)
+## 2. Comandos de momoy
 
-| Deseo / Tarea | Prompt de Invocación Recomendado |
-|:---|:---|
-| **Arrancar Proyecto Nuevo desde Cero (Greenfield):** | `@.agents/workflows/00_greenfield_bootstrap_workflow.md Arranca un proyecto nuevo a partir de esta idea: [descripción]` |
-| **Adoptar `.agents/` en Proyecto Existente (Brownfield):** | `@.agents/workflows/00_brownfield_adoption_workflow.md Adopta .agents/ en este código existente: [ruta]` |
-| **Diseñar Nueva Idea / Feature:** | `@.agents/workflows/01_cascading_spec_workflow.md Analiza e integra esta nueva idea: [descripción]` |
-| **Desarrollar Ticket Técnico:** | `@.agents/workflows/02_cascading_dev_workflow.md Implementa el ticket TK-XXX` |
-| **Auditar Especificaciones (Docs):** | `@.agents/workflows/03_spec_audit_workflow.md Audita las especificaciones en docs/` |
-| **Revisión por Reviewer Independiente:** | `@.agents/workflows/04_dev_audit_workflow.md Actúa como Reviewer y audita el ticket TK-XXX` |
-| **Ejecutar Bucle Autónomo TDD:** | `@.agents/workflows/05_test_runner_workflow.md Corre la suite TDD para el ticket TK-XXX` |
-| **Ejecutar Pipeline QA Completo:** | `@.agents/workflows/06_full_qa_pipeline.md Ejecuta la verificación completa de QA` |
-| **Incidencia Producción → Ticket:** | `@.agents/workflows/07_production_observability_workflow.md Analiza esta incidencia de producción: [stacktrace]` |
-| **Validar Despliegue Post-Deploy:** | `@.agents/workflows/08_smoke_test_deploy_validation.md Valida el despliegue en: [URL]` |
-| **Probar la App de Punta a Punta (Local, Navegador Real):** | `@.agents/workflows/09_live_stack_verification_workflow.md Prueba la app: [flujo de usuario]` |
+momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [Agent Skills](https://agentskills.io/specification) en `.agents/skills/<comando>/SKILL.md`: un punto de entrada delgado que ejecuta el workflow correspondiente, que sigue siendo la única fuente de verdad. Todos se lanzan **solo cuando el usuario los escribe**: un agente no inicia por su cuenta una cascada que la gobernanza exige aprobar.
+
+| Comando | Qué hace | Cuándo |
+|:---|:---|:---|
+| `/momoy` | Diagnostica el estado del proyecto y recomienda el siguiente comando (solo lectura) | Punto de entrada; cuando no sabes qué toca |
+| `/momoy-greenfield [idea]` | Bootstrap de proyecto nuevo ([`00_greenfield`](workflows/00_greenfield_bootstrap_workflow.md)) | Una sola vez, directorio vacío |
+| `/momoy-brownfield [ruta]` | Adopción en código existente ([`00_brownfield`](workflows/00_brownfield_adoption_workflow.md)) | Una sola vez, código funcionando |
+| `/momoy-spec [idea]` | Cascada de especificaciones ([`01`](workflows/01_cascading_spec_workflow.md)) | Cada idea o funcionalidad nueva |
+| `/momoy-dev TK-XXX` | Desarrollo de un ticket de punta a punta ([`02`](workflows/02_cascading_dev_workflow.md)) | Cada ticket, uno a la vez |
+| `/momoy-audit-spec [carpeta]` | Auditoría de specs en `docs/` ([`03`](workflows/03_spec_audit_workflow.md)) | Tras cambiar specs, antes de codificar |
+| `/momoy-audit-dev TK-XXX` | Revisión adversarial del código ([`04`](workflows/04_dev_audit_workflow.md)) | Ticket implementado, antes de aprobarlo |
+| `/momoy-tdd TK-XXX` | Bucle autónomo Red-Green-Refactor ([`05`](workflows/05_test_runner_workflow.md)) | Fase de pruebas de un ticket |
+| `/momoy-qa [objetivo]` | Pipeline QA completo con mutación ([`06`](workflows/06_full_qa_pipeline.md)) | Antes de cerrar un conjunto de cambios |
+| `/momoy-incident [stacktrace]` | Incidencia de producción → ticket ([`07`](workflows/07_production_observability_workflow.md)) | Llega un error real de producción |
+| `/momoy-smoke [URL]` | Validación post-despliegue ([`08`](workflows/08_smoke_test_deploy_validation.md)) | Justo después de cada deploy |
+| `/momoy-verify-live [flujo]` | Prueba de la app en vivo con navegador real ([`09`](workflows/09_live_stack_verification_workflow.md)) | Demostrar que un ticket funciona de verdad |
+| `/momoy-validate` | Integridad del propio momoy ([`validate_agents.sh`](scripts/validate_agents.sh)) | Antes de proponer un cambio a `.agents/` |
+
+### Cómo se invocan según la herramienta
+
+| Herramienta | Dónde los descubre | Invocación |
+|:---|:---|:---|
+| Google Antigravity | `.agents/skills/` | `/momoy-dev TK-XXX` |
+| Claude Code | `.claude/skills/` (copia generada por `bash .agents/scripts/sync_claude_skills.sh`) | `/momoy-dev TK-XXX` |
+| Codex | `.agents/skills/` | `$momoy-dev TK-XXX` o `/skills` |
+| Gemini CLI | `.agents/skills/` | `/skills`, o pidiéndolo en lenguaje natural (Gemini pide confirmación antes de activarla) |
+
+**Sin soporte de skills:** cualquier asistente puede ejecutar el workflow directamente — `@.agents/workflows/02_cascading_dev_workflow.md Implementa el ticket TK-XXX`.
+
+> [!WARNING]
+> **Antigravity retira sus "workflows" el 1 de noviembre de 2026** y ofrece `/migrate-workflows` para convertirlos en skills. Los workflows de momoy **no** son workflows de Antigravity aunque vivan en `.agents/workflows/`: no ejecutes `/migrate-workflows` sobre este proyecto: según la documentación de Antigravity, ese comando convierte los workflows que encuentra en skills y archiva los originales con extensión `.bak`, lo que dejaría a los comandos sin los procedimientos de los que dependen. Los comandos `/momoy-*` ya son skills.
 
 ---
 

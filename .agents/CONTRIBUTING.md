@@ -39,13 +39,25 @@
    Enlaces rotos son detectados por `check_links.py`.
 3. Si el workflow introduce una etapa nueva del ciclo de vida, actualiza el diagrama Mermaid en [00_master_vsdd_workflow.md](workflows/00_master_vsdd_workflow.md).
 
+## Añadir o modificar un Comando
+
+Los comandos (`/momoy`, `/momoy-*`) son la interfaz pública de momoy: siguen el estándar abierto [Agent Skills](https://agentskills.io/specification) para que Antigravity, Codex, Gemini CLI y Claude Code los descubran sin adaptadores por herramienta.
+
+1. **Ubicación y nombre:** `skills/<nombre>/SKILL.md`, con `name` igual al directorio, en minúsculas y guiones, y el prefijo `momoy-` reservado (evita chocar con comandos nativos como `/init` o `/code-review`).
+2. **Solo campos portables en el frontmatter:** `name`, `description`, `license`, `metadata`. `description` dice **qué hace y cuándo usarlo** (y cuándo no), en una sola línea de hasta 1024 caracteres, y termina con "Solo por invocación explícita del usuario." — es la única señal que Antigravity y Gemini tienen para no activarlo solos.
+3. **Punto de entrada delgado:** el cuerpo declara la entrada esperada y referencia el workflow o script que ejecuta (`.agents/workflows/...`); nunca copia el procedimiento. Si ambos discrepan, manda el workflow.
+4. **Invocación explícita en cada herramienta:** `agents/openai.yaml` con `policy.allow_implicit_invocation: false` (Codex). Para Claude Code no se edita la fuente: `sync_claude_skills.sh` genera la copia en `.claude/skills/` con `disable-model-invocation: true` — córrelo tras añadir o renombrar un comando.
+5. **Registrar el comando** en la tabla de la sección 2 de `README.md`.
+
+Verificado por `check_skill_standard.py` (wireado en `validate_agents.sh`). Los procedimientos `SK-NN` de `skills/specs/` y `skills/development/` **no** son comandos: los invocan los workflows.
+
 ## Antes de proponer el cambio
 
 Ejecuta siempre, desde la raíz del repo:
 ```bash
 bash .agents/scripts/validate_agents.sh
 ```
-Esto corre los tests unitarios de las propias herramientas de auditoría, verifica enlaces markdown, `required_rules` del frontmatter, unicidad de IDs, **que ningún script bajo `.agents/scripts/` se haya acoplado al stack de un proyecto (`check_agnosticism.py`, ver regla abajo)** y **que no se reintroduzcan emojis decorativos (`check_emoji_policy.py`, ver regla abajo)**. Un PR que lo rompe no se fusiona — está wireado en `ci.yml`.
+Esto corre los tests unitarios de las propias herramientas de auditoría, verifica enlaces markdown, `required_rules` del frontmatter, unicidad de IDs, **que ningún script bajo `.agents/scripts/` se haya acoplado al stack de un proyecto (`check_agnosticism.py`, ver regla abajo)**, **que no se reintroduzcan emojis decorativos (`check_emoji_policy.py`, ver regla abajo)** y **que los comandos cumplan el estándar Agent Skills (`check_skill_standard.py`, ver arriba)**. Un PR que lo rompe no se fusiona — está wireado en `ci.yml`.
 
 Además, ningún PR a `.agents/` (aunque `validate_agents.sh` pase en verde) se considera gobernanza vigente hasta que un humano confirmó explícitamente su diff — `.agents/` está sujeto al mismo modelo de amenaza de contenido no confiable que `docs/`, ver [`rules/03_untrusted_content_standard.md`](rules/03_untrusted_content_standard.md) Regla 5.
 

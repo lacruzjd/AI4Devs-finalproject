@@ -60,6 +60,9 @@ poder diferenciar manualmente esta copia contra el origen (\`git diff\` entre am
 EOF
 echo "✅ INSTALLED_FROM.md (procedencia de la instalación) creado."
 
+# Claude Code solo descubre skills en .claude/skills/; el resto de herramientas lee .agents/skills/.
+bash "$TARGET_DIR/.agents/scripts/sync_claude_skills.sh" "$TARGET_DIR"
+
 ENTRYPOINT_CONTENT_BOOTSTRAPPED='# AI Assistant Entrypoint
 
 > All operational rules, architectural guidelines, quality gates, and workflows for this repository are defined in the Single Source of Truth (SSoT):
@@ -72,10 +75,12 @@ AGENTS_STUB='# AI Assistant Entrypoint (proyecto sin bootstrapear)
 ## Próximo paso obligatorio
 
 **¿Este directorio está vacío o sin código relevante?**
-Invoca: `@.agents/workflows/00_greenfield_bootstrap_workflow.md Arranca un proyecto nuevo a partir de esta idea: [descripción]`
+Invoca: `/momoy-greenfield [descripción de la idea]`
 
 **¿Este directorio ya tiene código funcionando?**
-Invoca: `@.agents/workflows/00_brownfield_adoption_workflow.md Adopta .agents/ en este código existente: [ruta]`
+Invoca: `/momoy-brownfield [ruta]`
+
+Si tu asistente no soporta skills, usa el workflow directamente: `@.agents/workflows/00_greenfield_bootstrap_workflow.md Arranca un proyecto nuevo a partir de esta idea: [descripción]` o `@.agents/workflows/00_brownfield_adoption_workflow.md Adopta .agents/ en este código existente: [ruta]`. ¿Dudas? `/momoy` diagnostica el estado del proyecto.
 
 Cualquiera de los dos workflows, al llegar a su fase de contrato operativo, invoca `SK-35_generate_root_contract.md` y **reemplaza este archivo** por el `AGENTS.md` real de 6 secciones. No edites este stub a mano — es autogenerado y desechable.'
 
@@ -97,4 +102,4 @@ done
 
 echo ""
 echo "✅ Instalación de momoy completa. Siguiente paso: abre el proyecto en $TARGET_DIR con tu asistente de IA"
-echo "   y pídele que lea AGENTS.md — el stub lo guiará al workflow de bootstrap correcto."
+echo "   y escribe /momoy (o pídele que lea AGENTS.md) — te guiará al comando de bootstrap correcto."
