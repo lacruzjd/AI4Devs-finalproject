@@ -11,7 +11,7 @@ import sys
 
 OUT = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path(__file__).parent / "dist" / "ciclo-momoy.html"
 
-VERSION = "2.22.0"
+VERSION = "2.23.0"
 MEASURED = "13 sep 2026"
 
 PHASES = {
@@ -107,18 +107,16 @@ STAGES = [
          cmds="(ola 3) /momoy-operate"),
     dict(n=10, short="Incidentes", title="Incidentes y postmortems", phase="operate",
          q="Cuando algo falla, ¿qué aprende el sistema para que no se repita?",
-         now=S(1, 1, 0, 2, 1, 0), before=S(1, 1, 0, 2, 1, 0),
-         today="Workflow 07 y <code>/momoy-incident</code>: la incidencia se convierte en escenario BDD, test de regresión en borrador con checkpoint humano y ticket. No hay postmortems.",
-         todo=["Workflow y comando <code>/momoy-postmortem</code>: línea de tiempo, impacto contra el SLO y causas del sistema, no de personas.",
-               "Pregunta obligatoria «¿por qué ningún gate lo detectó?», con las lecciones sistémicas convertidas en reglas permanentes."],
-         cmds="/momoy-incident · (ola 1) /momoy-postmortem"),
+         now=S(2, 2, 2, 2, 2, 2), before=S(1, 1, 0, 2, 1, 0),
+         today="<code>SK-38</code> y <code>/momoy-postmortem</code>: postmortem sin culpa con línea de tiempo con fuentes, causas del sistema, «por qué ningún gate lo detectó» y acciones trazadas. Gate <code>postmortem</code> con plazo de 5 días para severidad crítica o alta. Probado en real con PM-001, los fallos del primer despliegue en Render: destapó un defecto latente todavía abierto en el código (TK-145).",
+         todo=["Nada pendiente para ser fuerte.", "Refuerzo: medir el impacto contra el SLO cuando exista la etapa 9."],
+         cmds="/momoy-incident · /momoy-postmortem"),
     dict(n=11, short="Resultados", title="Medición de resultados", phase="operate",
          q="¿Se cumplió lo que prometimos en la etapa 1?",
-         now=S(0, 0, 0, 0, 0, 0), before=S(0, 0, 0, 0, 0, 0),
-         today="Nada. Desde la ola 0 los KPIs ya son medibles —tienen fuente y fecha de revisión—, pero nada los mide tras el lanzamiento: el ciclo sigue sin cerrarse.",
-         todo=["Workflow y comando <code>/momoy-outcomes</code>: en la fecha de revisión, veredicto por hipótesis (validada, refutada o no concluyente, con tamaño de muestra).",
-               "Recomendación explícita: iterar, pivotar o retirar; un KPI sin datos se reporta como no medible, nunca como cumplido."],
-         cmds="(ola 1) /momoy-outcomes"),
+         now=S(2, 2, 2, 2, 2, 0), before=S(0, 0, 0, 0, 0, 0),
+         today="<code>SK-39</code> y <code>/momoy-outcomes</code>: veredicto por KPI con datos reales contra el umbral declarado y recomendación decidida por el humano. El gate <code>resultado</code> cierra el ciclo: un KPI con la fecha de revisión vencida y sin informe es un hallazgo.",
+         todo=["Probarlo en real: medir con datos de uso real. En RestoStock los tres KPIs darían «no medible»: están en prosa y no hay operación real que medir."],
+         cmds="/momoy-outcomes"),
     dict(n=12, short="Mantenimiento", title="Mantenimiento y retirada", phase="operate",
          q="¿Cómo envejece bien, y cómo se apaga lo que ya no sirve?",
          now=S(1, 1, 1, 1, 1, 1), before=S(1, 1, 1, 1, 1, 1),
@@ -140,12 +138,13 @@ EVOLUTION = [
     ("2.20.0", "Ola 0: gates de especificación", "Problema, requisitos y planificación pasan a verificarse con un script; 384 hallazgos reales en RestoStock y tres causas raíz corregidas en momoy.", "17", "77"),
     ("2.21.0", "Pulido", "Comandos delgados verificados por el check; fuera duplicaciones, una referencia rota y código muerto.", "17", "80"),
     ("2.22.0", "Etapa 2: validación", "SK-37 y /momoy-experiment: experimentos con criterio fijado antes, evidencia anonimizada y decisión humana; toda historia abierta declara su validación. Primer cambio de momoy escrito con TDD.", "18", "93"),
+    ("2.23.0", "Ola 1: cerrar el ciclo", "SK-38 y SK-39 con sus comandos y gates; nueva carpeta docs/06_release_and_operations/; primer postmortem real, que destapó un defecto latente todavía abierto (TK-145).", "20", "105"),
 ]
 
 WAVES = [
     ("Ola 0", "Verificar lo que ya existe", "Etapas 1, 3, 4 y 5", "done", "Hecha en 2.20.0: gates kpi, historia, ready y trazabilidad."),
-    ("Ola 1", "Cerrar el ciclo", "Etapas 11 y 10", "next", "/momoy-outcomes y /momoy-postmortem. Solo documentos y bajo riesgo."),
-    ("Ola 2", "Liberar con seguridad", "Etapa 8", "todo", "/momoy-release con rollback ensayado en Render."),
+    ("Ola 1", "Cerrar el ciclo", "Etapas 11 y 10", "done", "Hecha en 2.23.0: postmortem probado en real con PM-001; la medición de resultados espera datos de uso real."),
+    ("Ola 2", "Liberar con seguridad", "Etapa 8", "next", "/momoy-release con rollback ensayado en Render."),
     ("Ola 3", "Operar", "Etapa 9", "todo", "/momoy-operate con simulacro de restauración y alerta que dispara."),
     ("Ola 4", "Completar los bordes", "Etapas 2 y 12", "partial", "Etapa 2 hecha en 2.22.0, salvo probarla en real. Quedan /momoy-maintain y /momoy-retire."),
 ]
@@ -190,7 +189,7 @@ before = {k: sum(1 for s in STAGES if s["cov_before"] == k) for k in LEVELS}
 svg = [f'<svg class="cycle" viewBox="0 0 {W} {H}" role="img" aria-labelledby="cycle-title cycle-desc">',
        '<title id="cycle-title">Ciclo de vida del software en 12 etapas</title>',
        f'<desc id="cycle-desc">Doce etapas en tres fases. Fuertes: {counts["strong"]}; casi fuertes: {counts["near"]}; '
-       f'parciales: {counts["partial"]}; ausentes: {counts["missing"]}. El retorno de resultados a problema no se cierra hoy.</desc>',
+       f'parciales: {counts["partial"]}; ausentes: {counts["missing"]}. El retorno de resultados a problema ya tiene procedimiento, pero aún no se midió con datos reales.</desc>',
        '<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">'
        '<path class="gap-fill" d="M0 0 L10 5 L0 10 z"/></marker></defs>']
 for phase, (a, b) in {"discover": (1, 3.5), "deliver": (3.5, 8.5), "operate": (8.5, 13)}.items():
@@ -198,10 +197,10 @@ for phase, (a, b) in {"discover": (1, 3.5), "deliver": (3.5, 8.5), "operate": (8
 x11, y11 = pos(11, R - NR - 6)
 x1, y1 = pos(1, R - NR - 6)
 svg.append(f'<path class="loop" d="M{x11:.1f} {y11:.1f} Q{CX - 40} {CY - 40} {x1:.1f} {y1:.1f}" marker-end="url(#arrow)"/>')
-svg.append(f'<text class="loop-label" x="{CX - 46}" y="{CY - 44}" text-anchor="middle">el ciclo</text>')
-svg.append(f'<text class="loop-label" x="{CX - 46}" y="{CY - 28}" text-anchor="middle">no se cierra hoy</text>')
+svg.append(f'<text class="loop-label" x="{CX - 46}" y="{CY - 44}" text-anchor="middle">se cierra, pero</text>')
+svg.append(f'<text class="loop-label" x="{CX - 46}" y="{CY - 28}" text-anchor="middle">sin datos reales aún</text>')
 svg.append(f'<text class="center-name" x="{CX}" y="{CY + 22}" text-anchor="middle">momoy</text>')
-svg.append(f'<text class="center-meta" x="{CX}" y="{CY + 44}" text-anchor="middle">{VERSION} · 37 SK · 18 comandos</text>')
+svg.append(f'<text class="center-meta" x="{CX}" y="{CY + 44}" text-anchor="middle">{VERSION} · 39 SK · 20 comandos</text>')
 for s in STAGES:
     x, y = pos(s["n"], R)
     lx, ly = pos(s["n"], LR)
@@ -512,7 +511,7 @@ code.cmd {{ font-size: 0.8rem; word-break: break-word; color: var(--c); backgrou
     <div class="verdict">
       <p class="eyebrow">Estado actual</p>
       <h2 id="verdict-title">{counts['strong']} de 12 etapas ya son fuertes</h2>
-      <p class="lede">Propósito final: que momoy sea fuerte en las doce. La mitad izquierda del ciclo ya casi lo es; la derecha —operar y aprender— sigue siendo el hueco, y la medición de resultados todavía no cierra el círculo.</p>
+      <p class="lede">Propósito final: que momoy sea fuerte en las doce. Con la ola 1 el ciclo ya se cierra en procedimiento. El hueco mayor es la operación (etapa 9), y la medición de resultados espera datos de uso real.</p>
       <div class="tally" role="list">
         <div role="listitem"><b>{counts['strong']}</b><span>fuertes</span></div>
         <div role="listitem"><b>{counts['near']}</b><span>casi</span></div>
