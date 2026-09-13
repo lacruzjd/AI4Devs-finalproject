@@ -11,7 +11,7 @@ import sys
 
 OUT = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path(__file__).parent / "dist" / "ciclo-momoy.html"
 
-VERSION = "2.21.0"
+VERSION = "2.22.0"
 MEASURED = "13 sep 2026"
 
 PHASES = {
@@ -56,16 +56,14 @@ STAGES = [
          cmds="/momoy-greenfield · /momoy-brownfield · /momoy-spec"),
     dict(n=2, short="Validación", title="Validación de la idea", phase="discover",
          q="¿Hay evidencia de que la idea funciona antes de especificarla?",
-         now=S(1, 0, 0, 0, 0, 0), before=S(1, 0, 0, 0, 0, 0),
-         today="<code>SK-01</code> formula hipótesis, pero nada diseña un experimento, fija su criterio de éxito ni registra el resultado.",
-         todo=["Workflow y comando <code>/momoy-experiment</code>: el experimento más barato por hipótesis de riesgo alto, con criterio de éxito fijado antes.",
-               "Artefacto <code>EXP-NNN.md</code> con decisión explícita: seguir, pivotar o descartar.",
-               "Gate: <code>/momoy-spec</code> se detiene si una capacidad de riesgo alto no tiene experimento ni exención humana."],
-         cmds="(ola 4) /momoy-experiment"),
+         now=S(2, 2, 2, 2, 2, 0), before=S(1, 0, 0, 0, 0, 0),
+         today="<code>SK-37</code> diseña el experimento más barato con el criterio de éxito fijado antes y registra la evidencia real anonimizada; el humano decide. El gate <code>experimento</code> lo verifica, toda historia abierta declara <code>value_risk</code> y <code>validation</code>, y el workflow 01 se detiene ante una capacidad de riesgo alto sin experimento.",
+         todo=["Probarlo en real: diseñar, ejecutar con usuarios reales y concluir un primer experimento con evidencia en el repo. Ningún gate puede sustituir ese paso."],
+         cmds="/momoy-experiment · /momoy-spec (fase 1.5)"),
     dict(n=3, short="Requisitos", title="Especificación de requisitos", phase="discover",
          q="¿Qué debe hacer el sistema, sin decir cómo?",
          now=S(2, 2, 2, 2, 2, 2), before=S(2, 2, 1, 2, 2, 2),
-         today="<code>SK-02</code>, <code>SK-11</code> y Guard 28. El gate <code>historia</code> verifica frontmatter, estado cerrado, al menos 3 escenarios Given/When/Then, precondiciones y NFRs; en RestoStock encontró 114 hallazgos reales.",
+         today="<code>SK-02</code>, <code>SK-11</code> y Guard 28. El gate <code>historia</code> verifica frontmatter, estado cerrado, al menos 3 escenarios Given/When/Then, precondiciones y NFRs; en RestoStock encontró 114 hallazgos reales. Desde 2.22.0 exige también que cada historia abierta declare su riesgo de valor y su validación.",
          todo=["Refuerzo: enlazar cada requisito no funcional medible con el SLI que lo vigilará en producción (etapa 9)."],
          cmds="/momoy-spec · /momoy-audit-spec"),
     dict(n=4, short="Diseño", title="Diseño y arquitectura", phase="deliver",
@@ -141,6 +139,7 @@ EVOLUTION = [
     ("2.19.0", "Filtro de comandos", "17 candidatos pasan un filtro de cuatro preguntas: entran 4, se descartan 5 y SK-25 se cablea en vez de ser comando.", "17", "59"),
     ("2.20.0", "Ola 0: gates de especificación", "Problema, requisitos y planificación pasan a verificarse con un script; 384 hallazgos reales en RestoStock y tres causas raíz corregidas en momoy.", "17", "77"),
     ("2.21.0", "Pulido", "Comandos delgados verificados por el check; fuera duplicaciones, una referencia rota y código muerto.", "17", "80"),
+    ("2.22.0", "Etapa 2: validación", "SK-37 y /momoy-experiment: experimentos con criterio fijado antes, evidencia anonimizada y decisión humana; toda historia abierta declara su validación. Primer cambio de momoy escrito con TDD.", "18", "93"),
 ]
 
 WAVES = [
@@ -148,7 +147,7 @@ WAVES = [
     ("Ola 1", "Cerrar el ciclo", "Etapas 11 y 10", "next", "/momoy-outcomes y /momoy-postmortem. Solo documentos y bajo riesgo."),
     ("Ola 2", "Liberar con seguridad", "Etapa 8", "todo", "/momoy-release con rollback ensayado en Render."),
     ("Ola 3", "Operar", "Etapa 9", "todo", "/momoy-operate con simulacro de restauración y alerta que dispara."),
-    ("Ola 4", "Completar los bordes", "Etapas 2 y 12", "todo", "/momoy-experiment, /momoy-maintain y /momoy-retire."),
+    ("Ola 4", "Completar los bordes", "Etapas 2 y 12", "partial", "Etapa 2 hecha en 2.22.0, salvo probarla en real. Quedan /momoy-maintain y /momoy-retire."),
 ]
 
 GLOSSARY = [
@@ -202,7 +201,7 @@ svg.append(f'<path class="loop" d="M{x11:.1f} {y11:.1f} Q{CX - 40} {CY - 40} {x1
 svg.append(f'<text class="loop-label" x="{CX - 46}" y="{CY - 44}" text-anchor="middle">el ciclo</text>')
 svg.append(f'<text class="loop-label" x="{CX - 46}" y="{CY - 28}" text-anchor="middle">no se cierra hoy</text>')
 svg.append(f'<text class="center-name" x="{CX}" y="{CY + 22}" text-anchor="middle">momoy</text>')
-svg.append(f'<text class="center-meta" x="{CX}" y="{CY + 44}" text-anchor="middle">{VERSION} · 36 SK · 17 comandos</text>')
+svg.append(f'<text class="center-meta" x="{CX}" y="{CY + 44}" text-anchor="middle">{VERSION} · 37 SK · 18 comandos</text>')
 for s in STAGES:
     x, y = pos(s["n"], R)
     lx, ly = pos(s["n"], LR)
@@ -281,7 +280,7 @@ evolution_rows = "".join(
     for v, t, d, c, n in EVOLUTION)
 wave_items = "".join(
     f'<li class="wave wave-{st}"><p class="wave-label">{lab}<span class="wave-status">'
-    f'{"Hecha" if st == "done" else ("Siguiente" if st == "next" else "Pendiente")}</span></p>'
+    f'{ {"done": "Hecha", "next": "Siguiente", "partial": "En curso"}.get(st, "Pendiente") }</span></p>'
     f'<h4>{t}</h4><p class="wave-scope">{sc}</p><p class="wave-why">{why}</p></li>'
     for lab, t, sc, st, why in WAVES)
 gloss = "".join(f"<div><dt>{t}</dt><dd>{d}</dd></div>" for t, d in GLOSSARY)
@@ -461,6 +460,7 @@ code.cmd {{ font-size: 0.8rem; word-break: break-word; color: var(--c); backgrou
 .wave-status {{ letter-spacing: 0.04em; }}
 .wave-done .wave-status {{ color: var(--done); }}
 .wave-next .wave-status {{ color: var(--ink); }}
+.wave-partial .wave-status {{ color: var(--accent); }}
 .wave h4 {{ font-size: var(--step-1); line-height: 1.2; }}
 .wave-scope {{ font-family: var(--font-display); font-size: 0.9rem; font-weight: 600; color: var(--accent); }}
 .wave-why {{ color: var(--ink-2); font-size: 0.96rem; }}
@@ -535,7 +535,7 @@ code.cmd {{ font-size: 0.8rem; word-break: break-word; color: var(--c); backgrou
   <section class="matrix-sec" aria-labelledby="matrix-title">
     <p class="eyebrow">Matriz</p>
     <h2 id="matrix-title">Las seis condiciones, etapa por etapa</h2>
-    <p class="intro dot-legend"><span><i class="dot dot-2"></i>cumple</span> <span><i class="dot dot-1"></i>parcial</span> <span><i class="dot dot-0"></i>no</span> — la última columna indica el nivel anterior cuando cambió con la ola 0.</p>
+    <p class="intro dot-legend"><span><i class="dot dot-2"></i>cumple</span> <span><i class="dot dot-1"></i>parcial</span> <span><i class="dot dot-0"></i>no</span> — la última columna indica el nivel antes de la ola 0 (2.19.0), cuando cambió.</p>
     <div class="table-wrap">
       <table class="matrix">
         <thead><tr><th scope="col">Etapa</th>{criteria_head}<th scope="col">Nivel</th><th scope="col">Antes</th></tr></thead>
