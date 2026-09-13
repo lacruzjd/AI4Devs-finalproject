@@ -1,5 +1,6 @@
 ---
 framework: "momoy"
+tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
 version: "2.16.0 (SOTA Enterprise 2026 Edition)"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 program: "AI4Devs - Final Project"
@@ -8,7 +9,8 @@ transparency: "EU AI Act Compliant / Synthetic AI-Driven Architecture"
 license: "MIT"
 ---
 
-# 🤖 momoy — Manual de Operaciones y Configuración del Agente de IA
+# 🤖 momoy
+> Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado.
 
 **momoy** es el nombre del framework; `.agents/` es la carpeta donde se instala en cada proyecto.
 
