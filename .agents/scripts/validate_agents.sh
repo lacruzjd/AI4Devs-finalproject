@@ -32,4 +32,7 @@ python3 .agents/scripts/check_links.py
 # Run Agnosticism Guard (TK-038): .agents/scripts/ nunca debe acoplarse al stack de un proyecto
 python3 .agents/scripts/check_agnosticism.py
 
+# Run Emoji Policy Guard: sin emojis en títulos; en el cuerpo solo marcadores semánticos (CONTRIBUTING.md)
+python3 .agents/scripts/check_emoji_policy.py
+
 echo "✅ Arnés momoy (.agents/) verificado exitosamente sin errores de integridad ni enlaces rotos."

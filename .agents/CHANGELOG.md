@@ -5,6 +5,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/). Las versiones
 ---
 
 ## [Unreleased]
+### Added
+- **`scripts/check_emoji_policy.py` — la retirada de emojis de 2.17.0 se vuelve una regla ejecutable, no solo prosa.** Sin mecanismo, la próxima skill los reintroduciría (el mismo patrón que `rules/00` §Anti-Gate-Hueco describe para reglas sin enforcement). Dos reglas: ningún título de `.md` lleva emoji, y en el resto de líneas de `.md`/`.sh`/`.py` solo se admiten los 8 marcadores semánticos documentados en `CONTRIBUTING.md` (nueva sección "Sin emojis decorativos"). `CHANGELOG.md` exento (historial), `tests/` y `__pycache__` excluidos. Wireado en `validate_agents.sh` — y por tanto en `ci.yml`. 13 tests unitarios nuevos (35 en total). **Verificado contra ambos estados reales:** sobre el árbol limpio reporta 0; ejecutado sobre el árbol previo a la limpieza reporta 447 líneas fuera de política; y reintroducir un solo pictograma en un título de `SK-12` hace fallar el gate con código 1.
+
 ### Changed
 - **Retirada de emojis decorativos en todo momoy (framework 2.16.0→2.17.0).** Tras la pregunta del humano de si los iconos de las skills restaban profesionalismo, se midió en vez de opinar: 647 emojis en 68 de 71 archivos, 410 de ellos en títulos (355 de 514 títulos llevaban uno, 64 de 83 H1). Los decorativos no aportaban información, añadían ruido visual y rompían búsquedas literales (`grep "## Paso"` no encontraba un título con pictograma delante). Criterio aplicado:
   1. **Ningún título lleva emoji**, ni siquiera un marcador de estado — varios títulos usaban círculos de color o marcas de verificación como adorno (etapas del workflow maestro, modos de `SK-01`, fases de `SK-27`/`SK-29`/`SK-30`/`SK-31`).
