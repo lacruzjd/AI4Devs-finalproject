@@ -1,7 +1,7 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.23.0"
+version: "2.24.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
@@ -54,15 +54,15 @@ El marco opera bajo una arquitectura desacoplada: una capa de entrada (comandos)
 
 ```mermaid
 flowchart TD
-    subgraph CAPA0 ["0. CAPA DE ENTRADA (20 comandos /momoy-*, estándar Agent Skills)"]
+    subgraph CAPA0 ["0. CAPA DE ENTRADA (21 comandos /momoy-*, estándar Agent Skills)"]
         CMD["skills/momoy*/SKILL.md — puntos de entrada delgados hacia workflows o SK-NN"]
     end
 
-    subgraph CAPA1 ["1. CAPA DE ORQUESTACION (12 Workflows)"]
+    subgraph CAPA1 ["1. CAPA DE ORQUESTACION (13 Workflows)"]
         W00["00_* Bootstrap/Adopción (una sola vez): master, greenfield, brownfield"]
         W01["01_cascading_spec_workflow.md"]
         W02["02_cascading_dev_workflow.md"]
-        W0X["03..08: Auditoría, TDD, QA, Observabilidad, Deploy"]
+        W0X["03..10: Auditoría, TDD, QA, Observabilidad, Smoke, Verificación en vivo, Release"]
     end
 
     subgraph CAPA2 ["2. CAPA DE HABILIDADES PROCEDIMENTALES (36 Skills)"]
@@ -113,7 +113,8 @@ momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [
 | `/momoy-qa [objetivo]` | Pipeline QA completo con mutación ([`06`](workflows/06_full_qa_pipeline.md)) | Antes de cerrar un conjunto de cambios |
 | `/momoy-incident [stacktrace]` | Incidencia de producción → ticket ([`07`](workflows/07_production_observability_workflow.md)) | Llega un error real de producción |
 | `/momoy-postmortem [PM-NNN o incidencia]` | Postmortem sin culpa de una incidencia resuelta ([`SK-38`](skills/development/07_performance_and_observability/SK-38_write_blameless_postmortem.md)) | Incidencia crítica o alta resuelta, en los 5 días siguientes |
-| `/momoy-smoke [URL]` | Validación post-despliegue ([`08`](workflows/08_smoke_test_deploy_validation.md)) | Justo después de cada deploy |
+| `/momoy-release [X.Y.Z]` | Release a producción con gates previos, estrategia, rollback ensayado y aprobación humana ([`10`](workflows/10_release_workflow.md)) | Hay tickets cerrados listos para producción |
+| `/momoy-smoke [URL]` | Validación post-despliegue; rollback solo con aprobación humana ([`08`](workflows/08_smoke_test_deploy_validation.md)) | Justo después de cada deploy |
 | `/momoy-verify-live [flujo]` | Prueba de la app en vivo con navegador real ([`09`](workflows/09_live_stack_verification_workflow.md)) | Demostrar que un ticket funciona de verdad |
 | `/momoy-pr [PR o rama]` | Documentación veraz de PRs e historial de entregas ([`SK-15`](skills/specs/05_agile_planning/SK-15_document_pull_requests.md)) | Al abrir o cerrar un PR |
 | `/momoy-deps [paquete]` | Auditoría de seguridad de dependencias ([`SK-23`](skills/development/05_quality_and_lint/SK-23_audit_dependency_security.md)) | Se publica una vulnerabilidad, o antes de añadir o actualizar una dependencia |

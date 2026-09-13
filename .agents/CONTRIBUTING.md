@@ -31,7 +31,7 @@
 
 ## Añadir o modificar un Workflow
 
-1. Los workflows viven en `workflows/` numerados en orden de ejecución del ciclo VSDD, no por fecha de creación — con una excepción explícita: **`00` está reservado para documentos de una sola ejecución o meta-nivel** (`00_master_vsdd_workflow.md` es el mapa general; `00_greenfield_bootstrap_workflow.md` corre una única vez por proyecto, antes de que exista `docs/00_stack_manifest.md`). **`01`-`08` numeran el ciclo repetible** (spec → dev → auditoría → QA → producción → deploy) que se ejecuta una y otra vez por cada idea/ticket. Un nuevo workflow que se repita por cada idea/ticket se añade al final de `01`-`08`; un nuevo workflow de una sola vez/meta-nivel se añade con prefijo `00_<algo>_workflow.md`.
+1. Los workflows viven en `workflows/` numerados en orden de ejecución del ciclo VSDD, no por fecha de creación — con una excepción explícita: **`00` está reservado para documentos de una sola ejecución o meta-nivel** (`00_master_vsdd_workflow.md` es el mapa general; `00_greenfield_bootstrap_workflow.md` corre una única vez por proyecto, antes de que exista `docs/00_stack_manifest.md`). **`01` en adelante numeran el ciclo repetible** (spec → dev → auditoría → QA → producción → verificación → release) que se ejecuta una y otra vez por cada idea, ticket o entrega. Un nuevo workflow repetible se añade con el siguiente número libre; un nuevo workflow de una sola vez/meta-nivel se añade con prefijo `00_<algo>_workflow.md`.
 2. Todo workflow que invoque skills debe enlazarlas con su ruta relativa completa, por ejemplo:
    ```markdown
    [SK-16: Desarrollador de Tickets Backend](../skills/development/02_backend_development/SK-16_develop_backend_ticket.md)

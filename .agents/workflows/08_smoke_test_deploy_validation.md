@@ -1,143 +1,99 @@
 ---
 name: 08_smoke_test_deploy_validation
-description: "Workflow de validación post-despliegue: ejecuta smoke tests de contratos HTTP, health checks y verificación de infraestructura OpenTofu para confirmar que el sistema en producción está operativo después de cada deploy."
-version: "1.0.1"
+description: "Workflow de validación post-despliegue: comprueba salud, contratos HTTP críticos y cabeceras de seguridad del sistema recién desplegado y emite un veredicto PASS/FAIL. Ante un FAIL propone el rollback a la versión anterior con el mecanismo declarado en el stack manifest y espera la aprobación humana antes de ejecutarlo."
+version: "2.0.0"
 category: "workflows/deployment"
 ---
 
-# Workflow 08: Smoke Test & Deploy Validation (v1.0.1)
+# Workflow 08: Smoke Test & Deploy Validation (v2.0.0)
 
-> **DIRECTIVA PARA EL AGENTE:**  
-> Actúa como un **Site Reliability Engineer (SRE)** y **DevSecOps Validator**.  
-> Este workflow se ejecuta **inmediatamente después** de cada `tofu apply` o despliegue a producción.  
-> Su misión es confirmar en menos de 5 minutos que el sistema desplegado es funcional, seguro y cumple el contrato de API definido en `docs/03_persistence_and_api/openapi.yaml`.
+> **DIRECTIVA PARA EL AGENTE:**
+> Actúa como un **Site Reliability Engineer (SRE)** y **DevSecOps Validator**.
+> Este workflow se ejecuta **inmediatamente después** de cada despliegue, normalmente como paso final del [workflow 10](10_release_workflow.md).
+> Su misión es confirmar en pocos minutos que el sistema desplegado es funcional, seguro y cumple el contrato de API del proyecto.
 >
-> **FASE 0 OBLIGATORIA (Guard 24):** Lee `docs/00_stack_manifest.md` antes de ejecutar ningún paso para inferir las URLs base, comandos y herramientas del proyecto.
+> **FASE 0 OBLIGATORIA (Guard 24):** lee `docs/00_stack_manifest.md` antes de ejecutar ningún paso. De ahí salen las URLs base, el endpoint de salud, la plataforma y el **mecanismo de despliegue y de vuelta a la versión anterior**. Si alguno no está declarado, detente y pregunta: nunca lo supongas.
+>
+> **Ninguna acción sobre producción sin aprobación humana:** este workflow observa y propone. Un rollback, una destrucción de recursos o una reversión de datos solo se ejecutan después de que el humano lo apruebe explícitamente.
 
 ---
 
-## Paso 1 — Health Check de Infraestructura (≤1 min)
+## Paso 1 — Health Check (≤1 min)
 
-Verifica que los servicios críticos de infraestructura estén respondiendo:
-
-1. **Lectura del entorno:** Inferir la URL base del backend desde las variables de entorno del proyecto (`BACKEND_URL` o equivalente declarado en `docs/00_stack_manifest.md`).
-2. **Health Check del Backend:**
-   ```bash
-   curl -sf "${BACKEND_URL}/health" | jq '.status == "ok"'
-   ```
-   - Si falla → **ABORT. Emitir alerta crítica e iniciar rollback con `tofu plan -destroy`.**
-3. **Verificación de Conectividad de Base de Datos:** Comprobar que el health check del backend incluya el estado de la conexión a PostgreSQL.
-4. **Verificación de Infraestructura IaC:**
-   ```bash
-   tofu show -json | jq '.values.root_module.resources | length > 0'
-   ```
+1. **Esperar a que el despliegue responda:** sondear el endpoint de salud declarado en el stack manifest con reintentos y un tiempo máximo (ej. cada 5 s durante 2 min). Nunca una espera fija: un `sleep` pasa en verde aunque el servicio no esté listo, o falla aunque solo tardara un poco más.
+2. **Salud del backend:** el endpoint responde con el estado esperado según su contrato.
+3. **Dependencias críticas:** si el health check expone el estado de la base de datos u otros servicios, verificar que estén disponibles.
+4. Si falla → **veredicto FAIL** (Paso 4). No se ejecuta ninguna acción correctiva desde este paso.
 
 ---
 
 ## Paso 2 — Smoke Tests de Contratos HTTP (≤3 min)
 
-Ejecuta un subconjunto mínimo y representativo de los contratos de API declarados en `docs/03_persistence_and_api/openapi.yaml` para confirmar que los endpoints críticos responden correctamente:
-
-### 2.1. Leer el Contrato OpenAPI
-1. Parsear `docs/03_persistence_and_api/openapi.yaml`.
-2. Identificar los **3-5 endpoints más críticos de negocio** (los que bloquean el uso del sistema si fallan).
-3. Para cada endpoint crítico, ejecutar una llamada de smoke con el payload mínimo válido.
+### 2.1. Seleccionar los endpoints críticos
+1. Leer el contrato de API del proyecto (ruta declarada en el stack manifest, habitualmente `docs/03_persistence_and_api/openapi.yaml`).
+2. Elegir los **3 a 5 endpoints más críticos de negocio**: los que bloquean el uso del sistema si fallan.
+3. Para cada uno, preparar una llamada con el payload mínimo válido **o una llamada de solo lectura**. Prohibido crear, modificar o borrar datos reales de producción desde un smoke test.
 
 ### 2.2. Tabla de Oráculos de Smoke Test
 
-Para cada endpoint, verificar los 3 Oráculos obligatorios:
-
 | Oráculo | Verificación |
 |:--------|:------------|
-| `// ORACULO HTTP:` | El código de respuesta HTTP coincide con el esperado en OpenAPI (200, 201, 401...) |
-| `// ORACULO SCHEMA:` | El body de respuesta contiene los campos declarados en el schema OpenAPI |
-| `// ORACULO LATENCIA:` | La respuesta llega en menos de 2000ms (umbral configurable) |
+| `// ORACULO HTTP:` | El código de respuesta coincide con el esperado en el contrato (200, 401 en una ruta protegida sin token, 404 ante un recurso inexistente...) |
+| `// ORACULO SCHEMA:` | El body contiene los campos del schema declarado, incluido el formato de error del proyecto (ej. RFC 7807) |
+| `// ORACULO LATENCIA:` | La respuesta llega por debajo del umbral declarado (por defecto 2000 ms) |
 
-### 2.3. Ejemplo de Smoke Test para RestoStock
-
-> Ejemplo concreto para ESTE proyecto — las rutas exactas viven en `docs/03_persistence_and_api/openapi.yaml` y cambian con el contrato (verificadas por última vez tras `TK-047`, que sincronizó el spec con la API real). Antes de reutilizar este ejemplo, confírmalas contra el spec vigente en vez de asumir que siguen igual — es precisamente el Antipatrón C de [`.agents/rules/04_verified_implementation_standard.md`](../rules/04_verified_implementation_standard.md).
-
-```bash
-# ORACULO HTTP: POST /api/v1/auth/login-pin con usuario inexistente → 404
-# (userId no vacio no dispara 401 aqui: la validacion Zod pasa igual, el 401 solo
-# aparece si el usuario SI existe y el PIN es incorrecto — verificado contra el
-# codigo real, no asumido: el 404 confirma que la ruta existe y el UseCase corre)
-curl -sf -o /dev/null -w "%{http_code}" \
-  -X POST "${BACKEND_URL}/api/v1/auth/login-pin" \
-  -H "Content-Type: application/json" \
-  -d '{"userId":"00000000-0000-0000-0000-000000000000","pin":"0000"}' | grep -q "404"
-
-# ORACULO HTTP: GET /api/v1/kitchen/remanentes-activos sin token → 401 (ruta protegida responde)
-curl -sf -o /dev/null -w "%{http_code}" \
-  "${BACKEND_URL}/api/v1/kitchen/remanentes-activos" | grep -q "401"
-
-# ORACULO SCHEMA: Verificar que el error de validacion sigue el formato RFC 7807.
-# SIN -f/--fail aqui: esa flag suprime el body de la respuesta en codigos 4xx — con -f
-# este oraculo devuelve silenciosamente vacio en vez de fallar con un error legible
-# (bug real detectado corriendo este ejemplo contra el servidor real, no leyendo el codigo).
-curl -s -X POST "${BACKEND_URL}/api/v1/auth/login-pin" \
-  -H "Content-Type: application/json" \
-  -d '{"userId":"usr-test","pin":""}' | jq 'has("type") and has("status") and has("title")'
-```
+### 2.3. Criterios al escribir los oráculos
+- **Verificar contra el sistema real, no contra la lectura del código:** el código de estado que devuelve una ruta ante una entrada concreta depende de cómo interactúan validación, autenticación y caso de uso. Confirmarlo ejecutando la llamada una vez antes de fijar el oráculo.
+- **No suprimir el body de los errores:** opciones como `curl -f` o `--fail` descartan el cuerpo de las respuestas 4xx/5xx. Un oráculo de schema que las use devuelve vacío en silencio en vez de fallar con un error legible.
+- **Una ruta protegida sin credenciales es un buen oráculo barato:** si responde 401, la ruta existe, el enrutado funciona y la autenticación está activa, sin tocar datos.
 
 ---
 
-## Paso 3 — Verificación de Métricas y Seguridad (≤1 min)
+## Paso 3 — Verificación de Seguridad (≤1 min)
 
-1. **Cabeceras de Seguridad HTTP:** Verificar que las cabeceras obligatorias estén presentes en las respuestas:
-   ```bash
-   curl -sI "${BACKEND_URL}/health" | grep -E "Strict-Transport-Security|X-Frame-Options|X-Content-Type-Options"
-   ```
-2. **CORS:** Verificar que el header `Access-Control-Allow-Origin` no sea `*` en producción.
-3. **Rate Limiting:** Verificar que el endpoint de autenticación responda con `429` tras múltiples intentos fallidos (si está configurado).
+1. **Cabeceras de seguridad HTTP** declaradas por el proyecto (ej. `Strict-Transport-Security`, `X-Frame-Options`, `X-Content-Type-Options`, `Content-Security-Policy`).
+2. **CORS:** `Access-Control-Allow-Origin` no es `*` en producción y coincide con los orígenes declarados.
+3. **Rate limiting:** en producción, verificar solo que la configuración declarada esté activa (cabeceras de límite o configuración desplegada). Provocar el bloqueo con intentos fallidos reales solo en un entorno de pruebas o con aprobación humana: en producción puede bloquear a usuarios legítimos.
 
 ---
 
 ## Paso 4 — Veredicto y Acción
 
 ### Veredicto PASS
-Si los 3 pasos anteriores no emiten errores:
 ```text
 ✅ DEPLOY VALIDADO — Sistema operativo y contratos HTTP confirmados.
-Registrar en docs/05_agile_planning/15_history.md:
-  Deploy: [fecha UTC] | Commit: [sha] | Smoke Tests: PASS | Latencia: [ms]
+```
+Registrar el resultado en la sección "Verificación posterior" del registro de release (`docs/06_release_and_operations/releases/vX.Y.Z.md`) y en `docs/05_agile_planning/15_history.md`:
+```text
+Deploy: [fecha y hora con zona] | Versión: vX.Y.Z | Commit: [sha] | Smoke Tests: PASS | Latencia p95: [ms]
 ```
 
 ### Veredicto FAIL
-Si cualquier smoke test falla:
 ```text
-🔴 DEPLOY FALLIDO — Iniciar protocolo de rollback:
-1. Ejecutar: tofu apply -target=[recurso_anterior]
-2. Notificar al equipo con el stacktrace del smoke test fallido.
-3. Abrir ticket de regresión invocando [07_production_observability_workflow.md](07_production_observability_workflow.md).
-4. Registrar en docs/05_agile_planning/15_history.md como incidencia.
+🔴 DEPLOY FALLIDO — Rollback propuesto, pendiente de aprobación humana
 ```
+1. **Presentar al humano** el oráculo que falló, la evidencia (respuesta, código, latencia) y la **propuesta de rollback**: volver a la última versión que pasó el smoke, con el mecanismo de despliegue declarado en el stack manifest.
+2. **Esperar la decisión explícita.** Si el release incluyó una migración de base de datos, la propuesta dice qué pasa con los datos: una migración `expand` compatible permite volver al código anterior sin tocar el esquema; cualquier reversión de datos se decide aparte y nunca se ejecuta sin aprobación.
+3. **Prohibido** destruir infraestructura, recrear recursos con datos o revertir migraciones como forma de rollback.
+4. Tras ejecutar el rollback aprobado, repetir los Pasos 1 a 3 sobre la versión restaurada y marcar el release como `rolled_back`.
+5. Abrir la incidencia con el [workflow 07](07_production_observability_workflow.md): un despliegue fallido a producción es severidad `alta` y lleva postmortem.
 
 ---
 
 ## Integración en el Pipeline CI/CD
 
-Este workflow se añade como **Job 5** al pipeline de `SK-10`:
+El script de smoke test es específico del stack del proyecto, así que **se genera con `SK-27` en `docs/04_governance_and_quality/scripts/smoke_test.sh`**, nunca en `.agents/scripts/` (regla de `CONTRIBUTING.md`: `.agents/scripts/` solo contiene tooling agnóstico). Un job de CI posterior al despliegue puede invocarlo con la URL del entorno como secreto:
 
 ```yaml
-# .github/workflows/ci.yml — Job 5 (solo en rama main)
 smoke-test:
-  needs: [build]
-  if: github.ref == 'refs/heads/main'
-  runs-on: ubuntu-latest
+  needs: [deploy]
   steps:
-    - name: Wait for deploy stabilization
-      run: sleep 15
     - name: Run Smoke Tests
-      run: bash .agents/scripts/smoke_test.sh
+      run: bash docs/04_governance_and_quality/scripts/smoke_test.sh
       env:
         BACKEND_URL: ${{ secrets.PRODUCTION_BACKEND_URL }}
 ```
 
----
+El script sondea el endpoint de salud hasta que responda (Paso 1) y termina con código distinto de cero ante cualquier oráculo fallido. El CI solo informa: la decisión de rollback sigue siendo humana.
 
-## Script Asociado
-
-Este workflow genera el script de automatización en `.agents/scripts/smoke_test.sh`.  
-Invoca [05_test_runner_workflow.md](05_test_runner_workflow.md) si se detectan regresiones.  
-Invoca [07_production_observability_workflow.md](07_production_observability_workflow.md) si hay fallos en producción.
+Invoca [05_test_runner_workflow.md](05_test_runner_workflow.md) si se detectan regresiones y [07_production_observability_workflow.md](07_production_observability_workflow.md) si hay fallos en producción.

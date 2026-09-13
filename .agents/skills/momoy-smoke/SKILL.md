@@ -1,10 +1,10 @@
 ---
 name: momoy-smoke
-description: "Valida un despliegue recién hecho: health checks, smoke tests de contratos HTTP con 3 oráculos y cabeceras de seguridad, con veredicto PASS/FAIL y protocolo de rollback si falla. Úsalo justo después de cada deploy. Solo por invocación explícita del usuario."
+description: "Valida un despliegue recién hecho: health check, smoke tests de contratos HTTP con 3 oráculos y cabeceras de seguridad, con veredicto PASS/FAIL. Si falla, propone volver a la versión anterior y espera la aprobación humana antes de ejecutar nada. Úsalo justo después de cada deploy. Solo por invocación explícita del usuario."
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.1"
+  version: "1.1.0"
 ---
 
 # /momoy-smoke
