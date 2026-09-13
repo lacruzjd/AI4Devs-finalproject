@@ -1,7 +1,7 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.18.0"
+version: "2.19.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
@@ -54,8 +54,8 @@ El marco opera bajo una arquitectura desacoplada: una capa de entrada (comandos)
 
 ```mermaid
 flowchart TD
-    subgraph CAPA0 ["0. CAPA DE ENTRADA (13 comandos /momoy-*, estándar Agent Skills)"]
-        CMD["skills/momoy*/SKILL.md — puntos de entrada delgados, sin lógica propia"]
+    subgraph CAPA0 ["0. CAPA DE ENTRADA (17 comandos /momoy-*, estándar Agent Skills)"]
+        CMD["skills/momoy*/SKILL.md — puntos de entrada delgados hacia workflows o SK-NN"]
     end
 
     subgraph CAPA1 ["1. CAPA DE ORQUESTACION (12 Workflows)"]
@@ -93,7 +93,7 @@ flowchart TD
 
 ## 2. Comandos de momoy
 
-momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [Agent Skills](https://agentskills.io/specification) en `.agents/skills/<comando>/SKILL.md`: un punto de entrada delgado que ejecuta el workflow correspondiente, que sigue siendo la única fuente de verdad. Todos se lanzan **solo cuando el usuario los escribe**: un agente no inicia por su cuenta una cascada que la gobernanza exige aprobar.
+momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [Agent Skills](https://agentskills.io/specification) en `.agents/skills/<comando>/SKILL.md`: un punto de entrada delgado que ejecuta el workflow o el procedimiento `SK-NN` correspondiente, que sigue siendo la única fuente de verdad. Todos se lanzan **solo cuando el usuario los escribe**: un agente no inicia por su cuenta una cascada que la gobernanza exige aprobar.
 
 | Comando | Qué hace | Cuándo |
 |:---|:---|:---|
@@ -101,7 +101,9 @@ momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [
 | `/momoy-greenfield [idea]` | Bootstrap de proyecto nuevo ([`00_greenfield`](workflows/00_greenfield_bootstrap_workflow.md)) | Una sola vez, directorio vacío |
 | `/momoy-brownfield [ruta]` | Adopción en código existente ([`00_brownfield`](workflows/00_brownfield_adoption_workflow.md)) | Una sola vez, código funcionando |
 | `/momoy-spec [idea]` | Cascada de especificaciones ([`01`](workflows/01_cascading_spec_workflow.md)) | Cada idea o funcionalidad nueva |
+| `/momoy-adr [decisión]` | Registro de una decisión de arquitectura con 3 opciones ([`SK-36`](skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md)) | Dos o más caminos viables y costosos de revertir |
 | `/momoy-dev TK-XXX` | Desarrollo de un ticket de punta a punta ([`02`](workflows/02_cascading_dev_workflow.md)) | Cada ticket, uno a la vez |
+| `/momoy-characterize [módulo]` | Congela con tests el comportamiento de código legado y luego lo refactoriza ([`SK-24`](skills/development/05_quality_and_lint/SK-24_execute_characterization_testing.md)) | Antes de tocar código existente sin tests |
 | `/momoy-audit-spec [carpeta]` | Auditoría de specs en `docs/` ([`03`](workflows/03_spec_audit_workflow.md)) | Tras cambiar specs, antes de codificar |
 | `/momoy-audit-dev TK-XXX` | Revisión adversarial del código ([`04`](workflows/04_dev_audit_workflow.md)) | Ticket implementado, antes de aprobarlo |
 | `/momoy-tdd TK-XXX` | Bucle autónomo Red-Green-Refactor ([`05`](workflows/05_test_runner_workflow.md)) | Fase de pruebas de un ticket |
@@ -109,6 +111,8 @@ momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [
 | `/momoy-incident [stacktrace]` | Incidencia de producción → ticket ([`07`](workflows/07_production_observability_workflow.md)) | Llega un error real de producción |
 | `/momoy-smoke [URL]` | Validación post-despliegue ([`08`](workflows/08_smoke_test_deploy_validation.md)) | Justo después de cada deploy |
 | `/momoy-verify-live [flujo]` | Prueba de la app en vivo con navegador real ([`09`](workflows/09_live_stack_verification_workflow.md)) | Demostrar que un ticket funciona de verdad |
+| `/momoy-pr [PR o rama]` | Documentación veraz de PRs e historial de entregas ([`SK-15`](skills/specs/05_agile_planning/SK-15_document_pull_requests.md)) | Al abrir o cerrar un PR |
+| `/momoy-deps [paquete]` | Auditoría de seguridad de dependencias ([`SK-23`](skills/development/05_quality_and_lint/SK-23_audit_dependency_security.md)) | Se publica una vulnerabilidad, o antes de añadir o actualizar una dependencia |
 | `/momoy-validate` | Integridad del propio momoy ([`validate_agents.sh`](scripts/validate_agents.sh)) | Antes de proponer un cambio a `.agents/` |
 
 ### Cómo se invocan según la herramienta

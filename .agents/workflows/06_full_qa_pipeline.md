@@ -1,11 +1,11 @@
 ---
 name: 06_full_qa_pipeline
-description: "Pipeline QA completo v2.1: (0) Pre-Flight Check proactivo, (1) Análisis Anti-N+1, Mass-Assignment y contratos, (2) Diseño de tests Few-Shot RAG, (3) Auto-Loop TDD & Mutación Stryker >= 70% con veredicto en JSON Schema estricto."
-version: "2.1.1"
+description: "Pipeline QA completo v2.2: (0) Pre-Flight Check proactivo, (1) Análisis Anti-N+1, Mass-Assignment y contratos, (2) Diseño de tests Few-Shot RAG, (3) Auto-Loop TDD & Mutación Stryker >= 70% con veredicto en JSON Schema estricto."
+version: "2.2.0"
 category: "workflows/quality"
 ---
 
-# Full QA Pipeline (v2.1.1)
+# Full QA Pipeline (v2.2.0)
 
 Este workflow ejecuta el pipeline de aseguramiento de calidad de forma interactiva, segura y determinista sobre el proyecto.
 
@@ -28,7 +28,7 @@ Este workflow ejecuta el pipeline de aseguramiento de calidad de forma interacti
    - **Regresión:** Efectos colaterales en módulos adyacentes.
 3. **Estructura de Evaluación por Riesgo:**
    - Descripción del riesgo | Impacto | Probabilidad (Alta/Media/Baja) | Severidad | Método de Detección (Oráculo) | Tipo de Prueba Recomendada.
-4. **Auditorías Específicas de Backend:** Anti-N+1 en ORM, Anti-Mass-Assignment y Validación de Contrato OpenAPI.
+4. **Auditorías Específicas de Backend:** Anti-N+1 en ORM, Anti-Mass-Assignment y Validación de Contrato de API. La validación de contrato se ejecuta con la auditoría diferencial adversarial de [`SK-25`](../skills/development/05_quality_and_lint/SK-25_audit_contract_validation.md) (contrato vs. validadores de runtime, con severidad CRÍTICA/ALTA/MEDIA/BAJA); cualquier discrepancia CRÍTICA entra en la Matriz RBT como riesgo bloqueante.
 5. Entregar la Matriz RBT estructurada sin generar código todavía.
 6. **PAUSA OBLIGATORIA (Gate 1):** Esperar confirmación del usuario para avanzar al Paso 2.
 
