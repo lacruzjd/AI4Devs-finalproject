@@ -11,7 +11,7 @@ import sys
 
 OUT = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path(__file__).parent / "dist" / "ciclo-momoy.html"
 
-VERSION = "2.23.0"
+VERSION = "2.24.0"
 MEASURED = "13 sep 2026"
 
 PHASES = {
@@ -93,11 +93,10 @@ STAGES = [
          cmds="/momoy-audit-dev · /momoy-tdd · /momoy-qa · /momoy-verify-live"),
     dict(n=8, short="Release", title="Release y despliegue", phase="deliver",
          q="¿Cómo llega a producción sin riesgo, y cómo se deshace?",
-         now=S(1, 1, 1, 1, 1, 1), before=S(1, 1, 1, 1, 1, 1),
-         today="<code>SK-10</code> (CI/CD), <code>SK-06</code> (migraciones sin tiempo de inactividad), workflow 08 (smoke test y rollback) y <code>SK-23</code>; gates generados de contenedores, dependencias e IaC. RestoStock está desplegado en Render.",
-         todo=["Workflow y comando <code>/momoy-release</code>: estrategia de liberación por ticket (flag, canary o todo a la vez justificado).",
-               "Rollback ensayado en staging, migraciones expand-contract verificadas y notas de versión en lenguaje de usuario."],
-         cmds="/momoy-smoke · /momoy-deps · (ola 2) /momoy-release"),
+         now=S(2, 2, 2, 2, 2, 1), before=S(1, 1, 1, 1, 1, 1),
+         today="Workflow 10 y <code>/momoy-release</code>: versión SemVer, gates previos, una estrategia por release justificada, migraciones expand-contract, verificación previa de la configuración de despliegue, rollback ensayado si hay migración o cambio de despliegue, notas de versión y go/no-go humano. Gate <code>release</code>. El workflow 08 ya no destruye infraestructura: ante un fallo propone volver a la versión anterior y espera la aprobación humana.",
+         todo=["Probarlo en real: ejecutar el workflow 10 en un release de verdad, con ensayo de rollback. RestoStock está desplegado en Render, pero su entrega no tiene versión SemVer ni sección de CHANGELOG, y la etiqueta v1.0-final-JDLM apunta a un commit anterior a las correcciones del despliegue."],
+         cmds="/momoy-release · /momoy-smoke · /momoy-deps"),
     dict(n=9, short="Operación", title="Operación y observabilidad", phase="operate",
          q="¿Sabemos que funciona antes de que un usuario nos avise?",
          now=S(0, 0, 0, 0, 0, 0), before=S(0, 0, 0, 0, 0, 0),
@@ -139,13 +138,14 @@ EVOLUTION = [
     ("2.21.0", "Pulido", "Comandos delgados verificados por el check; fuera duplicaciones, una referencia rota y código muerto.", "17", "80"),
     ("2.22.0", "Etapa 2: validación", "SK-37 y /momoy-experiment: experimentos con criterio fijado antes, evidencia anonimizada y decisión humana; toda historia abierta declara su validación. Primer cambio de momoy escrito con TDD.", "18", "93"),
     ("2.23.0", "Ola 1: cerrar el ciclo", "SK-38 y SK-39 con sus comandos y gates; nueva carpeta docs/06_release_and_operations/; primer postmortem real, que destapó un defecto latente todavía abierto (TK-145).", "20", "105"),
+    ("2.24.0", "Ola 2: release", "Workflow 10 y /momoy-release con gate release; el workflow 08 deja de destruir infraestructura sin aprobación y de incluir contenido de un proyecto concreto.", "21", "114"),
 ]
 
 WAVES = [
     ("Ola 0", "Verificar lo que ya existe", "Etapas 1, 3, 4 y 5", "done", "Hecha en 2.20.0: gates kpi, historia, ready y trazabilidad."),
     ("Ola 1", "Cerrar el ciclo", "Etapas 11 y 10", "done", "Hecha en 2.23.0: postmortem probado en real con PM-001; la medición de resultados espera datos de uso real."),
-    ("Ola 2", "Liberar con seguridad", "Etapa 8", "next", "/momoy-release con rollback ensayado en Render."),
-    ("Ola 3", "Operar", "Etapa 9", "todo", "/momoy-operate con simulacro de restauración y alerta que dispara."),
+    ("Ola 2", "Liberar con seguridad", "Etapa 8", "partial", "Hecha en 2.24.0, salvo ejecutarla en un release real con ensayo de rollback."),
+    ("Ola 3", "Operar", "Etapa 9", "next", "/momoy-operate con simulacro de restauración y alerta que dispara."),
     ("Ola 4", "Completar los bordes", "Etapas 2 y 12", "partial", "Etapa 2 hecha en 2.22.0, salvo probarla en real. Quedan /momoy-maintain y /momoy-retire."),
 ]
 
@@ -200,7 +200,7 @@ svg.append(f'<path class="loop" d="M{x11:.1f} {y11:.1f} Q{CX - 40} {CY - 40} {x1
 svg.append(f'<text class="loop-label" x="{CX - 46}" y="{CY - 44}" text-anchor="middle">se cierra, pero</text>')
 svg.append(f'<text class="loop-label" x="{CX - 46}" y="{CY - 28}" text-anchor="middle">sin datos reales aún</text>')
 svg.append(f'<text class="center-name" x="{CX}" y="{CY + 22}" text-anchor="middle">momoy</text>')
-svg.append(f'<text class="center-meta" x="{CX}" y="{CY + 44}" text-anchor="middle">{VERSION} · 39 SK · 20 comandos</text>')
+svg.append(f'<text class="center-meta" x="{CX}" y="{CY + 44}" text-anchor="middle">{VERSION} · 39 SK · 21 comandos</text>')
 for s in STAGES:
     x, y = pos(s["n"], R)
     lx, ly = pos(s["n"], LR)
