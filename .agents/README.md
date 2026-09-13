@@ -1,9 +1,8 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.16.0 (SOTA Enterprise 2026 Edition)"
+version: "2.16.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
-program: "AI4Devs - Final Project"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "EU AI Act Compliant / Synthetic AI-Driven Architecture"
 license: "MIT"
