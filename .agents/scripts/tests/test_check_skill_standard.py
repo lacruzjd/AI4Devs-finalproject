@@ -19,7 +19,14 @@ metadata:
 
 # /{name}
 
+**Entrada:** El identificador del ticket (`TK-XXX`). Si el usuario no lo dio, pídeselo.
+
 Lee y ejecuta `.agents/workflows/02_cascading_dev_workflow.md`.
+
+## Reglas del comando
+
+- Este archivo es solo un punto de entrada: la fuente de verdad es el workflow.
+- Respeta cada pausa de aprobación humana del procedimiento.
 """
 
 IMPLICIT_OFF = "policy:\n  allow_implicit_invocation: false\n"
@@ -166,6 +173,38 @@ class CheckSkillStandardTests(unittest.TestCase):
 
         self.assertEqual(violations, 1, msg=messages)
         self.assertIn("no referencia ningún", messages[0])
+
+    def test_command_with_own_logic_in_body_is_detected(self):
+        body = VALID_COMMAND.format(name="momoy-dev").replace(
+            "Lee y ejecuta `.agents/workflows/02_cascading_dev_workflow.md`.",
+            "Lee y ejecuta `.agents/workflows/02_cascading_dev_workflow.md`.\n\n1. Revisa el stub.\n2. Revisa el stack.\n3. Recomienda un comando.")
+        self._write_command("momoy-dev", body=body)
+
+        checked, violations, messages = run_checks(self.agents_dir)
+
+        self.assertEqual(violations, 1, msg=messages)
+        self.assertIn("comando no delgado", messages[0])
+        self.assertIn("la lógica propia va en el procedimiento", messages[0])
+
+    def test_command_with_non_standard_rule_is_detected(self):
+        body = VALID_COMMAND.format(name="momoy-dev") + "- Pausa obligatoria entre la fase 2 y la 3.\n"
+        self._write_command("momoy-dev", body=body)
+
+        checked, violations, messages = run_checks(self.agents_dir)
+
+        self.assertEqual(violations, 1, msg=messages)
+        self.assertIn("regla no estándar", messages[0])
+
+    def test_command_without_input_line_or_rules_section_is_detected(self):
+        self._write_command("momoy-dev", body=VALID_COMMAND.format(name="momoy-dev").replace(
+            "**Entrada:** El identificador del ticket (`TK-XXX`). Si el usuario no lo dio, pídeselo.\n\n", ""))
+        self._write_command("momoy-spec", body=VALID_COMMAND.format(name="momoy-spec").split("## Reglas del comando")[0])
+
+        checked, violations, messages = run_checks(self.agents_dir)
+
+        self.assertEqual(violations, 2, msg=messages)
+        self.assertTrue(any("exactamente una línea '**Entrada:**'" in m for m in messages))
+        self.assertTrue(any("falta la sección '## Reglas del comando'" in m for m in messages))
 
     def test_command_with_broken_workflow_reference_is_detected(self):
         self._write_command("momoy-dev", body=VALID_COMMAND.format(name="momoy-dev").replace(

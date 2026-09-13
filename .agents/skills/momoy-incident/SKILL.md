@@ -4,14 +4,14 @@ description: "Convierte una incidencia de producción en trabajo gobernado: anal
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-incident
 
 **Entrada:** El log, stacktrace o descripción de la incidencia. Si el usuario no lo dio, pídeselo antes de empezar.
 
-Lee por completo y ejecuta, sin saltarte fases ni pausas de aprobación humana, el workflow `.agents/workflows/07_production_observability_workflow.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/07_production_observability_workflow.md`.
 
 ## Reglas del comando
 

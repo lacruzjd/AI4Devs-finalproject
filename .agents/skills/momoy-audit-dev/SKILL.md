@@ -4,14 +4,14 @@ description: "Revisión adversarial de un Reviewer Independiente sobre el códig
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-audit-dev
 
 **Entrada:** El identificador del ticket (`TK-XXX`) cuyo código se audita. Si el usuario no lo dio, pídeselo.
 
-Lee por completo y ejecuta, sin saltarte fases ni pausas de aprobación humana, el workflow `.agents/workflows/04_dev_audit_workflow.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/04_dev_audit_workflow.md`.
 
 ## Reglas del comando
 

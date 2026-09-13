@@ -84,7 +84,7 @@ flowchart TD
 
 ---
 
-### ETAPA 3: De Ticket a Código Probado (`desarrollo_cascada.md`)
+### ETAPA 3: De Ticket a Código Probado (`02_cascading_dev_workflow.md`)
 1. **Entrada:** Orden de implementar un ticket técnico específico (ej. *"Desarrolla el ticket TK-001"*).
 2. **Acción de la IA:**
    - **Migración (`SK-18`):** Si el ticket cambia la BD, modifica el esquema de persistencia u ORM del proyecto, corre la migración local y regenera el cliente ORM.
@@ -99,6 +99,20 @@ flowchart TD
 1. **Inspección de Código (`SK-19`):** Ejecuta los compiladores de tipos y linters oficiales declarados en `AGENTS.md`. Se exige estricto **0 errores y 0 advertencias**.
 2. **QA Visual en Navegador (`SK-20`):** Si es un ticket de UI, abre el subagente de navegación interactivo, prueba los clics táctiles en botones de 48px y registra evidencias.
 3. **Commit Atómico:** Realiza exactamente **1 commit en Git** vinculado al ticket `TK-XXX`.
+
+---
+
+## Diagnóstico de Estado del Proyecto (lo ejecuta `/momoy`)
+
+Procedimiento de **solo lectura**: no crees, edites ni borres ningún archivo. Responde en qué etapa está el proyecto y qué comando toca.
+
+1. **¿Bootstrapeado?** Si `AGENTS.md` no existe o es el stub de `install.sh` (contiene "proyecto sin bootstrapear"), el proyecto no arrancó: recomienda `/momoy-greenfield` si el directorio no tiene código relevante, o `/momoy-brownfield` si ya tiene código funcionando.
+2. **¿Stack aprobado?** Si falta `docs/00_stack_manifest.md`, el bootstrap quedó incompleto: recomienda retomar el workflow de bootstrap que corresponda.
+3. **Salud de las especificaciones:** ejecuta `python3 .agents/scripts/check_spec_artifacts.py` (informe, no bloquea) y resume sus hallazgos por gate.
+4. **¿Tickets pendientes?** Revisa el `status` del frontmatter de `docs/05_agile_planning/12_tickets/**/TK-*.md` (y el índice de tickets si existe). Si hay tickets en `approved` o `in_progress`, toma el siguiente según el orden del índice y comprueba su Definition of Ready con `--ticket TK-XXX`: si pasa, recomienda `/momoy-dev TK-XXX`; si no, di que no está listo y por qué.
+5. **Sin trabajo pendiente:** recomienda `/momoy-spec [idea]` para la siguiente funcionalidad, o `/momoy-audit-spec` si las especificaciones no se auditaron desde su último cambio.
+
+**Respuesta:** (a) el estado detectado con la evidencia (archivo que lo prueba), (b) el resumen de salud de las especificaciones, (c) el siguiente comando recomendado con su argumento, y (d) la tabla de comandos de la sección 2 de `.agents/README.md`.
 
 ---
 

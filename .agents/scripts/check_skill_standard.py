@@ -29,6 +29,14 @@ Reglas adicionales para los comandos de momoy (nombre `momoy` o `momoy-*`):
    comando: encadenar comandos esconde el procedimiento real.
 7. Declaran `agents/openai.yaml` con `allow_implicit_invocation: false`: un agente no debe
    lanzar por su cuenta una cascada que la gobernanza de momoy exige aprobar.
+8. **Son delgados.** Un comando es entrada + una frase de delegación + reglas estándar; toda
+   regla o paso propio vive en el procedimiento, no aquí. Si la lógica vive en el comando, un
+   asistente sin soporte de skills que use el workflow directamente no la recibe (en 2.20.0
+   `/momoy` llevaba un diagnóstico entero y `/momoy-characterize` una pausa que SK-24 no tenía,
+   y la regla 6 no lo detectaba porque solo pedía que la referencia existiera). Se exige:
+   una línea `**Entrada:**` de hasta MAX_INPUT_CHARS; cuerpo de delegación de hasta
+   MAX_BODY_LINES líneas y MAX_BODY_CHARS caracteres; y en `## Reglas del comando`, solo
+   viñetas que empiecen por uno de los RULE_PREFIXES estándar.
 """
 import os
 import re
@@ -47,6 +55,15 @@ ENTRYPOINT_REFERENCE = re.compile(
     r"|\.agents/skills/(?:specs|development)/[A-Za-z0-9_./-]*SK-\d+_[A-Za-z0-9_-]+\.md"
 )
 IMPLICIT_OFF = re.compile(r"^\s*allow_implicit_invocation:\s*false\s*$", re.M)
+MAX_INPUT_CHARS = 220
+MAX_BODY_LINES = 2
+MAX_BODY_CHARS = 350
+RULES_HEADING = "## Reglas del comando"
+RULE_PREFIXES = (
+    "- Este archivo es solo un punto de entrada",
+    "- Respeta cada pausa de aprobación humana",
+    "- Si el procedimiento genera código",
+)
 
 
 def _is_momoy_command(name):
@@ -63,6 +80,29 @@ def _parse_frontmatter(text):
         if key_match:
             fields[key_match.group(1)] = key_match.group(2).strip().strip('"').strip("'")
     return fields
+
+
+def _thinness_problems(text):
+    """Devuelve la lista de motivos por los que un comando no es delgado (regla 8)."""
+    problems = []
+    body = text[text.index("\n---\n", 4) + 5:] if text.startswith("---\n") else text
+    if RULES_HEADING not in body:
+        return [f"falta la sección '{RULES_HEADING}'"]
+    head, rules = body.split(RULES_HEADING, 1)
+    lines = [l for l in head.splitlines() if l.strip() and not l.startswith("# ")]
+    inputs = [l for l in lines if l.startswith("**Entrada:**")]
+    if len(inputs) != 1:
+        problems.append("debe tener exactamente una línea '**Entrada:**'")
+    elif len(inputs[0]) > MAX_INPUT_CHARS:
+        problems.append(f"la línea de entrada tiene {len(inputs[0])} caracteres (máximo {MAX_INPUT_CHARS})")
+    delegation = [l for l in lines if not l.startswith("**Entrada:**")]
+    if len(delegation) > MAX_BODY_LINES or sum(len(l) for l in delegation) > MAX_BODY_CHARS:
+        problems.append(f"el cuerpo tiene {len(delegation)} líneas / {sum(len(l) for l in delegation)} caracteres "
+                        f"(máximo {MAX_BODY_LINES} / {MAX_BODY_CHARS}): la lógica propia va en el procedimiento")
+    for bullet in (l for l in rules.splitlines() if l.strip()):
+        if not bullet.startswith(RULE_PREFIXES):
+            problems.append(f"regla no estándar en el comando: '{bullet[:60]}...' — muévela al procedimiento")
+    return problems
 
 
 def run_checks(agents_dir):
@@ -139,6 +179,9 @@ def run_checks(agents_dir):
         for ref in sorted(set(references)):
             if not os.path.isfile(os.path.join(project_root, ref)):
                 fail(f"{rel}: referencia rota '{ref}' — no existe.")
+
+        for problem in _thinness_problems(text):
+            fail(f"{rel}: comando no delgado — {problem}")
 
         openai_yaml = os.path.join(skill_dir, "agents", "openai.yaml")
         if not os.path.isfile(openai_yaml):

@@ -4,7 +4,7 @@ description: "Congela con pruebas de caracterización el comportamiento actual d
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-characterize
@@ -12,8 +12,6 @@ metadata:
 **Entrada:** La ruta del archivo o módulo legado a caracterizar. Si el usuario no la dio, pídesela.
 
 Lee por completo y ejecuta el procedimiento `.agents/skills/development/05_quality_and_lint/SK-24_execute_characterization_testing.md`.
-
-**Pausa obligatoria entre fases:** al terminar la FASE 2 (suite de caracterización 100% en verde), presenta al humano la suite y el plan de refactorización, y espera su aprobación antes de tocar código de producción en la FASE 3.
 
 ## Reglas del comando
 

@@ -4,14 +4,14 @@ description: "Prueba la app de punta a punta en local con navegador real: levant
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-verify-live
 
 **Entrada:** El flujo de usuario a recorrer o el ticket (`TK-XXX`) cuyo flujo crítico se verifica. Si el usuario no lo dio, pídeselo.
 
-Lee por completo y ejecuta, sin saltarte fases ni pausas de aprobación humana, el workflow `.agents/workflows/09_live_stack_verification_workflow.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/09_live_stack_verification_workflow.md`.
 
 ## Reglas del comando
 

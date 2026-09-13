@@ -1,7 +1,7 @@
 ---
 name: SK-24_execute_characterization_testing
 description: "Ejecuta Pruebas de Caracterización (Characterization Testing) sobre código legacy o existente sin tests para congelar su comportamiento actual en verde antes de refactorizar hacia la Arquitectura Hexagonal."
-version: "1.2.1"
+version: "1.3.0"
 category: "development/05_quality_and_lint"
 inputs:
   - legacy_file_path: "Ruta del archivo o módulo legacy a caracterizar"
@@ -26,6 +26,7 @@ Sigue estrictamente este flujo de 4 pasos:
 1. **Redactar Pruebas de Caracterización:** Escribe una suite de caracterización utilizando el runner de pruebas declarado en `AGENTS.md` (ej. Vitest, PyTest, Jest, Go test).
 2. **Ajuste de Aserciones a la Realidad:** Configura las aserciones para que coincidan EXACTAMENTE con lo que el código legacy devuelve actualmente (incluso si la salida incluye bugs o formatos heredados).
 3. **Confirmación en Consola:** Ejecuta el comando de test declarado en `AGENTS.md` y verifica que el 100% de las pruebas pasen en **VERDE (GREEN)**.
+4. **PAUSA OBLIGATORIA (Human-in-the-Loop):** presenta al humano la suite de caracterización en verde y el plan de refactorización, y espera su aprobación explícita antes de tocar código de producción en la FASE 3. Congelar el comportamiento no autoriza a cambiarlo.
 
 ---
 

@@ -4,14 +4,14 @@ description: "Implementa un ticket técnico TK-XXX de momoy de punta a punta: ex
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-dev
 
-**Entrada:** El identificador del ticket (`TK-XXX`). Si el usuario no lo dio, pídeselo. Si el archivo del ticket no existe, detente y recomienda `/momoy-spec`.
+**Entrada:** El identificador del ticket (`TK-XXX`). Si el usuario no lo dio, pídeselo.
 
-Lee por completo y ejecuta, sin saltarte fases ni pausas de aprobación humana, el workflow `.agents/workflows/02_cascading_dev_workflow.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/02_cascading_dev_workflow.md`.
 
 ## Reglas del comando
 
