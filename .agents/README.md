@@ -1,7 +1,7 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.22.0"
+version: "2.23.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
@@ -54,7 +54,7 @@ El marco opera bajo una arquitectura desacoplada: una capa de entrada (comandos)
 
 ```mermaid
 flowchart TD
-    subgraph CAPA0 ["0. CAPA DE ENTRADA (18 comandos /momoy-*, estándar Agent Skills)"]
+    subgraph CAPA0 ["0. CAPA DE ENTRADA (20 comandos /momoy-*, estándar Agent Skills)"]
         CMD["skills/momoy*/SKILL.md — puntos de entrada delgados hacia workflows o SK-NN"]
     end
 
@@ -66,8 +66,8 @@ flowchart TD
     end
 
     subgraph CAPA2 ["2. CAPA DE HABILIDADES PROCEDIMENTALES (36 Skills)"]
-        S_Spec["Skills de Specs (SK-01 a SK-15, SK-35 a SK-37)"]
-        S_Dev["Skills de Dev (SK-16 a SK-34)"]
+        S_Spec["Skills de Specs (SK-01 a SK-15, SK-35 a SK-37, SK-39)"]
+        S_Dev["Skills de Dev (SK-16 a SK-34, SK-38)"]
     end
 
     subgraph CAPA3 ["3. CAPA DE GOBERNANZA VIVA (docs/ & AGENTS.md)"]
@@ -112,10 +112,12 @@ momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [
 | `/momoy-tdd TK-XXX` | Bucle autónomo Red-Green-Refactor ([`05`](workflows/05_test_runner_workflow.md)) | Fase de pruebas de un ticket |
 | `/momoy-qa [objetivo]` | Pipeline QA completo con mutación ([`06`](workflows/06_full_qa_pipeline.md)) | Antes de cerrar un conjunto de cambios |
 | `/momoy-incident [stacktrace]` | Incidencia de producción → ticket ([`07`](workflows/07_production_observability_workflow.md)) | Llega un error real de producción |
+| `/momoy-postmortem [PM-NNN o incidencia]` | Postmortem sin culpa de una incidencia resuelta ([`SK-38`](skills/development/07_performance_and_observability/SK-38_write_blameless_postmortem.md)) | Incidencia crítica o alta resuelta, en los 5 días siguientes |
 | `/momoy-smoke [URL]` | Validación post-despliegue ([`08`](workflows/08_smoke_test_deploy_validation.md)) | Justo después de cada deploy |
 | `/momoy-verify-live [flujo]` | Prueba de la app en vivo con navegador real ([`09`](workflows/09_live_stack_verification_workflow.md)) | Demostrar que un ticket funciona de verdad |
 | `/momoy-pr [PR o rama]` | Documentación veraz de PRs e historial de entregas ([`SK-15`](skills/specs/05_agile_planning/SK-15_document_pull_requests.md)) | Al abrir o cerrar un PR |
 | `/momoy-deps [paquete]` | Auditoría de seguridad de dependencias ([`SK-23`](skills/development/05_quality_and_lint/SK-23_audit_dependency_security.md)) | Se publica una vulnerabilidad, o antes de añadir o actualizar una dependencia |
+| `/momoy-outcomes [KPIs]` | Mide los KPIs con fecha de revisión vencida y propone mantener, iterar, pivotar o retirar ([`SK-39`](skills/specs/01_product_definition/SK-39_measure_product_outcomes.md)) | Llega la fecha de revisión de los KPIs |
 | `/momoy-validate` | Integridad del propio momoy ([`validate_agents.sh`](scripts/validate_agents.sh)) | Antes de proponer un cambio a `.agents/` |
 
 ### Gates de especificación
@@ -152,11 +154,12 @@ Sin argumentos genera un informe del repositorio que **no bloquea** (la deuda do
 
 Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestructura IaC es **dinámica y agnóstica**, e inferida directamente por las habilidades a partir de la documentación viva del proyecto en `docs/`:
 
-*   **Alcance y Producto:** `docs/01_product_definition/` (PRDs y Reglas de Negocio).
+*   **Alcance y Producto:** `docs/01_product_definition/` (PRDs, Reglas de Negocio, experimentos de validación y resultados medidos).
 *   **Arquitectura y Diseño:** `docs/02_architecture_design/` (Capas, Mappers, ADRs y Estructura).
 *   **Persistencia y APIs:** `docs/03_persistence_and_api/` (Esquemas de Base de Datos y OpenAPI 3.0).
 *   **Gobernanza y Calidad:** `docs/04_governance_and_quality/` (Estrategias de prueba, seguridad, CI/CD e informes).
 *   **Gestión Ágil:** `docs/05_agile_planning/` (User Stories INVEST y Tickets Técnicos).
+*   **Release y Operación:** `docs/06_release_and_operations/` (postmortems; releases, SLOs y runbooks en próximas versiones).
 
 ---
 
@@ -165,7 +168,7 @@ Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestruc
 Las 35 habilidades son runbooks especializados organizados por fases y roles técnicos que la IA carga bajo demanda:
 
 ### Fase Documental (Product Owner & Architect Roles)
-*   **01_product_definition:** [SK-01 Descubrimiento de Producto](skills/specs/01_product_definition/SK-01_discover_product_vision.md), [SK-02 Generación del PRD](skills/specs/01_product_definition/SK-02_generate_prd.md) y [SK-37 Experimento de Validación](skills/specs/01_product_definition/SK-37_design_validation_experiment.md).
+*   **01_product_definition:** [SK-01 Descubrimiento de Producto](skills/specs/01_product_definition/SK-01_discover_product_vision.md), [SK-02 Generación del PRD](skills/specs/01_product_definition/SK-02_generate_prd.md), [SK-37 Experimento de Validación](skills/specs/01_product_definition/SK-37_design_validation_experiment.md) y [SK-39 Medición de Resultados](skills/specs/01_product_definition/SK-39_measure_product_outcomes.md).
 *   **02_architecture_design:** [SK-03 Modelo de Dominio](skills/specs/02_architecture_design/SK-03_design_domain_model.md), [SK-04 Diseño Técnico](skills/specs/02_architecture_design/SK-04_design_technical_architecture.md), [SK-05 Asistente de Diseño UI/UX](skills/specs/02_architecture_design/SK-05_design_ui_ux_system.md) y [SK-36 Registro de Decisiones de Arquitectura (ADR)](skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md).
 *   **03_persistence_and_api:** [SK-06 Esquema de Base de Datos](skills/specs/03_persistence_and_api/SK-06_design_database_schema.md) y [SK-07 Especificación API REST](skills/specs/03_persistence_and_api/SK-07_design_api_specification.md).
 *   **04_governance_and_quality:** [SK-08 Estrategia de Seguridad](skills/specs/04_governance_and_quality/SK-08_define_security_strategy.md), [SK-09 Estrategia de Pruebas](skills/specs/04_governance_and_quality/SK-09_define_testing_strategy.md), [SK-10 Pipeline CI/CD & OpenTofu IaC](skills/specs/04_governance_and_quality/SK-10_configure_cicd_pipeline.md) y [SK-35 Generación del Contrato Operativo Raíz (AGENTS.md)](skills/specs/04_governance_and_quality/SK-35_generate_root_contract.md).
@@ -182,7 +185,7 @@ Las 35 habilidades son runbooks especializados organizados por fases y roles té
 *   **04_persistence_and_db:** [SK-18 Migraciones, Seeds & Anti-Orfandad](skills/development/04_persistence_and_db/SK-18_execute_db_migration.md) y [SK-28 Seeding Profesional Idempotente](skills/development/04_persistence_and_db/SK-28_manage_database_seeding.md).
 *   **05_quality_and_lint:** [SK-19 Refactor & Anti-N+1 / Anti-Mass-Assignment](skills/development/05_quality_and_lint/SK-19_refactor_and_lint.md), [SK-22 DBA Log Analysis & Troubleshooting](skills/development/05_quality_and_lint/SK-22_agent_troubleshooting.md), [SK-24 Characterization Testing](skills/development/05_quality_and_lint/SK-24_execute_characterization_testing.md), [SK-26 Recuperador Dinámico Few-Shot](skills/development/05_quality_and_lint/SK-26_retrieve_few_shot_context.md) y [SK-32 Test Fixture Builder (Object Mother)](skills/development/05_quality_and_lint/SK-32_test_fixture_builder.md).
 *   **06_visual_qa:** [SK-20 Browser Visual QA](skills/development/06_visual_qa/SK-20_execute_browser_qa.md) y [SK-21 Auditoría Accesibilidad UI/a11y](skills/development/06_visual_qa/SK-21_audit_ui_accessibility.md).
-*   **07_performance_and_observability:** [SK-29 Load & Performance Testing](skills/development/07_performance_and_observability/SK-29_load_and_performance_testing.md).
+*   **07_performance_and_observability:** [SK-29 Load & Performance Testing](skills/development/07_performance_and_observability/SK-29_load_and_performance_testing.md) y [SK-38 Postmortem Sin Culpa](skills/development/07_performance_and_observability/SK-38_write_blameless_postmortem.md).
 *   **08_testing:** [SK-34 Model-Based Testing Designer (MBT & Oracles)](skills/development/08_testing/SK-34_model_based_testing_designer.md).
 *   **Patrones de Oro (Few-Shot):** [Plantillas y Ejemplos de Referencia](examples/00_few_shot_patterns.md).
 
