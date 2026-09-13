@@ -89,6 +89,7 @@ MATRIX = """# Matriz
 | ID | Historia | Ticket |
 |---|---|---|
 | REQ-001 | [US-001](11_user_stories/stock/US-001.md) | [TK-001](12_tickets/stock/backend/TK-001.md) |
+| REQ-003 | — | [TK-003](12_tickets/stock/backend/TK-003.md) |
 """
 
 EXPERIMENT = """---
@@ -181,6 +182,40 @@ data/OUT-001/merma.csv
 Mantener.
 """
 
+RELEASE = """---
+document: release
+release: 1.0.0
+version: 1.0.0
+status: deployed
+strategy: completo
+strategy_justification: "Primer despliegue, sin usuarios todavía"
+planned_on: 2026-09-09
+deployed_at: 2026-09-09T18:54:00-03:00
+includes_migration: no
+changes_deploy_config: no
+rollback_rehearsed_on:
+---
+
+# Release v1.0.0
+
+## Tickets incluidos
+- TK-003 — Entrega inicial
+
+## Notas de versión
+Primera versión disponible: registro de extracciones y tablero de remanentes.
+
+## Verificación previa al despliegue
+Blueprint validado con la herramienta de la plataforma; todas las URLs con esquema.
+
+## Plan de rollback
+Volver a desplegar el commit anterior desde la plataforma, sin cambios de datos.
+
+## Verificación posterior
+Workflow 08 en PASS: salud 200 y rutas protegidas responden 401.
+"""
+
+RELEASE_PATH = "docs/06_release_and_operations/releases/v1.0.0.md"
+DONE_TICKET_PATH = "docs/05_agile_planning/12_tickets/stock/backend/TK-003.md"
 PM_PATH = "docs/06_release_and_operations/postmortems/PM-001-despliegue.md"
 OUT_PATH = "docs/01_product_definition/outcomes/OUT-001-merma.md"
 OUT_DATA = "docs/01_product_definition/outcomes/data/OUT-001/merma.csv"
@@ -208,6 +243,9 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         self._write(PM_PATH, POSTMORTEM)
         self._write(OUT_PATH, OUTCOME)
         self._write(OUT_DATA, "semana,merma\n1,0.08\n")
+        self._write(DONE_TICKET_PATH, TICKET.replace("id: TK-001", "id: TK-003").replace("status: approved", "status: done"))
+        self._write(RELEASE_PATH, RELEASE)
+        self._write("CHANGELOG.md", "# Changelog\n\n## [1.0.0] - 2026-09-09\n- Primera versión.\n")
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -225,7 +263,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         findings, checked = run_checks(self.root)
 
         self.assertEqual(findings.items, [])
-        self.assertEqual(checked, 8)
+        self.assertEqual(checked, 10)
 
     # kpi
     def test_prose_kpis_without_table_are_detected(self):
@@ -618,6 +656,111 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
         self.assertEqual(checked, 1)
         self.assertIn("informe cerrado sin recomendación", self._kinds(findings, "resultado"))
+
+    # release (etapa 8)
+    def _release(self, content):
+        self._write(RELEASE_PATH, content)
+
+    def test_full_release_without_justification_or_matching_filename_is_detected(self):
+        self._release(RELEASE.replace('strategy_justification: "Primer despliegue, sin usuarios todavía"', 'strategy_justification: ""')
+                      .replace("release: 1.0.0", "release: 1.0.1"))
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "release")
+        self.assertIn("estrategia 'completo' sin justificación", kinds)
+        self.assertIn("release distinto de la versión del nombre de archivo", kinds)
+
+    def test_included_tickets_must_exist_and_be_done(self):
+        self._release(RELEASE.replace("- TK-003 — Entrega inicial", "- TK-003 — Entrega inicial\n- TK-001 — Endpoint\n- TK-404 — Fantasma"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(sorted((k, d) for g, p, k, d in findings.items if g == "release"), [
+            ("ticket incluido que no existe", "TK-404"),
+            ("ticket incluido sin cerrar", "TK-001: approved"),
+        ])
+
+    def test_empty_release_notes_and_rollback_plan_are_detected(self):
+        self._release(RELEASE.replace("Primera versión disponible: registro de extracciones y tablero de remanentes.", "")
+                      .replace("Volver a desplegar el commit anterior desde la plataforma, sin cambios de datos.", ""))
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "release")
+        self.assertIn("notas de versión vacías", kinds)
+        self.assertIn("plan de rollback vacío", kinds)
+
+    def test_migrations_must_be_classified_and_contract_needs_a_deployed_expand(self):
+        with_migration = (RELEASE.replace("includes_migration: no", "includes_migration: si")
+                          .replace("rollback_rehearsed_on:", "rollback_rehearsed_on: 2026-09-08")
+                          .replace("## Verificación previa al despliegue",
+                                   "## Migraciones\n- renombrar columna de stock\n- contract: quitar columna antigua — expand en v0.9.0\n\n## Verificación previa al despliegue"))
+        self._release(with_migration)
+
+        findings, _ = run_checks(self.root)
+        self._write("docs/06_release_and_operations/releases/v0.9.0.md",
+                    RELEASE.replace("release: 1.0.0", "release: 0.9.0").replace("# Release v1.0.0", "# Release v0.9.0"))
+        self._write("CHANGELOG.md", "# Changelog\n\n## [1.0.0] - 2026-09-09\n\n## [0.9.0] - 2026-09-01\n")
+        with_expand, _ = run_checks(self.root)
+
+        self.assertEqual(sorted((k, d) for g, p, k, d in findings.items if g == "release"), [
+            ("contract sin su expand desplegado en un release anterior", "v0.9.0"),
+            ("migración sin clasificar (expand, contract o datos)", "renombrar columna de stock"),
+        ])
+        self.assertEqual([k for g, p, k, d in with_expand.items if g == "release"],
+                         ["migración sin clasificar (expand, contract o datos)"])
+
+    def test_flag_strategy_needs_a_removal_ticket_per_flag(self):
+        self._release(RELEASE.replace("strategy: completo", "strategy: flag")
+                      .replace("## Verificación previa al despliegue",
+                               "## Feature flags\n- nuevo-tablero — retirada en TK-003\n- exportar-csv — pendiente\n\n## Verificación previa al despliegue"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual([(k, d) for g, p, k, d in findings.items if g == "release"],
+                         [("flag sin ticket de retirada", "exportar-csv — pendiente")])
+
+    def test_rollback_rehearsal_is_required_for_deploy_config_changes_and_must_precede_deploy(self):
+        self._release(RELEASE.replace("changes_deploy_config: no", "changes_deploy_config: si"))
+        missing, _ = run_checks(self.root)
+        self._release(RELEASE.replace("changes_deploy_config: no", "changes_deploy_config: si")
+                      .replace("rollback_rehearsed_on:", "rollback_rehearsed_on: 2026-09-10"))
+        late, _ = run_checks(self.root)
+
+        self.assertIn("requiere ensayo de rollback (hay migración o cambio de despliegue)", self._kinds(missing, "release"))
+        self.assertIn("ensayo de rollback posterior al despliegue", self._kinds(late, "release"))
+
+    def test_deployed_release_needs_matching_tag_and_changelog_section(self):
+        os.remove(os.path.join(self.root, "CHANGELOG.md"))
+
+        without, _ = run_checks(self.root, tags=set())
+        self._write("CHANGELOG.md", "# Changelog\n\n## [1.0.0] - 2026-09-09\n")
+        coherent, _ = run_checks(self.root, tags={"v1.0.0"})
+
+        self.assertEqual(sorted(self._kinds(without, "release")), [
+            "release desplegado sin etiqueta git v1.0.0",
+            "release desplegado sin sección en CHANGELOG.md",
+        ])
+        self.assertEqual(self._kinds(coherent, "release"), [])
+
+    def test_planned_release_does_not_need_deploy_evidence_yet(self):
+        planned = (RELEASE.replace("status: deployed", "status: planned").replace("deployed_at: 2026-09-09T18:54:00-03:00", "deployed_at:")
+                   .replace("Workflow 08 en PASS: salud 200 y rutas protegidas responden 401.", ""))
+        self._release(planned)
+        os.remove(os.path.join(self.root, "CHANGELOG.md"))
+
+        findings, _ = run_checks(self.root, tags=set())
+
+        self.assertEqual(findings.items, [])
+
+    def test_changed_scope_checks_only_the_release(self):
+        self._release(RELEASE.replace('strategy_justification: "Primer despliegue, sin usuarios todavía"', 'strategy_justification: ""'))
+
+        findings, checked = run_checks(self.root, scope={RELEASE_PATH})
+
+        self.assertEqual(checked, 1)
+        self.assertEqual(self._kinds(findings), ["estrategia 'completo' sin justificación"])
 
     # modos
     def test_changed_scope_ignores_untouched_debt(self):

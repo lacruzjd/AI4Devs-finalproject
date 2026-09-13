@@ -11,11 +11,15 @@ SK-01/SK-02 (KPIs), SK-11 (historias), SK-12 (tickets), SK-13 (matriz) y SK-36 (
 declaran obligatorio. Solo depende de la taxonomía fija de docs/ que momoy impone, no del
 stack del proyecto (CONTRIBUTING.md, regla de .agents/scripts/).
 
-Siete gates:
+Ocho gates:
   kpi          Cada KPI está en una tabla con fuente, línea base, umbral, ventana y fecha de revisión.
   resultado    Cada OUT-NNN (SK-39) tiene veredicto por KPI sostenido por datos del repo y una
                recomendación coherente con su estado; un KPI con la fecha de revisión vencida y sin
                informe es un hallazgo: así se detecta que el ciclo no se cerró.
+  release      Cada vX.Y.Z (workflow 10) tiene tickets cerrados, notas de versión, plan de rollback,
+               estrategia justificada, migraciones clasificadas (un contract solo tras su expand
+               desplegado), flags con ticket de retirada, ensayo de rollback si hay migración o cambio
+               de despliegue y, si se desplegó, etiqueta git y sección de CHANGELOG coincidentes.
   postmortem   Cada PM-NNN (SK-38) tiene línea de tiempo con horas, análisis de por qué ningún gate lo
                detectó y, si está cerrado, acciones trazadas; uno crítico o alto sin cerrar pasados
                5 días desde la resolución es un hallazgo.
@@ -99,6 +103,20 @@ POSTMORTEM_SECTIONS = {
     "Acciones": ("acciones",),
 }
 
+# Release (etapa 8, workflow 10).
+RELEASES_DIR = "docs/06_release_and_operations/releases"
+RELEASE_STATUS = ("planned", "deployed", "rolled_back", "cancelled")
+RELEASE_STRATEGIES = ("completo", "flag", "canary")
+YES_NO = ("si", "no")
+MIGRATION_KINDS = ("expand", "contract", "datos")
+RELEASE_SECTIONS = {
+    "Tickets incluidos": ("tickets incluidos",),
+    "Notas de versión": ("notas de version",),
+    "Verificación previa al despliegue": ("verificacion previa",),
+    "Plan de rollback": ("plan de rollback",),
+}
+CHANGELOG = "CHANGELOG.md"
+
 KPI_DOCS = ("docs/01_product_definition/01_product_discovery.md", "docs/01_product_definition/02_prd.md")
 STORIES_DIR = "docs/05_agile_planning/11_user_stories"
 TICKETS_DIR = "docs/05_agile_planning/12_tickets"
@@ -115,6 +133,8 @@ EXPERIMENT_FILE = re.compile(r"^(EXP-\d+).*\.md$")
 # Detección mínima de datos personales: correos y teléfonos en formato internacional. No prueba
 # que la evidencia esté anonimizada; solo atrapa el descuido más común.
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
+RELEASE_FILE = re.compile(r"^v(\d+\.\d+\.\d+)(?:-[a-z0-9-]+)?\.md$")
+RELEASE_REF = re.compile(r"\bv(\d+\.\d+\.\d+)\b")
 OUTCOME_FILE = re.compile(r"^(OUT-\d+).*\.md$")
 POSTMORTEM_FILE = re.compile(r"^(PM-\d+).*\.md$")
 ISO_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:\d{2})$")
@@ -334,6 +354,117 @@ def check_outcome(root, path, findings):
         content = read(data_file)
         if EMAIL.search(content) or PHONE.search(content):
             findings.add("resultado", path, "posibles datos personales en los datos (correo o teléfono)", os.path.basename(data_file))
+
+
+# ------------------------------------------------------------ gate: release
+
+def semver_key(version):
+    return tuple(int(part) for part in version.split("."))
+
+
+def bullets(lines):
+    return [l.strip()[2:].strip() for l in lines if l.strip().startswith(("- ", "* "))]
+
+
+def release_statuses(root):
+    statuses = {}
+    for path in list_top_level(root, RELEASES_DIR, RELEASE_FILE):
+        fm = frontmatter(read(os.path.join(root, path))) or {}
+        statuses[RELEASE_FILE.match(os.path.basename(path)).group(1)] = fm.get("status")
+    return statuses
+
+
+def check_release(root, path, tickets, releases, findings, tags=None):
+    text = read(os.path.join(root, path))
+    fm = frontmatter(text)
+    if fm is None:
+        findings.add("release", path, "sin frontmatter")
+        return
+    file_version = RELEASE_FILE.match(os.path.basename(path)).group(1)
+    release = fm.get("release", "")
+    status = fm.get("status")
+    if fm.get("document") != "release":
+        findings.add("release", path, "document distinto de 'release'", fm.get("document", "(ausente)"))
+    if release != file_version:
+        findings.add("release", path, "release distinto de la versión del nombre de archivo", release or "(ausente)")
+    if not SEMVER.match(fm.get("version", "")):
+        findings.add("release", path, "version ausente o no es X.Y.Z", fm.get("version", "(ausente)"))
+    for field, allowed in (("status", RELEASE_STATUS), ("strategy", RELEASE_STRATEGIES),
+                           ("includes_migration", YES_NO), ("changes_deploy_config", YES_NO)):
+        if fm.get(field) not in allowed:
+            findings.add("release", path, f"{field} fuera del vocabulario", fm.get(field, "(ausente)"))
+    if not ISO_DATE.match(fm.get("planned_on", "")):
+        findings.add("release", path, "planned_on no es AAAA-MM-DD", fm.get("planned_on", "(ausente)"))
+    if fm.get("strategy") == "completo" and len(fm.get("strategy_justification", "").strip()) < 10:
+        findings.add("release", path, "estrategia 'completo' sin justificación")
+
+    found = headings(text)
+    for label, options in RELEASE_SECTIONS.items():
+        if not has_section(found, options):
+            findings.add("release", path, f"sin sección '{label}'")
+
+    def section_text(options):
+        return " ".join(l.strip() for l in section_lines(text, options)).strip()
+
+    if has_section(found, ("notas de version",)) and len(section_text(("notas de version",))) < 20:
+        findings.add("release", path, "notas de versión vacías")
+    if has_section(found, ("plan de rollback",)) and len(section_text(("plan de rollback",))) < 20:
+        findings.add("release", path, "plan de rollback vacío")
+
+    if status != "cancelled":
+        included = [tid for line in bullets(section_lines(text, ("tickets incluidos",))) for tid in TICKET_ID.findall(line)]
+        if not included:
+            findings.add("release", path, "release sin tickets incluidos")
+        for ticket in included:
+            if ticket not in tickets:
+                findings.add("release", path, "ticket incluido que no existe", ticket)
+            elif tickets[ticket] != "done":
+                findings.add("release", path, "ticket incluido sin cerrar", f"{ticket}: {tickets[ticket]}")
+
+    if fm.get("includes_migration") == "si":
+        migrations = bullets(section_lines(text, ("migraciones",)))
+        if not migrations:
+            findings.add("release", path, "migraciones sin clasificar (expand, contract o datos)", "sección vacía o ausente")
+        for migration in migrations:
+            kind = norm(migration).split(" ", 1)[0]
+            if kind not in MIGRATION_KINDS:
+                findings.add("release", path, "migración sin clasificar (expand, contract o datos)", migration)
+            elif kind == "contract":
+                earlier = [v for v in RELEASE_REF.findall(migration)
+                           if SEMVER.match(release) and semver_key(v) < semver_key(release) and releases.get(v) == "deployed"]
+                if not earlier:
+                    cited = ", ".join(f"v{v}" for v in RELEASE_REF.findall(migration)) or "(sin versión citada)"
+                    findings.add("release", path, "contract sin su expand desplegado en un release anterior", cited)
+
+    if fm.get("strategy") == "flag":
+        flags = bullets(section_lines(text, ("feature flags",)))
+        if not flags:
+            findings.add("release", path, "estrategia 'flag' sin flags declarados")
+        for flag in flags:
+            removal = [tid for tid in TICKET_ID.findall(flag) if tid in tickets]
+            if not removal:
+                findings.add("release", path, "flag sin ticket de retirada", flag)
+
+    deployed = status in ("deployed", "rolled_back")
+    deployed_at = fm.get("deployed_at", "")
+    if deployed and not ISO_DATETIME.match(deployed_at):
+        findings.add("release", path, "release desplegado sin deployed_at con fecha, hora y zona", deployed_at or "(ausente)")
+    needs_rehearsal = "si" in (fm.get("includes_migration"), fm.get("changes_deploy_config"))
+    rehearsed = fm.get("rollback_rehearsed_on", "")
+    if needs_rehearsal and status in ("planned", "deployed", "rolled_back"):
+        if not ISO_DATE.match(rehearsed):
+            findings.add("release", path, "requiere ensayo de rollback (hay migración o cambio de despliegue)")
+        elif deployed and ISO_DATETIME.match(deployed_at) and rehearsed > deployed_at[:10]:
+            findings.add("release", path, "ensayo de rollback posterior al despliegue", f"{rehearsed} > {deployed_at[:10]}")
+
+    if deployed:
+        if len(section_text(("verificacion posterior",))) < 20:
+            findings.add("release", path, "release desplegado sin verificación posterior")
+        if tags is not None and f"v{release}" not in tags:
+            findings.add("release", path, f"release desplegado sin etiqueta git v{release}")
+        changelog = os.path.join(root, CHANGELOG)
+        if not (os.path.isfile(changelog) and re.search(rf"^##\s*\[{re.escape(release)}\]", read(changelog), re.M)):
+            findings.add("release", path, f"release desplegado sin sección en {CHANGELOG}")
 
 
 # --------------------------------------------------------- gate: postmortem
@@ -630,6 +761,13 @@ def check_adr(root, path, story_ids, ticket_ids, findings):
 
 # ------------------------------------------------------------------ runner
 
+def git_tags(root):
+    out = subprocess.run(["git", "tag", "--list"], cwd=root, capture_output=True, text=True)
+    if out.returncode != 0:
+        raise RuntimeError(f"no se pudo listar las etiquetas git: {out.stderr.strip()}")
+    return {line.strip() for line in out.stdout.splitlines() if line.strip()}
+
+
 def changed_files(root):
     commands = (["git", "diff", "--name-only", "HEAD"], ["git", "ls-files", "--others", "--exclude-standard"])
     result = set()
@@ -641,7 +779,7 @@ def changed_files(root):
     return result
 
 
-def run_checks(root, scope=None, ticket=None, today=None):
+def run_checks(root, scope=None, ticket=None, today=None, tags=None):
     """Aplica los gates. `scope` es un conjunto de rutas relativas a revisar (None = todo el
     repositorio); `ticket` limita la revisión a la Definition of Ready de ese ticket.
 
@@ -688,6 +826,12 @@ def run_checks(root, scope=None, ticket=None, today=None):
         if in_scope(path):
             check_postmortem(root, path, ticket_ids, findings, today)
             checked += 1
+    releases = release_statuses(root)
+    ticket_statuses = {ticket_id(p): (frontmatter(read(os.path.join(root, p))) or {}).get("status") for p in tickets}
+    for path in list_top_level(root, RELEASES_DIR, RELEASE_FILE):
+        if in_scope(path):
+            check_release(root, path, ticket_statuses, releases, findings, tags)
+            checked += 1
     experiments = experiment_decisions(root)
     for path in list_experiments(root):
         experiment_id = EXPERIMENT_FILE.match(os.path.basename(path)).group(1)
@@ -728,7 +872,7 @@ def main():
 
     root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     scope = changed_files(root) if args.changed else None
-    findings, checked = run_checks(root, scope=scope, ticket=args.ticket, today=date.today())
+    findings, checked = run_checks(root, scope=scope, ticket=args.ticket, today=date.today(), tags=git_tags(root))
     blocking = args.changed or args.ticket is not None or args.strict
     marker = "❌" if blocking else "⚠️"
 
@@ -738,7 +882,7 @@ def main():
     else:
         by_gate = Counter(gate for gate, *_ in findings.items)
         by_kind = Counter((gate, kind) for gate, _, kind, _ in findings.items)
-        for gate in ("kpi", "resultado", "experimento", "historia", "ready", "trazabilidad", "postmortem"):
+        for gate in ("kpi", "resultado", "experimento", "historia", "ready", "trazabilidad", "release", "postmortem"):
             print(f"\n[{gate}] {by_gate.get(gate, 0)} hallazgos")
             for (g, kind), count in sorted(by_kind.items(), key=lambda kv: -kv[1]):
                 if g == gate:
