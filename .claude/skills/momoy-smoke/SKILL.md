@@ -6,14 +6,14 @@ description: "Valida un despliegue recién hecho: health checks, smoke tests de 
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-smoke
 
 **Entrada:** La URL del entorno desplegado. Si el usuario no la dio, pídesela; nunca asumas una URL.
 
-Lee por completo y ejecuta, sin saltarte fases ni pausas de aprobación humana, el workflow `.agents/workflows/08_smoke_test_deploy_validation.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/08_smoke_test_deploy_validation.md`.
 
 ## Reglas del comando
 

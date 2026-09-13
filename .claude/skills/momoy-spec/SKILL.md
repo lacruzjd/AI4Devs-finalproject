@@ -6,14 +6,14 @@ description: "Integra una idea o funcionalidad nueva en las especificaciones de 
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-spec
 
 **Entrada:** La descripción de la idea o funcionalidad. Si el usuario no la dio, pídesela antes de empezar.
 
-Lee por completo y ejecuta, sin saltarte fases ni pausas de aprobación humana, el workflow `.agents/workflows/01_cascading_spec_workflow.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/01_cascading_spec_workflow.md`.
 
 ## Reglas del comando
 

@@ -6,14 +6,14 @@ description: "Pipeline QA completo de momoy: pre-flight, análisis de riesgos, a
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-qa
 
 **Entrada:** Opcional: el archivo o módulo objetivo. Si el usuario no lo indicó, analiza los cambios sin commitear (`git diff`).
 
-Lee por completo y ejecuta, sin saltarte fases ni pausas de aprobación humana, el workflow `.agents/workflows/06_full_qa_pipeline.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/06_full_qa_pipeline.md`.
 
 ## Reglas del comando
 

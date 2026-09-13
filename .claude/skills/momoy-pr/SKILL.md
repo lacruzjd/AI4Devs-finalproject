@@ -6,7 +6,7 @@ description: "Documenta con veracidad un Pull Request o el historial de entregas
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-pr
@@ -14,8 +14,6 @@ metadata:
 **Entrada:** Opcional: el número de PR o la rama a documentar. Si el usuario no lo indicó, documenta los PRs verificables del historial reciente.
 
 Lee por completo y ejecuta el procedimiento `.agents/skills/specs/05_agile_planning/SK-15_document_pull_requests.md`.
-
-Todo dato que no puedas verificar en `git log`, en la plataforma de PRs o en los logs de CI se marca como «No verificable»; nunca se completa por inferencia.
 
 ## Reglas del comando
 

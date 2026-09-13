@@ -6,14 +6,14 @@ description: "Audita la suficiencia de las especificaciones vivas de docs/ antes
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-audit-spec
 
 **Entrada:** Opcional: la carpeta o documento a auditar. Si el usuario no lo indicó, audita `docs/` completo.
 
-Lee por completo y ejecuta, sin saltarte fases ni pausas de aprobación humana, el workflow `.agents/workflows/03_spec_audit_workflow.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/03_spec_audit_workflow.md`.
 
 ## Reglas del comando
 

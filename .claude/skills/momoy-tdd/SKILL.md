@@ -6,14 +6,14 @@ description: "Ejecuta el bucle autónomo de TDD (Red-Green-Refactor) de un ticke
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-tdd
 
 **Entrada:** El identificador del ticket (`TK-XXX`). Si el usuario no lo dio, pídeselo.
 
-Lee por completo y ejecuta, sin saltarte fases ni pausas de aprobación humana, el workflow `.agents/workflows/05_test_runner_workflow.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/05_test_runner_workflow.md`.
 
 ## Reglas del comando
 

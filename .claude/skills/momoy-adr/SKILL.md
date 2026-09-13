@@ -6,16 +6,14 @@ description: "Registra una decisión de arquitectura significativa como ADR: enm
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-adr
 
 **Entrada:** La decisión o disyuntiva a resolver: texto libre, un hallazgo de auditoría o el `US-XXX`/`TK-XXX` que la dispara. Si el usuario no la dio, pídesela.
 
-Lee por completo y ejecuta, sin saltarte fases ni la pausa de elección humana, el procedimiento `.agents/skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md`.
-
-Si su test decisivo concluye que la decisión no merece un ADR, dilo y detente: no crees el archivo.
+Lee por completo y ejecuta el procedimiento `.agents/skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md`.
 
 ## Reglas del comando
 

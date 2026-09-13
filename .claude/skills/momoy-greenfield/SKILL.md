@@ -6,14 +6,14 @@ description: "Arranca un proyecto nuevo desde cero con momoy: decide el stack co
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-greenfield
 
 **Entrada:** La descripción de la idea del producto. Si el usuario no la dio, pídesela antes de empezar.
 
-Lee por completo y ejecuta, sin saltarte fases ni pausas de aprobación humana, el workflow `.agents/workflows/00_greenfield_bootstrap_workflow.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/00_greenfield_bootstrap_workflow.md`.
 
 ## Reglas del comando
 
