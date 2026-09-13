@@ -22,6 +22,8 @@ document: user_story
 id: US-001
 version: 1.0.0
 status: approved
+value_risk: bajo
+validation: exenta — mejora interna sin riesgo de valor
 inputs:
   - docs/01_product_definition/02_prd.md
 ---
@@ -88,6 +90,38 @@ MATRIX = """# Matriz
 | REQ-001 | [US-001](11_user_stories/stock/US-001.md) | [TK-001](12_tickets/stock/backend/TK-001.md) |
 """
 
+EXPERIMENT = """---
+document: experiment
+id: EXP-001
+version: 1.0.0
+status: designed
+risk: valor
+method: entrevista
+criteria_locked_on: 2026-09-01
+sample_target: 5
+sample_obtained:
+result_on:
+decision: pendiente
+---
+
+# EXP-001: Apertura duplicada de insumos
+
+## Hipótesis
+Creemos que si mostramos los remanentes abiertos, los cocineros no abrirán uno nuevo.
+
+## Criterio de éxito
+4 de 5 cocineros consultan la lista antes de abrir un insumo.
+
+## Método y muestra
+Entrevista contextual a 5 cocineros de línea.
+"""
+
+CONCLUDED = (EXPERIMENT.replace("status: designed", "status: concluded")
+             .replace("sample_obtained:\n", "sample_obtained: 5\n")
+             .replace("result_on:\n", "result_on: 2026-09-10\n")
+             .replace("decision: pendiente", "decision: seguir")
+             + "\n## Resultado\n5 de 5 consultaron la lista.\n\n## Evidencia\nevidence/EXP-001/\n\n## Decisión\nSeguir.\n")
+
 ADR = """---
 document: adr
 status: accepted
@@ -107,6 +141,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         self._write("docs/05_agile_planning/12_tickets/stock/backend/TK-001.md", TICKET)
         self._write("docs/05_agile_planning/13_matriz_trazabilidad.md", MATRIX)
         self._write("docs/02_architecture_design/adr/ADR-001-decision.md", ADR)
+        self._write("docs/01_product_definition/experiments/EXP-001-apertura-duplicada.md", EXPERIMENT)
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -124,7 +159,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         findings, checked = run_checks(self.root)
 
         self.assertEqual(findings.items, [])
-        self.assertEqual(checked, 5)
+        self.assertEqual(checked, 6)
 
     # kpi
     def test_prose_kpis_without_table_are_detected(self):
@@ -279,6 +314,123 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         findings, _ = run_checks(self.root)
 
         self.assertEqual(findings.items, [])
+
+    # validación (etapa 2)
+    STORY_PATH = "docs/05_agile_planning/11_user_stories/stock/US-001.md"
+    EXP_PATH = "docs/01_product_definition/experiments/EXP-001-apertura-duplicada.md"
+
+    def test_open_story_without_validation_or_value_risk_is_detected(self):
+        self._write(self.STORY_PATH, STORY.replace("value_risk: bajo\n", "").replace("validation: exenta — mejora interna sin riesgo de valor\n", ""))
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "historia")
+        self.assertIn("value_risk fuera de alto/medio/bajo", kinds)
+        self.assertIn("sin validation: declara un EXP-NNN o 'exenta — motivo'", kinds)
+
+    def test_done_story_is_not_required_to_declare_validation(self):
+        legacy = STORY.replace("status: approved", "status: done").replace("value_risk: bajo\n", "")
+        self._write(self.STORY_PATH, legacy.replace("validation: exenta — mejora interna sin riesgo de valor\n", ""))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(findings.items, [])
+
+    def test_high_value_risk_cannot_be_exempted(self):
+        self._write(self.STORY_PATH, STORY.replace("value_risk: bajo", "value_risk: alto"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("riesgo de valor alto exige un experimento: la exención no vale", self._kinds(findings, "historia"))
+
+    def test_exemption_without_reason_is_detected(self):
+        self._write(self.STORY_PATH, STORY.replace("validation: exenta — mejora interna sin riesgo de valor", "validation: exenta"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("exención sin motivo", self._kinds(findings, "historia"))
+
+    def test_approved_story_needs_an_existing_experiment_decided_to_proceed(self):
+        self._write(self.STORY_PATH, STORY.replace("validation: exenta — mejora interna sin riesgo de valor", "validation: EXP-001"))
+        self._write("docs/05_agile_planning/11_user_stories/stock/US-002.md",
+                    STORY.replace("id: US-001", "id: US-002").replace("validation: exenta — mejora interna sin riesgo de valor", "validation: EXP-404"))
+        self._write("docs/05_agile_planning/13_matriz_trazabilidad.md",
+                    MATRIX + "| REQ-002 | [US-002](11_user_stories/stock/US-002.md) | — |\n")
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(sorted((os.path.basename(p), k) for g, p, k, d in findings.items), [
+            ("US-001.md", "historia aprobada con un experimento cuya decisión no es 'seguir'"),
+            ("US-002.md", "validation apunta a un experimento que no existe"),
+        ])
+
+    def test_story_backed_by_concluded_experiment_passes(self):
+        self._write(self.STORY_PATH, STORY.replace("validation: exenta — mejora interna sin riesgo de valor", "validation: EXP-001").replace("value_risk: bajo", "value_risk: alto"))
+        self._write(self.EXP_PATH, CONCLUDED)
+        self._write("docs/01_product_definition/experiments/evidence/EXP-001/entrevista-01.md", "Cocinero de línea A consultó la lista.\n")
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(findings.items, [])
+
+    def test_concluded_experiment_without_evidence_is_detected(self):
+        self._write(self.EXP_PATH, CONCLUDED)
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("experimento concluido sin evidencia en experiments/evidence/EXP-001/", self._kinds(findings, "experimento"))
+
+    def test_result_dated_before_criteria_lock_is_detected(self):
+        self._write(self.EXP_PATH, CONCLUDED.replace("result_on: 2026-09-10", "result_on: 2026-08-20"))
+        self._write("docs/01_product_definition/experiments/evidence/EXP-001/notas.md", "notas\n")
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("resultado anterior a la fecha en que se fijó el criterio", self._kinds(findings, "experimento"))
+
+    def test_decision_before_concluding_is_detected(self):
+        self._write(self.EXP_PATH, EXPERIMENT.replace("decision: pendiente", "decision: seguir"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("decisión tomada antes de concluir el experimento", self._kinds(findings, "experimento"))
+
+    def test_proceeding_with_insufficient_sample_is_detected(self):
+        self._write(self.EXP_PATH, CONCLUDED.replace("sample_obtained: 5", "sample_obtained: 2"))
+        self._write("docs/01_product_definition/experiments/evidence/EXP-001/notas.md", "notas\n")
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("muestra menor que la objetivo: la decisión debe ser 'no_concluyente'", self._kinds(findings, "experimento"))
+
+    def test_experiment_with_invalid_enums_and_missing_criterion_is_detected(self):
+        broken = EXPERIMENT.replace("method: entrevista", "method: intuición").replace("## Criterio de éxito", "## Notas")
+        self._write(self.EXP_PATH, broken)
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "experimento")
+        self.assertIn("method fuera del vocabulario", kinds)
+        self.assertIn("sin sección 'Criterio de éxito'", kinds)
+
+    def test_personal_data_in_evidence_is_detected(self):
+        self._write(self.EXP_PATH, CONCLUDED)
+        self._write("docs/01_product_definition/experiments/evidence/EXP-001/entrevista-01.md",
+                    "Contacto: maria.lopez@restaurante.com, +34 612 345 678\n")
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("posibles datos personales en la evidencia (correo o teléfono)", self._kinds(findings, "experimento"))
+
+    def test_changed_evidence_file_checks_its_experiment(self):
+        self._write(self.EXP_PATH, CONCLUDED.replace("sample_obtained: 5", "sample_obtained: 2"))
+        evidence = "docs/01_product_definition/experiments/evidence/EXP-001/notas.md"
+        self._write(evidence, "notas\n")
+
+        findings, checked = run_checks(self.root, scope={evidence})
+
+        self.assertEqual(checked, 1)
+        self.assertIn("muestra menor que la objetivo: la decisión debe ser 'no_concluyente'", self._kinds(findings, "experimento"))
 
     # modos
     def test_changed_scope_ignores_untouched_debt(self):

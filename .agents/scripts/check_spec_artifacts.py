@@ -11,10 +11,12 @@ SK-01/SK-02 (KPIs), SK-11 (historias), SK-12 (tickets), SK-13 (matriz) y SK-36 (
 declaran obligatorio. Solo depende de la taxonomía fija de docs/ que momoy impone, no del
 stack del proyecto (CONTRIBUTING.md, regla de .agents/scripts/).
 
-Cuatro gates:
+Cinco gates:
   kpi          Cada KPI está en una tabla con fuente, línea base, umbral, ventana y fecha de revisión.
+  experimento  Cada EXP-NNN (SK-37) tiene criterio de éxito fijado antes del resultado, y si está
+               concluido: muestra, evidencia en el repo sin datos personales evidentes y decisión.
   historia     Frontmatter de SK-11, estado válido, al menos 3 escenarios Given/When/Then,
-               precondiciones y NFRs.
+               precondiciones y NFRs; si está abierta, riesgo de valor y validación declarados.
   ready        Definition of Ready de SK-12: frontmatter, estado, puntos, tipo, historia
                existente y secciones obligatorias.
   trazabilidad Cada historia y ticket aparece en la matriz, sus enlaces resuelven y cada ADR
@@ -54,6 +56,23 @@ TICKET_SECTIONS = {
     "Instrucciones de Ejecución Autónoma": ("instrucciones de ejecucion",),
 }
 
+# Validación (etapa 2, SK-37). Una historia abierta declara su riesgo de valor y su validación: un
+# experimento o una exención con motivo, que no vale con riesgo alto. Las historias done/cancelled
+# son historial y no se les exige retroactivamente.
+OPEN_STATUSES = ("backlog", "approved", "in_progress")
+VALUE_RISKS = ("alto", "medio", "bajo")
+EXPERIMENT_STATUS = ("designed", "running", "concluded", "cancelled")
+EXPERIMENT_RISKS = ("valor", "usabilidad", "factibilidad", "viabilidad")
+EXPERIMENT_METHODS = ("entrevista", "prototipo", "puerta_falsa", "concierge", "encuesta", "analitica", "otro")
+EXPERIMENT_DECISIONS = ("pendiente", "seguir", "pivotar", "descartar", "no_concluyente")
+EXPERIMENT_SECTIONS = {
+    "Hipótesis": ("hipotesis",),
+    "Criterio de éxito": ("criterio de exito",),
+    "Método y muestra": ("metodo",),
+}
+CONCLUDED_SECTIONS = {"Resultado": ("resultado",), "Evidencia": ("evidencia",), "Decisión": ("decision",)}
+EXPERIMENTS_DIR = "docs/01_product_definition/experiments"
+
 KPI_DOCS = ("docs/01_product_definition/01_product_discovery.md", "docs/01_product_definition/02_prd.md")
 STORIES_DIR = "docs/05_agile_planning/11_user_stories"
 TICKETS_DIR = "docs/05_agile_planning/12_tickets"
@@ -65,6 +84,12 @@ TOP_LEVEL_KEY = re.compile(r"^([A-Za-z0-9_-]+):(.*)$")
 HEADING = re.compile(r"^\s{0,3}#{1,6}\s+(.*)$")
 STORY_ID = re.compile(r"US-\d+")
 AUDIT_ID = re.compile(r"AUDIT-[A-Z]+-\d+")
+EXPERIMENT_ID = re.compile(r"EXP-\d+")
+EXPERIMENT_FILE = re.compile(r"^(EXP-\d+).*\.md$")
+# Detección mínima de datos personales: correos y teléfonos en formato internacional. No prueba
+# que la evidencia esté anonimizada; solo atrapa el descuido más común.
+EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
+PHONE = re.compile(r"\+\d{1,3}[\s.-]?\d{2,4}(?:[\s.-]?\d{2,4}){2,4}")
 TICKET_ID = re.compile(r"TK-\d+(?:-[A-Z0-9]+)*")
 STORY_FILE = re.compile(r"^(US-\d+)")
 TICKET_FILE = re.compile(r"^(TK-\d+(?:-[A-Z0-9]+)*)\.md$")
@@ -172,9 +197,125 @@ def check_kpis(root, doc, findings):
                 findings.add("kpi", doc, "fecha de revisión no es AAAA-MM-DD", f"{name}: {date}")
 
 
+# -------------------------------------------------------- gate: experimento
+
+def list_experiments(root):
+    base = os.path.join(root, EXPERIMENTS_DIR)
+    if not os.path.isdir(base):
+        return []
+    return sorted(os.path.join(EXPERIMENTS_DIR, f) for f in os.listdir(base)
+                  if EXPERIMENT_FILE.match(f) and os.path.isfile(os.path.join(base, f)))
+
+
+def evidence_dir(root, experiment_id):
+    return os.path.join(root, EXPERIMENTS_DIR, "evidence", experiment_id)
+
+
+def check_experiment(root, path, findings):
+    text = read(os.path.join(root, path))
+    fm = frontmatter(text)
+    if fm is None:
+        findings.add("experimento", path, "sin frontmatter")
+        return
+    file_id = EXPERIMENT_FILE.match(os.path.basename(path)).group(1)
+    if fm.get("document") != "experiment":
+        findings.add("experimento", path, "document distinto de 'experiment'", fm.get("document", "(ausente)"))
+    if fm.get("id") != file_id:
+        findings.add("experimento", path, "id ausente o distinto del nombre de archivo", fm.get("id", "(ausente)"))
+    if not SEMVER.match(fm.get("version", "")):
+        findings.add("experimento", path, "version ausente o no es X.Y.Z", fm.get("version", "(ausente)"))
+    for field, allowed in (("status", EXPERIMENT_STATUS), ("risk", EXPERIMENT_RISKS),
+                           ("method", EXPERIMENT_METHODS), ("decision", EXPERIMENT_DECISIONS)):
+        if fm.get(field) not in allowed:
+            findings.add("experimento", path, f"{field} fuera del vocabulario", fm.get(field, "(ausente)"))
+    locked = fm.get("criteria_locked_on", "")
+    if not ISO_DATE.match(locked):
+        findings.add("experimento", path, "criteria_locked_on no es AAAA-MM-DD", locked or "(ausente)")
+    target = fm.get("sample_target", "")
+    if not target.isdigit() or int(target) < 1:
+        findings.add("experimento", path, "sample_target no es un entero positivo", target or "(ausente)")
+
+    found = headings(text)
+    for label, options in EXPERIMENT_SECTIONS.items():
+        if not has_section(found, options):
+            findings.add("experimento", path, f"sin sección '{label}'")
+
+    decision = fm.get("decision")
+    if fm.get("status") != "concluded":
+        if decision not in ("pendiente", None):
+            findings.add("experimento", path, "decisión tomada antes de concluir el experimento", decision)
+    else:
+        obtained = fm.get("sample_obtained", "")
+        result_on = fm.get("result_on", "")
+        if not obtained.isdigit():
+            findings.add("experimento", path, "experimento concluido sin sample_obtained")
+        if not ISO_DATE.match(result_on):
+            findings.add("experimento", path, "experimento concluido sin result_on AAAA-MM-DD", result_on or "(ausente)")
+        elif ISO_DATE.match(locked) and result_on < locked:
+            findings.add("experimento", path, "resultado anterior a la fecha en que se fijó el criterio", f"{result_on} < {locked}")
+        if decision == "pendiente":
+            findings.add("experimento", path, "experimento concluido sin decisión")
+        if (decision in ("seguir", "pivotar", "descartar") and obtained.isdigit() and target.isdigit()
+                and int(obtained) < int(target)):
+            findings.add("experimento", path, "muestra menor que la objetivo: la decisión debe ser 'no_concluyente'",
+                         f"{obtained} de {target}")
+        for label, options in CONCLUDED_SECTIONS.items():
+            if not has_section(found, options):
+                findings.add("experimento", path, f"experimento concluido sin sección '{label}'")
+        evidence = evidence_dir(root, file_id)
+        files = [os.path.join(dp, f) for dp, _, fs in os.walk(evidence) for f in fs] if os.path.isdir(evidence) else []
+        if not files:
+            findings.add("experimento", path, f"experimento concluido sin evidencia en experiments/evidence/{file_id}/")
+
+    evidence = evidence_dir(root, file_id)
+    if os.path.isdir(evidence):
+        for dirpath, _, fnames in os.walk(evidence):
+            for fname in sorted(fnames):
+                content = read(os.path.join(dirpath, fname))
+                if EMAIL.search(content) or PHONE.search(content):
+                    findings.add("experimento", path, "posibles datos personales en la evidencia (correo o teléfono)", fname)
+
+
+def experiment_decisions(root):
+    decisions = {}
+    for path in list_experiments(root):
+        fm = frontmatter(read(os.path.join(root, path))) or {}
+        decisions[EXPERIMENT_FILE.match(os.path.basename(path)).group(1)] = fm.get("decision", "(ausente)")
+    return decisions
+
+
+def check_validation(path, fm, experiments, findings):
+    status = fm.get("status")
+    if status not in OPEN_STATUSES:
+        return
+    value_risk = fm.get("value_risk", "")
+    if value_risk not in VALUE_RISKS:
+        findings.add("historia", path, "value_risk fuera de alto/medio/bajo", value_risk or "(ausente)")
+    validation = fm.get("validation", "").strip()
+    if not validation:
+        findings.add("historia", path, "sin validation: declara un EXP-NNN o 'exenta — motivo'")
+        return
+    referenced = EXPERIMENT_ID.findall(validation)
+    if referenced:
+        for experiment in referenced:
+            if experiment not in experiments:
+                findings.add("historia", path, "validation apunta a un experimento que no existe", experiment)
+            elif status in ("approved", "in_progress") and experiments[experiment] != "seguir":
+                findings.add("historia", path, "historia aprobada con un experimento cuya decisión no es 'seguir'",
+                             f"{experiment}: {experiments[experiment]}")
+    elif norm(validation).startswith("exenta"):
+        reason = re.sub(r"^\s*exenta\s*[—–:\-]*\s*", "", validation, flags=re.I).strip()
+        if len(reason) < 10:
+            findings.add("historia", path, "exención sin motivo")
+        if value_risk == "alto":
+            findings.add("historia", path, "riesgo de valor alto exige un experimento: la exención no vale")
+    else:
+        findings.add("historia", path, "validation con formato no reconocido", validation)
+
+
 # ----------------------------------------------------------- gate: historia
 
-def check_story(root, path, findings):
+def check_story(root, path, findings, experiments=None):
     text = read(os.path.join(root, path))
     fm = frontmatter(text)
     if fm is None:
@@ -189,6 +330,7 @@ def check_story(root, path, findings):
         findings.add("historia", path, "version ausente o no es X.Y.Z", fm.get("version", "(ausente)"))
     if fm.get("status") not in STATUS_ENUM:
         findings.add("historia", path, "status fuera del vocabulario", fm.get("status", "(ausente)"))
+    check_validation(path, fm, experiments or {}, findings)
 
     body = text[text.find("\n---\n", 4) + 5:] if text.startswith("---\n") else text
     scenarios = sum(1 for line in body.splitlines()
@@ -336,9 +478,16 @@ def run_checks(root, scope=None, ticket=None):
         if os.path.isfile(os.path.join(root, doc)) and in_scope(doc):
             check_kpis(root, doc, findings)
             checked += 1
+    experiments = experiment_decisions(root)
+    for path in list_experiments(root):
+        experiment_id = EXPERIMENT_FILE.match(os.path.basename(path)).group(1)
+        evidence_prefix = f"{EXPERIMENTS_DIR}/evidence/{experiment_id}/"
+        if in_scope(path) or (scope is not None and any(s.startswith(evidence_prefix) for s in scope)):
+            check_experiment(root, path, findings)
+            checked += 1
     for path in stories:
         if in_scope(path):
-            check_story(root, path, findings)
+            check_story(root, path, findings, experiments)
             check_matrix_membership(path, story_id(path), linked, matrix_text, findings)
             checked += 1
     for path in tickets:
@@ -379,7 +528,7 @@ def main():
     else:
         by_gate = Counter(gate for gate, *_ in findings.items)
         by_kind = Counter((gate, kind) for gate, _, kind, _ in findings.items)
-        for gate in ("kpi", "historia", "ready", "trazabilidad"):
+        for gate in ("kpi", "experimento", "historia", "ready", "trazabilidad"):
             print(f"\n[{gate}] {by_gate.get(gate, 0)} hallazgos")
             for (g, kind), count in sorted(by_kind.items(), key=lambda kv: -kv[1]):
                 if g == gate:
