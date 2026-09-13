@@ -4,6 +4,7 @@ import sys
 import shutil
 import tempfile
 import unittest
+from datetime import date
 
 sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(__file__), "..")))
 from check_spec_artifacts import run_checks  # noqa: E402
@@ -14,7 +15,7 @@ KPI_TABLE = """# PRD
 
 | KPI | Fuente de datos | Línea base | Umbral de éxito | Ventana | Fecha de revisión |
 |---|---|---|---|---|---|
-| Merma desconocida | Auditoría física semanal | 12% | -30% | 90 días | 2026-12-10 |
+| Merma desconocida | Auditoría física semanal | 12% | -30% | 90 días | 2099-12-10 |
 """
 
 STORY = """---
@@ -122,6 +123,68 @@ CONCLUDED = (EXPERIMENT.replace("status: designed", "status: concluded")
              .replace("decision: pendiente", "decision: seguir")
              + "\n## Resultado\n5 de 5 consultaron la lista.\n\n## Evidencia\nevidence/EXP-001/\n\n## Decisión\nSeguir.\n")
 
+POSTMORTEM = """---
+document: postmortem
+id: PM-001
+version: 1.0.0
+status: closed
+severity: alta
+detected_at: 2026-09-09T18:10:00-03:00
+resolved_at: 2026-09-09T18:54:00-03:00
+---
+
+# PM-001: El primer despliegue no arrancaba
+
+## Resumen
+El frontend no arrancaba porque una variable de URL no tenía esquema.
+
+## Impacto
+Primer despliegue sin usuarios; el servicio no llegó a servir durante 44 minutos.
+
+## Línea de tiempo
+- 18:10 — falla el despliegue (fuente: log de la plataforma)
+- 18:54 — servicio en vivo (fuente: commit)
+
+## Causas contribuyentes
+- **Disparó el fallo:** la referencia de la plataforma devolvía un host sin esquema.
+
+## Por qué ningún gate lo detectó
+Ningún gate renderiza el blueprint de despliegue con los valores reales de la plataforma.
+
+## Acciones
+- Validar el formato URL de todas las variables de origen — TK-001
+- Documentar la limitación de la plataforma — sin acción — ya quedó registrada en el blueprint
+"""
+
+OUTCOME = """---
+document: outcome_report
+id: OUT-001
+version: 1.0.0
+status: closed
+measured_on: 2026-09-13
+source_doc: docs/01_product_definition/02_prd.md
+recommendation: mantener
+---
+
+# OUT-001: Merma
+
+## Veredicto por KPI
+
+| KPI | Línea base | Umbral de éxito | Valor medido | Veredicto |
+|---|---|---|---|---|
+| Merma desconocida | 12% | -30% | -34% | cumplido |
+
+## Datos
+data/OUT-001/merma.csv
+
+## Recomendación
+Mantener.
+"""
+
+PM_PATH = "docs/06_release_and_operations/postmortems/PM-001-despliegue.md"
+OUT_PATH = "docs/01_product_definition/outcomes/OUT-001-merma.md"
+OUT_DATA = "docs/01_product_definition/outcomes/data/OUT-001/merma.csv"
+
 ADR = """---
 document: adr
 status: accepted
@@ -142,6 +205,9 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         self._write("docs/05_agile_planning/13_matriz_trazabilidad.md", MATRIX)
         self._write("docs/02_architecture_design/adr/ADR-001-decision.md", ADR)
         self._write("docs/01_product_definition/experiments/EXP-001-apertura-duplicada.md", EXPERIMENT)
+        self._write(PM_PATH, POSTMORTEM)
+        self._write(OUT_PATH, OUTCOME)
+        self._write(OUT_DATA, "semana,merma\n1,0.08\n")
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -159,7 +225,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         findings, checked = run_checks(self.root)
 
         self.assertEqual(findings.items, [])
-        self.assertEqual(checked, 6)
+        self.assertEqual(checked, 8)
 
     # kpi
     def test_prose_kpis_without_table_are_detected(self):
@@ -171,7 +237,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
     def test_kpi_missing_source_and_bad_date_are_detected(self):
         self._write("docs/01_product_definition/02_prd.md",
-                    KPI_TABLE.replace("| Auditoría física semanal |", "|  |").replace("2026-12-10", "en 90 días"))
+                    KPI_TABLE.replace("| Auditoría física semanal |", "|  |").replace("2099-12-10", "en 90 días"))
 
         findings, _ = run_checks(self.root)
 
@@ -431,6 +497,127 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
         self.assertEqual(checked, 1)
         self.assertIn("muestra menor que la objetivo: la decisión debe ser 'no_concluyente'", self._kinds(findings, "experimento"))
+
+    # postmortem (etapa 10)
+    def test_postmortem_with_invalid_enums_and_resolution_before_detection_is_detected(self):
+        self._write(PM_PATH, POSTMORTEM.replace("severity: alta", "severity: grave")
+                    .replace("resolved_at: 2026-09-09T18:54:00-03:00", "resolved_at: 2026-09-09T17:00:00-03:00"))
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "postmortem")
+        self.assertIn("severity fuera del vocabulario", kinds)
+        self.assertIn("resolved_at anterior a detected_at", kinds)
+
+    def test_postmortem_without_gate_analysis_or_timed_timeline_is_detected(self):
+        broken = POSTMORTEM.replace("## Por qué ningún gate lo detectó", "## Notas").replace("- 18:54 — servicio en vivo (fuente: commit)\n", "")
+        self._write(PM_PATH, broken)
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "postmortem")
+        self.assertIn("sin sección 'Por qué ningún gate lo detectó'", kinds)
+        self.assertIn("línea de tiempo con menos de 2 hitos con hora", kinds)
+
+    def test_closed_postmortem_actions_must_be_traced(self):
+        self._write(PM_PATH, POSTMORTEM.replace("— TK-001", "— TK-777").replace(
+            "- Documentar la limitación de la plataforma — sin acción — ya quedó registrada en el blueprint",
+            "- Revisar el resto de variables"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(sorted(self._kinds(findings, "postmortem")), [
+            "acción apunta a un ticket que no existe",
+            "acción sin ticket ni 'sin acción — motivo'",
+        ])
+
+    def test_draft_postmortem_actions_are_not_yet_required(self):
+        self._write(PM_PATH, POSTMORTEM.replace("status: closed", "status: draft").replace("— TK-001", ""))
+
+        findings, _ = run_checks(self.root, today=date(2026, 9, 12))
+
+        self.assertEqual(findings.items, [])
+
+    def test_mandatory_draft_postmortem_past_five_days_is_detected(self):
+        draft = POSTMORTEM.replace("status: closed", "status: draft")
+        self._write(PM_PATH, draft)
+
+        within, _ = run_checks(self.root, today=date(2026, 9, 14))
+        overdue, _ = run_checks(self.root, today=date(2026, 9, 15))
+        self._write(PM_PATH, draft.replace("severity: alta", "severity: media"))
+        minor, _ = run_checks(self.root, today=date(2026, 10, 1))
+
+        self.assertEqual(self._kinds(within, "postmortem"), [])
+        self.assertIn("postmortem obligatorio sin cerrar pasados 5 días de la resolución", self._kinds(overdue, "postmortem"))
+        self.assertEqual(self._kinds(minor, "postmortem"), [])
+
+    # resultado (etapa 11)
+    def test_outcome_verdict_without_data_or_outside_vocabulary_is_detected(self):
+        os.remove(os.path.join(self.root, OUT_DATA))
+        self._write(OUT_PATH, OUTCOME.replace("| -34% | cumplido |\n", "| -34% | cumplido |\n| Rotación de remanentes | 96 h | < 72 h | 70 h | aprobado |\n"))
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "resultado")
+        self.assertIn("veredicto sin datos en outcomes/data/OUT-001/", kinds)
+        self.assertIn("veredicto fuera del vocabulario", kinds)
+
+    def test_unmeasurable_kpi_needs_no_value_or_data(self):
+        os.remove(os.path.join(self.root, OUT_DATA))
+        self._write(OUT_PATH, OUTCOME.replace("| 12% | -30% | -34% | cumplido |", "| — | — |  | no_medible |"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(findings.items, [])
+
+    def test_outcome_recommendation_must_match_status(self):
+        self._write(OUT_PATH, OUTCOME.replace("recommendation: mantener", "recommendation: pendiente"))
+        self._write("docs/01_product_definition/outcomes/OUT-002-otro.md",
+                    OUTCOME.replace("id: OUT-001", "id: OUT-002").replace("status: closed", "status: draft"))
+        self._write("docs/01_product_definition/outcomes/data/OUT-002/merma.csv", "x\n")
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(sorted(self._kinds(findings, "resultado")), [
+            "informe cerrado sin recomendación",
+            "recomendación escrita antes de cerrar el informe",
+        ])
+
+    def test_outcome_with_missing_source_doc_or_verdict_table_is_detected(self):
+        self._write(OUT_PATH, OUTCOME.replace("docs/01_product_definition/02_prd.md", "docs/01_product_definition/99_nada.md")
+                    .replace("| KPI | Línea base | Umbral de éxito | Valor medido | Veredicto |", "| Métrica | Valor |"))
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "resultado")
+        self.assertIn("source_doc no existe", kinds)
+        self.assertIn("sin tabla de veredicto por KPI", kinds)
+
+    def test_kpi_past_review_date_without_outcome_report_closes_the_loop(self):
+        self._write("docs/01_product_definition/02_prd.md",
+                    KPI_TABLE.replace("2099-12-10", "2026-09-01") + "| Rotación de remanentes | Registro de consumo | 96 h | < 72 h | 30 días | 2026-09-01 |\n")
+
+        findings, _ = run_checks(self.root, today=date(2026, 9, 13))
+        before_review, _ = run_checks(self.root, today=date(2026, 8, 31))
+
+        self.assertEqual([(k, d) for g, p, k, d in findings.items if g == "resultado"],
+                         [("KPI con fecha de revisión vencida sin informe de resultados", "Rotación de remanentes")])
+        self.assertEqual(self._kinds(before_review, "resultado"), [])
+
+    def test_personal_data_in_outcome_data_is_detected(self):
+        self._write(OUT_DATA, "cliente,correo\nA,ana@example.com\n")
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("posibles datos personales en los datos (correo o teléfono)", self._kinds(findings, "resultado"))
+
+    def test_changed_outcome_data_checks_its_report(self):
+        self._write(OUT_PATH, OUTCOME.replace("recommendation: mantener", "recommendation: pendiente"))
+
+        findings, checked = run_checks(self.root, scope={OUT_DATA})
+
+        self.assertEqual(checked, 1)
+        self.assertIn("informe cerrado sin recomendación", self._kinds(findings, "resultado"))
 
     # modos
     def test_changed_scope_ignores_untouched_debt(self):

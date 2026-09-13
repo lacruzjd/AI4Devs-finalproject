@@ -127,10 +127,12 @@ Las propiedades mecánicas de lo que generan las skills de especificación se ve
 | Gate | Etapa | Qué comprueba |
 |:---|:---|:---|
 | `kpi` | Problema | Cada KPI en tabla con fuente de datos, línea base, umbral, ventana y fecha de revisión |
+| `resultado` | Resultados | Cada `OUT-NNN` con veredicto por KPI sostenido por datos del repo y recomendación coherente con su estado; un KPI con la fecha de revisión vencida y sin informe es un hallazgo |
 | `experimento` | Validación | Cada `EXP-NNN` con criterio fijado antes del resultado; si concluyó, muestra, evidencia anonimizada en el repo y decisión coherente con la muestra |
 | `historia` | Requisitos | Frontmatter de `SK-11`, estado válido, al menos 3 escenarios Given/When/Then, precondiciones y NFRs; si la historia está abierta, `value_risk` y `validation` declarados |
 | `ready` | Planificación | Definition of Ready de `SK-12`: estado, puntos 1/2/3/5, tipo backend o frontend, historia existente y secciones obligatorias |
 | `trazabilidad` | Requisitos, diseño y planificación | Cada historia y ticket enlazado desde la matriz, enlaces que resuelven y ADRs aceptados que nombran artefactos existentes |
+| `postmortem` | Incidentes | Cada `PM-NNN` con línea de tiempo con horas, análisis de por qué ningún gate lo detectó y, si está cerrado, acciones trazadas a tickets; uno crítico o alto sin cerrar a los 5 días de resolverse es un hallazgo |
 
 Sin argumentos genera un informe del repositorio que **no bloquea** (la deuda documental previa es información). `--changed` revisa solo lo modificado y `--ticket TK-XXX` la Definition of Ready de un ticket; ambos **bloquean** y los invocan `/momoy-spec` (workflow 01) y `/momoy-dev` (workflow 02). Estados válidos de historias y tickets: `backlog`, `approved`, `in_progress`, `done`, `cancelled`.
 
