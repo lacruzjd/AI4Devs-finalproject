@@ -1,4 +1,4 @@
-# 🌱 Instrucción para el Agente de IA: Bootstrap de Proyecto Greenfield (Idea ➔ Repositorio Operativo)
+# Instrucción para el Agente de IA: Bootstrap de Proyecto Greenfield (Idea → Repositorio Operativo)
 
 > [!IMPORTANT]
 > **DIRECTIVA PARA EL AGENTE DE IA:**
@@ -16,7 +16,7 @@
 
 ---
 
-## 🧭 Proceso de Bootstrap (Fases Secuenciales)
+## Proceso de Bootstrap (Fases Secuenciales)
 
 ### FASE 0: Verificación de Precondiciones
 1. Confirma que `docs/00_stack_manifest.md` **no existe**. Si existe, aplica la Guardia de Entrada de arriba y detente.

@@ -22,7 +22,7 @@ if [ "$TARGET_DIR" = "$(dirname "$SOURCE_AGENTS_DIR")" ]; then
   exit 1
 fi
 
-echo "📦 Instalando momoy (.agents/) en: $TARGET_DIR"
+echo "Instalando momoy (.agents/) en: $TARGET_DIR"
 
 if [ -d "$TARGET_DIR/.agents" ]; then
   echo "⚠️  $TARGET_DIR/.agents ya existe. Cancelando para no sobrescribir un framework ya instalado."
@@ -44,7 +44,7 @@ FRAMEWORK_VERSION="$(grep -m1 '^version:' "$SOURCE_AGENTS_DIR/README.md" 2>/dev/
 INSTALL_TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 cat > "$TARGET_DIR/.agents/INSTALLED_FROM.md" <<EOF
-# 📦 Procedencia de esta instalación de momoy (\`.agents/\`)
+# Procedencia de esta instalación de momoy (\`.agents/\`)
 
 Generado automáticamente por \`install.sh\` (\`TK-065\`) — no editar a mano.
 
@@ -60,12 +60,12 @@ poder diferenciar manualmente esta copia contra el origen (\`git diff\` entre am
 EOF
 echo "✅ INSTALLED_FROM.md (procedencia de la instalación) creado."
 
-ENTRYPOINT_CONTENT_BOOTSTRAPPED='# 🤖 AI Assistant Entrypoint
+ENTRYPOINT_CONTENT_BOOTSTRAPPED='# AI Assistant Entrypoint
 
 > All operational rules, architectural guidelines, quality gates, and workflows for this repository are defined in the Single Source of Truth (SSoT):
 > **Read [`AGENTS.md`](./AGENTS.md) first before performing any action.**'
 
-AGENTS_STUB='# 🤖 AI Assistant Entrypoint (proyecto sin bootstrapear)
+AGENTS_STUB='# AI Assistant Entrypoint (proyecto sin bootstrapear)
 
 > Este proyecto tiene momoy (`.agents/`) instalado pero **todavía no fue bootstrapeado** — este archivo es un stub temporal, no el contrato operativo real.
 
@@ -83,7 +83,7 @@ if [ ! -f "$TARGET_DIR/AGENTS.md" ]; then
   printf '%s\n' "$AGENTS_STUB" > "$TARGET_DIR/AGENTS.md"
   echo "✅ AGENTS.md (stub de arranque) creado."
 else
-  echo "ℹ️  AGENTS.md ya existe en el destino — no se toca (puede ser un proyecto ya bootstrapeado)."
+  echo "Nota: AGENTS.md ya existe en el destino — no se toca (puede ser un proyecto ya bootstrapeado)."
 fi
 
 for entry in CLAUDE.md GEMINI.md; do
@@ -91,10 +91,10 @@ for entry in CLAUDE.md GEMINI.md; do
     printf '%s\n' "$ENTRYPOINT_CONTENT_BOOTSTRAPPED" > "$TARGET_DIR/$entry"
     echo "✅ $entry creado."
   else
-    echo "ℹ️  $entry ya existe en el destino — no se toca."
+    echo "Nota: $entry ya existe en el destino — no se toca."
   fi
 done
 
 echo ""
-echo "🎉 Instalación de momoy completa. Siguiente paso: abre el proyecto en $TARGET_DIR con tu asistente de IA"
+echo "✅ Instalación de momoy completa. Siguiente paso: abre el proyecto en $TARGET_DIR con tu asistente de IA"
 echo "   y pídele que lea AGENTS.md — el stub lo guiará al workflow de bootstrap correcto."

@@ -1,4 +1,4 @@
-# 🏚️ Instrucción para el Agente de IA: Adopción de Proyecto Brownfield (Código Existente ➔ `.agents/` Operativo)
+# Instrucción para el Agente de IA: Adopción de Proyecto Brownfield (Código Existente → `.agents/` Operativo)
 
 > [!IMPORTANT]
 > **DIRECTIVA PARA EL AGENTE DE IA:**
@@ -16,7 +16,7 @@
 
 ---
 
-## 🧭 Proceso de Adopción (Fases Secuenciales)
+## Proceso de Adopción (Fases Secuenciales)
 
 ### FASE 0: Verificación de Precondiciones
 1. Confirma que `docs/00_stack_manifest.md` **no existe**. Si existe, aplica la Guardia de Entrada de arriba y detente.

@@ -7,7 +7,7 @@ project_root = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".
 agents_dir = os.path.join(project_root, ".agents")
 
 # Replace relative links pointing to docs from inside .agents/skills/specs/
-# Example: [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) -> [📖 Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md)
+# Example: [Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) -> [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md)
 
 def fix_links_in_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as f:

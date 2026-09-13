@@ -1,7 +1,7 @@
 ---
 name: architecture-decision-record
 description: "Registra una decisión arquitectónicamente significativa como ADR (Architecture Decision Record): enmarca el problema y sus fuerzas, genera un mínimo de 3 opciones defendibles con matriz comparativa, somete la elección al humano (Guard 28) y persiste la decisión con sus consecuencias, alternativas descartadas y trazabilidad a las historias/tickets que la implementan."
-version: "1.0.0"
+version: "1.0.1"
 category: "02_architecture_design"
 inputs:
   - "docs/00_stack_manifest.md"
@@ -11,7 +11,7 @@ outputs:
   - "docs/02_architecture_design/adr/ADR-XXX-{slug}.md"
 ---
 
-# 🧭 SK-36: Registro de Decisiones de Arquitectura (ADR) (v1.0.0)
+# SK-36: Registro de Decisiones de Arquitectura (ADR) (v1.0.1)
 
 Actúa como un **Principal Software Architect** experto en Architecture Decision Records (formato Michael Nygard), análisis de trade-offs y facilitación de decisiones técnicas con múltiples caminos viables.
 
@@ -19,7 +19,7 @@ Tu objetivo es transformar una disyuntiva técnica en un **documento de decisió
 
 ---
 
-## 🚫 Non-Goals de Ejecución del Agente (Guards)
+## Non-Goals de Ejecución del Agente (Guards)
 
 Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
@@ -33,9 +33,9 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ---
 
-## 🔄 Pipeline de Ejecución Secuencial por Fases
+## Pipeline de Ejecución Secuencial por Fases
 
-### 📍 Fase 0: Lectura de Fuentes (Guard 24)
+### Fase 0: Lectura de Fuentes (Guard 24)
 
 1. Leer `docs/00_stack_manifest.md` — restricciones y herramientas ya aprobadas.
 2. Leer `docs/02_architecture_design/04_technical_design.md` — arquitectura vigente que la decisión debe respetar o cambiar conscientemente.
@@ -43,12 +43,12 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ---
 
-### 📍 Fase 1: Enmarcado del Problema y Test Decisivo (5 min)
+### Fase 1: Enmarcado del Problema y Test Decisivo (5 min)
 
 1. **Formular el problema como una pregunta cerrada**, no como una tarea. ✅ *"¿Dónde persiste el cliente el token de sesión?"* — ❌ *"Mejorar la seguridad del login"*.
 2. **Enumerar las fuerzas (forces)**: restricciones reales que empujan en direcciones opuestas — requisitos no funcionales, límites del stack aprobado, deuda existente, coste operativo, plazos.
 3. **Declarar explícitamente qué NO se decide aquí**, para acotar el ADR y evitar que absorba decisiones vecinas.
-4. **🧪 TEST DECISIVO — ¿esto merece un ADR?** Responder las tres:
+4. **TEST DECISIVO — ¿esto merece un ADR?** Responder las tres:
 
    | Pregunta | Si NO… |
    | :--- | :--- |
@@ -60,7 +60,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ---
 
-### 📍 Fase 2: Generación de Opciones Reales (10 min)
+### Fase 2: Generación de Opciones Reales (10 min)
 
 1. Generar **un mínimo de 3 opciones** genuinamente defendibles. Cuando aplique, **una de ellas DEBE ser "mantener el statu quo / no hacer nada"** con sus consecuencias reales — es la alternativa que más a menudo se omite y a veces es la correcta.
 2. Por cada opción, describir en prosa compacta: en qué consiste, qué gana, qué cuesta y **en qué contexto sería la elección correcta** (no todas las opciones son malas: son óptimas en escenarios distintos).
@@ -68,7 +68,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ---
 
-### 📍 Fase 3: Matriz Comparativa y PAUSA HitL Obligatoria (5 min)
+### Fase 3: Matriz Comparativa y PAUSA HitL Obligatoria (5 min)
 
 1. Construir la matriz. Los ejes son fijos; las filas son las opciones:
 
@@ -76,11 +76,11 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
    | :--- | :--- | :--- | :--- | :--- |
 
 2. Emitir una **recomendación argumentada** del agente: cuál eliges y **cuál es la fuerza de la Fase 1 que resulta decisiva** — no una suma de puntos, sino el criterio que rompe el empate.
-3. **⛔ PAUSA HitL:** presentar problema + matriz + recomendación al humano y **detenerse**. Prohibido escribir el archivo en disco antes de la confirmación explícita. Si el humano elige una opción distinta a la recomendada, su elección prevalece y la recomendación del agente pasa a la sección de Alternativas Descartadas con su razón.
+3. **PAUSA HitL:** presentar problema + matriz + recomendación al humano y **detenerse**. Prohibido escribir el archivo en disco antes de la confirmación explícita. Si el humano elige una opción distinta a la recomendada, su elección prevalece y la recomendación del agente pasa a la sección de Alternativas Descartadas con su razón.
 
 ---
 
-### 📍 Fase 4: Persistencia, Estado y Supersesión (5 min)
+### Fase 4: Persistencia, Estado y Supersesión (5 min)
 
 1. **Nombre de archivo:** `docs/02_architecture_design/adr/ADR-{NNN}-{slug-kebab}.md`, con `{NNN}` correlativo a 3 dígitos y `{slug}` derivado del título.
 2. **Enum de estado (único vocabulario permitido):**
@@ -98,7 +98,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ---
 
-## 📌 Formato de Salida y Cabecera GFM
+## Formato de Salida y Cabecera GFM
 
 El archivo generado en `docs/02_architecture_design/adr/ADR-{NNN}-{slug}.md` debe comenzar estrictamente con:
 
@@ -158,7 +158,7 @@ date: YYYY-MM-DD
 
 ---
 
-## 🧾 Criterios de Verificación del Propio Skill
+## Criterios de Verificación del Propio Skill
 
 Antes de reportar la ejecución como completa, el agente DEBE confirmar:
 

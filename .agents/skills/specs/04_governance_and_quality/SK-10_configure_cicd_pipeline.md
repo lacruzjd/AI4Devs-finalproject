@@ -1,7 +1,7 @@
 ---
 name: cicd-pipeline
 description: "Genera la automatización del pipeline de CI/CD usando la plataforma, runtime e IaC Engine declarados en docs/00_stack_manifest.md (OIDC sin llaves estáticas obligatorio) para linters, auditoría SAST, TDD, validación de contrato y aprovisionamiento declarativo de infraestructura."
-version: "3.9.0"
+version: "3.9.1"
 category: "04_governance_and_quality"
 inputs:
   - "docs/04_governance_and_quality/08_security_strategy.md"
@@ -11,7 +11,7 @@ outputs:
   - "docs/04_governance_and_quality/10_cicd_pipeline.md"
 ---
 
-# ⚙️ SK-10: Pipeline de CI/CD, DevSecOps y OpenTofu IaC (v3.9.0)
+# SK-10: Pipeline de CI/CD, DevSecOps y OpenTofu IaC (v3.9.1)
 
 Actúa como un **Principal DevOps Engineer** y **DevSecOps Architect** experto en pipelines de Integración Continua declarativos multi-plataforma (GitHub Actions, GitLab CI, CircleCI...), runtimes modernos, IaC declarativo (OpenTofu, Pulumi, CDK...) y Docker, aplicando siempre la plataforma, runtime e IaC Engine exactos que `docs/00_stack_manifest.md` declare para este proyecto, bajo los **Guards 22, 23, 30, 31 y 33** de `AGENTS.md`.
 
@@ -24,7 +24,7 @@ Tu objetivo es analizar las Estrategias de Seguridad (`08_security_strategy.md`)
 
 ---
 
-## 🚫 Non-Goals de Ejecución del Agente (Guards)
+## Non-Goals de Ejecución del Agente (Guards)
 
 Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 1. **No exponer secretos ni tokens en el YAML del workflow:** Prohibido hardcodear contraseñas de BD o API Keys en `ci.yml`; referenciar exclusivamente `${{ secrets.YOUR_KEY }}`. **Mandatorio OIDC** (Guard 23).
@@ -41,34 +41,34 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ---
 
-## 🔄 Pipeline de Ejecución Secuencial en 5 Jobs (GitHub Actions Workflow)
+## Pipeline de Ejecución Secuencial en 5 Jobs (GitHub Actions Workflow)
 
-### 📍 Job 0: Governance Gate (1 min) ← Guard 22 & 23
+### Job 0: Governance Gate (1 min) ← Guard 22 & 23
 - Checkout de código con `actions/checkout@v5`.
 - Verificar integridad del arnés `.agents` con `bash .agents/scripts/validate_agents.sh`.
 - Verificar drift de contrato con `bash docs/04_governance_and_quality/scripts/check_contract_drift.sh`.
 - Validar especificación DESIGN.md con `npx -y @google/design.md lint DESIGN.md` (si existe).
 - **Cobertura DevSecOps (Guard 25, informativo):** `bash docs/04_governance_and_quality/scripts/check_devsecops_manifest_coverage.sh` — verifica que toda herramienta declarada en `docs/00_stack_manifest.md` §6 esté efectivamente wireada como step en este mismo pipeline. Este propio Skill DEBE releer su salida antes de darse por terminado: una brecha reportada aquí significa que el Job 2 de abajo quedó incompleto.
 
-### 📍 Job 1: Lint & Static Analysis (2 min)
+### Job 1: Lint & Static Analysis (2 min)
 - Setup de **Node 24 LTS** (`node-version: 'lts/*'`) con cache de **pnpm 9** (`cache: 'pnpm'`).
 - **Generación de artefactos de build ANTES de lint/test (Guard 31, TK-064):** si el stack declarado en `docs/00_stack_manifest.md` usa una herramienta de codegen (ORM, GraphQL, protobuf/gRPC), ejecuta aquí su comando de generación explícito (ej. `<orm-cli> generate`) — nunca asumas que `pnpm install` la dispara sola. Verifica esto en un checkout limpio real, no por documentación previa de la herramienta: su comportamiento puede cambiar entre versiones mayores sin aviso.
 - Ejecución de `pnpm run lint` y `npx tsc --noEmit` para verificar tipado estricto.
 - Validar especificación OpenAPI con `npx @stoplight/spectral-cli lint docs/03_persistence_and_api/openapi.yaml` (si existe).
 
-### 📍 Job 2: Security & Dependency Audit (2 min)
+### Job 2: Security & Dependency Audit (2 min)
 - Ejecución de escaneo de vulnerabilidades `pnpm audit --audit-level=high`.
 - Verificación de secretos mediante `gitleaks` (Secret Scanner — no sustituye al punto siguiente).
 - **SAST real (Guard 33, TK-066):** escaneo estático de vulnerabilidades sobre el código fuente de la app con la herramienta declarada en `docs/00_stack_manifest.md` §6 (ej. `pip install semgrep==<versión declarada>` + `semgrep scan --config=p/security-audit --error --metrics=off` — `--config auto` NO funciona con `--metrics=off`, verificado en vivo) — step obligatorio y separado del secret scanner.
 - Escaneo de imagen Docker con `trivy image` para CVEs de dependencias en contenedores.
 
-### 📍 Job 3: Unit & Integration Test Suite (3-5 min)
+### Job 3: Unit & Integration Test Suite (3-5 min)
 - Aprovisionamiento de base de datos Postgres 15 efímera mediante Docker Service Container en GitHub Actions.
 - **Recordatorio (Guard 31):** este Job corre en un runner separado con su propio checkout/`pnpm install` limpio — si el Job 1 necesitó un step explícito de generación de artefactos de build, este Job TAMBIÉN lo necesita, no se hereda entre Jobs.
 - Aplicación de migraciones de base de datos (`npx prisma migrate deploy` o equivalentes).
 - Ejecución de la suite de pruebas unitarias y de integración `pnpm test`.
 
-### 📍 Job 4: Build & IaC Provisioning (3 min) ← Guard 22, 23 & 33
+### Job 4: Build & IaC Provisioning (3 min) ← Guard 22, 23 & 33
 - Compilación del bundle de producción `pnpm run build`.
 - **SBOM por build (Guard 33, TK-066):** tras el build, genera un SBOM (CycloneDX o SPDX) con la herramienta declarada en `docs/00_stack_manifest.md` §6 (ej. `pnpm dlx <sbom-tool>@<versión declarada> -o sbom.json .`) y publícalo como artefacto de CI verificable (ej. `actions/upload-artifact`, pineado por SHA según Guard 30) — un build de producción sin SBOM no cumple A03 Software Supply Chain Failures (OWASP Top 10:2025).
 - Autenticación en proveedor cloud mediante **OpenID Connect (OIDC)** — sin `AWS_SECRET_ACCESS_KEY` ni llaves estáticas.
@@ -78,7 +78,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ---
 
-## 📌 Formato de Salida y Cabecera GFM
+## Formato de Salida y Cabecera GFM
 
 El archivo generado en `docs/04_governance_and_quality/10_cicd_pipeline.md` debe incluir la cabecera:
 
@@ -95,10 +95,10 @@ outputs:
   - docs/04_governance_and_quality/10_cicd_pipeline.md
 ---
 
-# ⚙️ Especificación de Pipeline CI/CD y Automatización DevSecOps
+# Especificación de Pipeline CI/CD y Automatización DevSecOps
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Estrategia de Pruebas (09_testing_strategy.md)](./09_testing_strategy.md) | [📖 Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Planificación Ágil (05_agile_planning/11_user_stories.md) ➡️](../05_agile_planning/11_user_stories.md)
+> [← Volver a Estrategia de Pruebas (09_testing_strategy.md)](./09_testing_strategy.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Planificación Ágil (05_agile_planning/11_user_stories.md) →](../05_agile_planning/11_user_stories.md)
 
 ---
 ```

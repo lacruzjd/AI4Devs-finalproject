@@ -1,7 +1,7 @@
 ---
 name: SK-34_model_based_testing_designer
 description: "Diseña modelos de prueba basados en comportamiento (Model-Based Testing - MBT) definiendo Estados, Transiciones, Guards, Invariantes y Oráculos Multi-Capa antes de escribir código de prueba."
-version: "1.0.0"
+version: "1.0.1"
 category: "quality/01_testing"
 inputs:
   - feature_context: "Descripción del flujo o pantalla objetivo (ej. Consumo de remanente, Autenticación, Drag & Drop)"
@@ -14,12 +14,12 @@ Actúa como un **Principal QA Automation & Software Architect**. Tu objetivo es 
 
 ---
 
-## 🧭 FASE 1: Análisis e Identificación del Modelo
+## FASE 1: Análisis e Identificación del Modelo
 
 category: "development/08_testing"
 ---
 
-# 🎯 SK-34: Model-Based Testing Designer & Multi-Layer Oracles (v1.0.0)
+# SK-34: Model-Based Testing Designer & Multi-Layer Oracles (v1.0.1)
 
 Actúa como un **Principal QA Automation Architect** experto en **Model-Based Testing (MBT)**, diseño de oráculos deterministas multi-capa y estrategias avanzadas de prueba para aplicaciones web complejas.
 
@@ -27,13 +27,13 @@ Tu objetivo es transformar especificaciones técnicas, reglas de negocio y flujo
 
 ---
 
-## 🛠️ Entradas y Salidas
+## Entradas y Salidas
 - **Entradas:** `docs/01_product_definition/`, `docs/02_architecture_design/`, `docs/03_persistence_and_api/`.
 - **Salidas:** Artefacto de diseño de pruebas en `docs/04_governance_and_quality/mbt_models/` y escenarios formalizados para [05_test_runner_workflow.md](../../../workflows/05_test_runner_workflow.md).
 
 ---
 
-## 🎯 Los 3 Oráculos Obligatorios por Prueba
+## Los 3 Oráculos Obligatorios por Prueba
 
 Todo diseño de prueba generado por este skill DEBE incluir aserciones explícitas en los 3 niveles de oráculo:
 
@@ -45,7 +45,7 @@ Todo diseño de prueba generado por este skill DEBE incluir aserciones explícit
 
 ---
 
-## ⚙️ Instrucciones de Ejecución
+## Instrucciones de Ejecución
 
 1. Analizar los flujos de la User Story o ticket.
 2. Identificar estados válidos, transiciones y condiciones de guarda.

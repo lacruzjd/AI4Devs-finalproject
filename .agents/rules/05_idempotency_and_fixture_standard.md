@@ -1,10 +1,10 @@
-# 🔄 Estándar Agnóstico de Idempotencia y Datos Fixture (.agents/rules/05_idempotency_and_fixture_standard.md)
+# Estándar Agnóstico de Idempotencia y Datos Fixture (.agents/rules/05_idempotency_and_fixture_standard.md)
 
 Directiva agnóstica universal que rige la creación de datos semilla (*seeding*), simulación de entornos (*fixtures*) y estrategias de persistencia idempotente en cualquier motor de base de datos o lenguaje de programación.
 
 ---
 
-## 🏛️ Los 5 Pilares Agnósticos de Datos Semilla y Fixtures
+## Los 5 Pilares Agnósticos de Datos Semilla y Fixtures
 
 Toda estrategia de inicialización o carga de datos en el sistema DEBE cumplir estrictamente con los siguientes 5 pilares:
 
@@ -26,7 +26,7 @@ Toda estrategia de inicialización o carga de datos en el sistema DEBE cumplir e
 
 ---
 
-## 📐 Enforcement
+## Enforcement
 
 1. **Scripts de Inicialización:** Todo script de sembrado nuevo o modificado debe ser verificado ejecutándolo al menos 2 veces consecutivas en un entorno limpio para validar idempotencia (0 errores en la segunda corrida).
 2. **Sanitización:** Todo fixture de desarrollo debe ser auditado para garantizar que no contenga credenciales hardcodeadas en texto plano.

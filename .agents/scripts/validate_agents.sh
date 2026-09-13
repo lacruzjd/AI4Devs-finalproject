@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# 🛡️ momoy (.agents/) Framework Integrity & Link Validator Script
+# momoy (.agents/) Framework Integrity & Link Validator Script
 set -euo pipefail
 
-echo "🔍 Validando integridad de momoy (.agents/)..."
+echo "Validando integridad de momoy (.agents/)..."
 
 # Check directories exist
 for dir in workflows skills rules examples; do
@@ -19,11 +19,11 @@ echo "✅ Directorios principales verificados."
 SKILLS_COUNT=$(find .agents/skills -name "*.md" | wc -l)
 WORKFLOWS_COUNT=$(find .agents/workflows -name "*.md" | wc -l)
 
-echo "📊 Total de Skills encontradas: $SKILLS_COUNT"
-echo "📊 Total de Workflows encontrados: $WORKFLOWS_COUNT"
+echo "Total de Skills encontradas: $SKILLS_COUNT"
+echo "Total de Workflows encontrados: $WORKFLOWS_COUNT"
 
 # Run self-tests for the audit tooling before trusting its verdict
-echo "🧪 Ejecutando tests unitarios de las herramientas de auditoría..."
+echo "Ejecutando tests unitarios de las herramientas de auditoría..."
 python3 -m unittest discover -s .agents/scripts/tests
 
 # Run Link Integrity Checker
@@ -32,4 +32,4 @@ python3 .agents/scripts/check_links.py
 # Run Agnosticism Guard (TK-038): .agents/scripts/ nunca debe acoplarse al stack de un proyecto
 python3 .agents/scripts/check_agnosticism.py
 
-echo "🎉 Arnés momoy (.agents/) verificado exitosamente sin errores de integridad ni enlaces rotos."
+echo "✅ Arnés momoy (.agents/) verificado exitosamente sin errores de integridad ni enlaces rotos."

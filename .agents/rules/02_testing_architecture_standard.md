@@ -1,10 +1,10 @@
-# 🏗️ Estándar Profesional de Organización de Arquitectura de Tests (.agents/rules/02_testing_architecture_standard.md)
+# Estándar Profesional de Organización de Arquitectura de Tests (.agents/rules/02_testing_architecture_standard.md)
 
 Este documento instruye la estructura de carpetas, distribución de capas, patrones de diseño y convenciones de nomenclatura para la **Arquitectura de Pruebas** en proyectos mantenidos por el arnés `.agents`.
 
 ---
 
-## 🏛️ 1. Estructura de Carpetas y Ubicación de Pruebas (Directiva Agéntica)
+## 1. Estructura de Carpetas y Ubicación de Pruebas (Directiva Agéntica)
 
 El marco `.agents` adopta un modelo híbrido basado en **Co-localización de Pruebas de Dominio/Componentes** y **Directorios Dedicados para Integración y E2E**.
 
@@ -14,7 +14,7 @@ Todo agente de IA o desarrollador DEBE ubicar los nuevos archivos de prueba sigu
 [raíz-del-proyecto]/
 ├── apps/
 │   ├── backend/
-│   │   ├── src/                         # 🟢 CÓDIGO FUENTE & UNIT TESTS CO-LOCALIZADOS
+│   │   ├── src/                         # CÓDIGO FUENTE & UNIT TESTS CO-LOCALIZADOS
 │   │   │   ├── domain/                  # 1. Unit Tests de Dominio (Pure TS. Zero deps. Execution < 5ms)
 │   │   │   │   └── [modulo]/
 │   │   │   │       ├── [Entity].ts
@@ -28,7 +28,7 @@ Todo agente de IA o desarrollador DEBE ubicar los nuevos archivos de prueba sigu
 │   │   │           ├── PrismaRepo.ts
 │   │   │           └── PrismaRepo.int.test.ts
 │   │   │
-│   │   └── tests/                       # 🔵 PRUEBAS DE INTEGRACIÓN DE SERVICIOS (Cross-Cutting)
+│   │   └── tests/                       # PRUEBAS DE INTEGRACIÓN DE SERVICIOS (Cross-Cutting)
 │   │       ├── auth/                    # Tests de Endpoints HTTP / Routers Express / Supertest
 │   │       │   └── AuthenticateWithPin.test.ts
 │   │       ├── kitchen/
@@ -39,12 +39,12 @@ Todo agente de IA o desarrollador DEBE ubicar los nuevos archivos de prueba sigu
 │   │
 │   └── frontend/
 │       ├── src/
-│       │   ├── components/              # 🟢 COMPONENT TESTS (React Testing Library)
+│       │   ├── components/              # COMPONENT TESTS (React Testing Library)
 │       │   │   ├── TouchButton.tsx
 │       │   │   └── TouchButton.test.tsx <-- Component Test
 │       │   └── services/
 │       │
-│       └── e2e/                         # 🟣 PRUEBAS E2E / BROWSER (Playwright)
+│       └── e2e/                         # PRUEBAS E2E / BROWSER (Playwright)
 │           ├── config/                  # Ambientes y VCR Mocks
 │           ├── fixtures/                # Test Data & Synthetic Auth Tokens
 │           ├── pages/                   # Page Object Models (POM - Guard 20)
@@ -55,7 +55,7 @@ Todo agente de IA o desarrollador DEBE ubicar los nuevos archivos de prueba sigu
 
 ---
 
-## 🏆 2. Distribución por Capas de Valor (Testing Trophy)
+## 2. Distribución por Capas de Valor (Testing Trophy)
 
 ```mermaid
 pyramid
@@ -68,7 +68,7 @@ pyramid
 
 ---
 
-## ✍️ 3. Anatomía Estándar de un Archivo de Pruebas (AAA + BDD + 3 Oráculos)
+## 3. Anatomía Estándar de un Archivo de Pruebas (AAA + BDD + 3 Oráculos)
 
 Todo test generado o mantenido por `.agents` DEBE cumplir con la anatomía de **3 bloques explícitos**:
 
@@ -100,7 +100,7 @@ describe('TK-008: Feature Consumo de Receta con Cascada FEFO', () => {
 
 ---
 
-## 📋 4. Convenciones de Nomenclatura Estándar
+## 4. Convenciones de Nomenclatura Estándar
 
 | Tipo de Prueba | Ubicación | Extensión | Patrón de Nombre |
 |---|---|---|---|

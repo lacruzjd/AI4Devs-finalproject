@@ -1,10 +1,10 @@
-# 📐 Patrón Agnóstico: Caso de Uso Puro (Aplicación)
+# Patrón Agnóstico: Caso de Uso Puro (Aplicación)
 
 Este documento define la estructura abstracta (pseudocódigo) de un **Caso de Uso** aplicando **Clean Architecture** e **Inversión de Dependencias (DIP)**. Es agnóstico de lenguaje (funciona para TypeScript, Python, Java, Go, C#, etc.).
 
 ---
 
-## 🧩 Pseudocódigo de Referencia:
+## Pseudocódigo de Referencia:
 
 ```text
 INTERFAZ IPuertoRepositorio:

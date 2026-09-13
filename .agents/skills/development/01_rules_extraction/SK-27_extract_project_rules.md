@@ -1,7 +1,7 @@
 ---
 name: SK-27_extract_project_rules
 description: "Analiza la documentación técnica del proyecto (PRDs, Arquitectura, Esquemas, ADRs) y deduce/genera automáticamente las reglas de gobernanza y codificación del proyecto en docs/04_governance_and_quality/rules/."
-version: "1.6.0"
+version: "1.6.1"
 category: "development/01_rules_extraction"
 inputs:
   - docs_path: "Ruta raíz de la documentación técnica (ej. docs/)"
@@ -17,7 +17,7 @@ Sigue strictly este flujo de trabajo secuencial:
 
 ---
 
-## 🔍 FASE 1: Análisis e Inspección de la Documentación
+## FASE 1: Análisis e Inspección de la Documentación
 Lee y analiza minuciosamente los siguientes artefactos en `docs/`:
 1. **Definición de Producto:** `docs/01_product_definition/` (PRD, reglas de negocio e invariantes).
 2. **Diseño de Arquitectura:** `docs/02_architecture_design/` (Capas de software, estructura de carpetas, patrones Hexagonales / Clean y ADRs).
@@ -26,7 +26,7 @@ Lee y analiza minuciosamente los siguientes artefactos en `docs/`:
 
 ---
 
-## 🧠 FASE 2: Deducción de Estándares Tecnológicos
+## FASE 2: Deducción de Estándares Tecnológicos
 Infiere y sintetiza las reglas específicas para cada una de las siguientes áreas:
 *   **Reglas de Dominio (`domain_rules.md`):** Nivel de pureza tecnológica, gestión de inmutabilidad, tratamiento de precisión matemática (ej. decimales), invariantes de negocio y clases de excepciones.
 *   **Reglas de Backend e Infraestructura (`backend_rules.md`):** Framework web, estrategia de inyección de dependencias, validación de DTOs/Payloads, formato y directivas de sincronización de contrato de API (OpenAPI, GraphQL, gRPC), manejo de concurrencia y transacciones, serialización de tipos, y **aplicación de migraciones de base de datos en despliegues containerizados** (TK-043): el contenedor de producción DEBE aplicar las migraciones pendientes del ORM/motor declarado (ej. `prisma migrate deploy`) desde un script de entrypoint dedicado ANTES de arrancar el proceso servidor — nunca depender de un `db push`/sincronización manual fuera de banda ni de que el proceso de arranque del framework lo haga implícitamente.
@@ -38,11 +38,11 @@ Infiere y sintetiza las reglas específicas para cada una de las siguientes áre
 
 ---
 
-## 📝 FASE 3: Generación de Archivos de Reglas y Contrato del Agente
+## FASE 3: Generación de Archivos de Reglas y Contrato del Agente
 1. Crea el directorio objetivo `docs/04_governance_and_quality/rules/` si no existe.
 2. **Antes de sobrescribir** cualquiera de los 7 archivos que ya exista en disco, captura su contenido previo para poder derivar un diff (secciones/líneas que cambian), no solo el archivo final — este paso alimenta el reporte de FASE 4.
 3. Escribe cada uno de los 7 archivos de reglas (`domain_rules.md`, `backend_rules.md`, `database_rules.md`, `frontend_rules.md`, `testing_rules.md`, `security_rules.md`, `git_rules.md`) redactados de forma profesional en formato Markdown.
-4. **Encabezado de Pila Tecnológica:** Todo archivo de reglas DEBE incluir una sección inicial `## 🛠️ Pila Tecnológica Detectada` detallando expresamente los frameworks, librerías y estándares identificados en la documentación.
+4. **Encabezado de Pila Tecnológica:** Todo archivo de reglas DEBE incluir una sección inicial `## Pila Tecnológica Detectada` detallando expresamente los frameworks, librerías y estándares identificados en la documentación.
 5. **Generación/Actualización de AGENTS.md:** Genera o sincroniza el archivo `AGENTS.md` en la raíz del proyecto. El archivo generado DEBE incluir obligatoriamente la Sección 6 (**Universal Agnostic Quality & Security Guards**) con los 20 Guards innegociables (Fail-Fast Secrets & Environment Auditing via SK-33, Auth JWT, Rate Limiting, Precision Decimal, RFC 7807, DI, Page Object Model E2E, Playwright CLI vs MCP balancing, etc.), vinculando el contexto del producto, la pila tecnológica y la directiva innegociable de leer las reglas en `docs/04_governance_and_quality/rules/`.
 6. **Generación de Scripts de Gobernanza Ejecutable (Guard Anti-Stack-Hardcoding aplicado al propio framework — TK-038):** `.agents/scripts/` es el payload que `install.sh` copia verbatim a cualquier proyecto, sin importar su stack — por eso NUNCA debe contener lógica acoplada al stack elegido por este proyecto. Cualquier script de gobernanza cuya lógica dependa del lenguaje, gestor de paquetes, test runner o layout de directorios declarado en `docs/00_stack_manifest.md` se genera aquí, en `docs/04_governance_and_quality/scripts/`, adaptado a esa pila real (nunca como archivo estático en `.agents/scripts/`; verificado automáticamente por `.agents/scripts/check_agnosticism.py`). Genera, como mínimo, el algoritmo de los siguientes gates traducido a las herramientas reales declaradas.
    **Nota sobre las referencias `(Guard N)` de esta lista:** no son una numeración universal fija del framework — no existe tal catálogo maestro en `.agents/` (la Sección 6 de cada `AGENTS.md` se infiere dinámicamente por proyecto, punto 5 arriba). El número corresponde a la posición que esa guarda tenga en el `AGENTS.md` del proyecto en el momento de generar/actualizar este listado, y puede diferir — o no existir — en otro proyecto. La referencia realmente portable entre proyectos es el **nombre entrecomillado** de la guarda cuando está presente (ej. `"Design System Alignment & No-Inline-Style Guard"`); úsalo para localizar la guarda equivalente en el `AGENTS.md` del proyecto destino, nunca el número por sí solo.
@@ -69,6 +69,6 @@ Infiere y sintetiza las reglas específicas para cada una de las siguientes áre
 
 ---
 
-## ✅ FASE 4: Confirmación y Reporte
+## FASE 4: Confirmación y Reporte
 1. Presentar el reporte de especificación indicando las reglas inferidas, los archivos generados en `docs/04_governance_and_quality/rules/` y los scripts generados en `docs/04_governance_and_quality/scripts/` (FASE 3, paso 6), estructurado estrictamente según la **Plantilla B** universal en `.agents/rules/00_output_reporting_standard.md`.
 2. **Cambios detectados en reglas existentes:** para cada uno de los 7 archivos que ya existía antes de esta ejecución (capturado en FASE 3, paso 2), incluir un subapartado obligatorio listando un resumen del diff old→new (qué se añadió, qué se eliminó, qué se reescribió). Si un archivo no tenía versión previa (generación desde cero), se omite esa entrada para ese archivo. Esto evita que una regeneración sobrescriba en silencio un ajuste manual hecho a mano sobre una regla ya generada.

@@ -1,15 +1,15 @@
-# 🧗‍♂️ Estándar de Escalera de Prompts de 8 Peldaños (.agents/rules/01_prompt_staircase_standard.md)
+# Estándar de Escalera de Prompts de 8 Peldaños (.agents/rules/01_prompt_staircase_standard.md)
 
 Este documento define la secuencia procedimental innegociable de 8 peldaños que todo subagente de IA y desarrollador DEBE seguir al abordar tareas de automatización de pruebas y QA.
 
 ---
 
-## 📐 Regla Fundamental
+## Regla Fundamental
 > ⚠️ **"Un error común es pedirle a la IA el Peldaño 6 (generar código) sin haber completado y validado los Peldaños 1 al 5. No automatices pantallas; automatiza comportamientos."**
 
 ---
 
-## 🪜 Los 8 Peldaños de la Escalera de Prompts
+## Los 8 Peldaños de la Escalera de Prompts
 
 ```mermaid
 graph TD
@@ -24,7 +24,7 @@ graph TD
 
 ---
 
-### 📝 Desglose de Peldaños
+### Desglose de Peldaños
 
 | Peldaño | Nombre del Peldaño | Acción Exigida al Agente de IA | Artefacto Generado |
 | :---: | :--- | :--- | :--- |

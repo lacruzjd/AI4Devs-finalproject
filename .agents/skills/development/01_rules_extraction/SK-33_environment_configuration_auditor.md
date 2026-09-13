@@ -1,7 +1,7 @@
 ---
 name: SK-33_environment_configuration_auditor
 description: "Guía procedimental agnóstica para auditar, validar y forzar esquemas de configuración de entorno Fail-Fast y desinfectar plantillas .env.example."
-version: "1.0.0"
+version: "1.0.1"
 category: "development/01_rules_extraction"
 inputs:
   - env_files: "Archivos de entorno del proyecto (.env, .env.example, config files)"
@@ -15,7 +15,7 @@ Actúa como un **DevSecOps Architect** y **Platform Engineer Senior**. Tu objeti
 
 ---
 
-## 📐 FASE 1: Auditoría de Plantillas y Fugas de Secretos (.env.example)
+## FASE 1: Auditoría de Plantillas y Fugas de Secretos (.env.example)
 1. **Auditoría de Plantilla (.env.example / config.template):**
    - Confirmar que exista un archivo de plantilla versionado en Git (`.env.example`).
    - Verificar que **ningún** secreto real (claves privadas, contraseñas de DB, JWT secrets reales) esté presente.
@@ -25,7 +25,7 @@ Actúa como un **DevSecOps Architect** y **Platform Engineer Senior**. Tu objeti
 
 ---
 
-## 🛡️ FASE 2: Validación Fail-Fast en Tiempo de Arranque
+## FASE 2: Validación Fail-Fast en Tiempo de Arranque
 1. **Parseo Estricto de Esquema (Zod / Pydantic / Viper / Envy):**
    - Forzar la validación de tipos y formatos de todas las variables al iniciar la aplicación (ej. URIs válidas, números enteros, enums de entorno).
    - En caso de faltar una variable requerida, la aplicación **debe abortar el arranque de inmediato (Fail-Fast)** con un reporte legible.
@@ -37,7 +37,7 @@ Actúa como un **DevSecOps Architect** y **Platform Engineer Senior**. Tu objeti
 
 ---
 
-## 🌐 FASE 3: Parametrización de Seguridad de Red y Aislamiento
+## FASE 3: Parametrización de Seguridad de Red y Aislamiento
 1. **Parametrización de CORS & Rate Limit:**
    - Garantizar que los orígenes permitidos de CORS (`CORS_ALLOWED_ORIGINS`) y los parámetros de limitación de tasa (`RATE_LIMIT_WINDOW_MS`, `RATE_LIMIT_MAX`) se lean desde variables de entorno y no estén hardcodeados.
 2. **Aisle de Variables de Cliente (Frontend / Mobile):**
@@ -45,6 +45,6 @@ Actúa como un **DevSecOps Architect** y **Platform Engineer Senior**. Tu objeti
 
 ---
 
-## 🧪 FASE 4: Verificación y Testing de Entorno
+## FASE 4: Verificación y Testing de Entorno
 1. Crear o actualizar las suites de pruebas unitarias/integración para simular el fallo de arranque cuando falte una variable requerida.
 2. Ejecutar el validador de arnés `.agents/scripts/validate_agents.sh` para confirmar la integridad del sistema.

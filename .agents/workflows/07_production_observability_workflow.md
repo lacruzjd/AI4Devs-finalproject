@@ -1,24 +1,24 @@
 ---
 name: 07_production_observability_workflow
 description: "Workflow de observabilidad Shift-Right v2.1: captura logs/stacktraces de producción, traduce incidencias a escenarios BDD Gherkin, genera pruebas de regresión en borrador (con checkpoint humano obligatorio antes de sumarse a la suite real) y cierra el bucle de feedback convirtiendo incidencias en tickets TK-XXX del backlog."
-version: "2.1.0"
+version: "2.1.1"
 category: "workflows/observability"
 ---
 
-# 🛰️ Workflow de Observabilidad Shift-Right (v2.1.0)
+# Workflow de Observabilidad Shift-Right (v2.1.1)
 
 Este workflow captura telemetría, errores y réplicas de producción para transformarlos de forma agnóstica en pruebas automatizadas de regresión **y en tickets técnicos accionables en el backlog**, cerrando el ciclo completo de mejora continua.
 
 ---
 
-## ⚡ Paso 1 — Ingesta y Diagnóstico de Incidencia (Shift-Right)
+## Paso 1 — Ingesta y Diagnóstico de Incidencia (Shift-Right)
 1. **Captura de Evidencias:** Leer el stacktrace, payload o log de la incidencia registrada en producción o prueba sintética.
 2. **Extracción de Variables:** Identificar parámetros de entrada, estado inicial del sistema y la excepción o fallo de aserción producido.
 3. **Anonimización GDPR (Guard 6):** Sanitizar cualquier PII (nombres, correos, IPs, credenciales) reemplazándola con identificadores sintéticos (`USER_SYNTHETIC_001`).
 
 ---
 
-## 📝 Paso 2 — Formulación de Escenario de Regresión BDD
+## Paso 2 — Formulación de Escenario de Regresión BDD
 1. Traducir la incidencia técnica a un escenario en formato **BDD Gherkin** (`.feature`):
    ```gherkin
    Feature: Reproducción de Incidencia de Producción #INC-XXX
@@ -31,7 +31,7 @@ Este workflow captura telemetría, errores y réplicas de producción para trans
 
 ---
 
-## 🔄 Paso 3 — Integración en la Suite de Tests & Reparación TDD
+## Paso 3 — Integración en la Suite de Tests & Reparación TDD
 1. **Fixture en borrador, nunca directo a la suite real (TK-055):** crea la prueba de regresión fallida (RED) como archivo `*.draft.test.{ts,tsx,...}` (o convención equivalente del test runner declarado) en `tests/regression/` — NUNCA con el nombre/extensión final que el runner oficial recoja automáticamente. Un fixture auto-generado sin revisión humana previa es exactamente el patrón que `rules/00_output_reporting_standard.md` (Anti-Gate-Hueco) prohíbe: una prueba que "existe" sin que nadie haya verificado que valida algo real, en vez de una aserción trivial o tautológica.
 2. **Checkpoint humano obligatorio:** presenta el fixture en borrador al humano junto con el escenario Gherkin del Paso 2 y espera confirmación explícita antes de continuar. Solo tras la aprobación, renombra el archivo quitando `.draft` (o lo mueve a su ubicación final co-ubicada según `rules/02_testing_architecture_standard.md`) — ese renombrado es la señal de que un humano lo validó, no un paso automático.
 3. Invocar [05_test_runner_workflow.md](05_test_runner_workflow.md) para ejecutar la reparación autónoma mediante el ciclo RED-GREEN-REFACTOR, solo sobre el fixture ya aprobado (sin `.draft`).
@@ -39,7 +39,7 @@ Este workflow captura telemetría, errores y réplicas de producción para trans
 
 ---
 
-## 🎫 Paso 4 — Cierre del Bucle: Incidencia → Ticket TK-XXX (NUEVO v2.0)
+## Paso 4 — Cierre del Bucle: Incidencia → Ticket TK-XXX (NUEVO v2.0)
 
 Una vez confirmada la regresión y el fix, cerrar el ciclo de feedback convirtiendo la incidencia en un ticket formal del backlog:
 
@@ -68,7 +68,7 @@ prioridad: MUST
 story_points: 2
 ---
 
-# 🐛 TK-NNN: [Descripción del Bug]
+# TK-NNN: [Descripción del Bug]
 
 ## Incidencia de Origen
 - **ID Incidencia:** INC-XXX
@@ -98,7 +98,7 @@ story_points: 2
 Presentar al humano el resumen de la incidencia y el ticket generado para su **aprobación y priorización** antes de iniciar el ciclo de desarrollo:
 
 ```text
-🚨 INCIDENCIA DETECTADA EN PRODUCCIÓN
+🔴 INCIDENCIA DETECTADA EN PRODUCCIÓN
 ════════════════════════════════════════
 Incidencia: INC-XXX
 Categoría:  [tipo]

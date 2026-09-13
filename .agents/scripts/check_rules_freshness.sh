@@ -5,7 +5,7 @@
 # un doc fuente más reciente que su regla derivada no es necesariamente un bug, pero merece revisión.
 set -uo pipefail
 
-echo "🔄 Auditando frescura de reglas dinámicas vs documentos fuente..."
+echo "Auditando frescura de reglas dinámicas vs documentos fuente..."
 echo ""
 
 RULES_DIR="docs/04_governance_and_quality/rules"
@@ -53,7 +53,7 @@ check_pair "$RULES_DIR/git_rules.md" "AGENTS.md"
 
 echo ""
 if [ "$STALE_FOUND" -eq "0" ]; then
-  echo "✨ Reglas dinámicas alineadas con sus documentos fuente."
+  echo "✅ Reglas dinámicas alineadas con sus documentos fuente."
 else
-  echo "ℹ️  Hay documentos fuente más recientes que su regla derivada (ver arriba). No bloqueante — revisión humana recomendada."
+  echo "Nota: hay documentos fuente más recientes que su regla derivada (ver arriba). No bloqueante — revisión humana recomendada."
 fi

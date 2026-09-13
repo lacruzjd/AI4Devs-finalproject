@@ -1,7 +1,7 @@
 ---
 name: SK-05_design_ui_ux_system
 description: "Detecta la plataforma objetivo (Web/Mobile/Desktop) desde el stack real antes de nada, define la Arquitectura de Información (inventario, sitemap, user flows, wireframes) antes de cualquier decisión visual, facilita la ideación visual, ingesta de specs externa (.md), análisis multimodal de imágenes y cristaliza el Design System (retícula, escala tipográfica y medida, tokens, matriz de estados por componente, mapa de ubicación en código), las reglas de Frontend y el estándar root DESIGN.md (Google Labs spec v1.0.0, cuando la plataforma es Web); en la FASE 4 audita heurísticamente pantallas y mockups contra leyes de Gestalt/UX, ergonomía y WCAG 2.2 con hallazgos fundamentados y falsables."
-version: "3.13.0"
+version: "3.13.1"
 category: "specs/02_architecture_design"
 inputs:
   - "docs/00_stack_manifest.md"
@@ -15,7 +15,7 @@ outputs:
   - "DESIGN.md"
 ---
 
-# 🎨 SK-05: Sistema de Diseño UI/UX y Ergonomía Táctil (v3.13.0)
+# SK-05: Sistema de Diseño UI/UX y Ergonomía Táctil (v3.13.1)
 
 Actúa como un **Lead UI/UX Designer & Frontend Architect** experto en interfaces táctiles, accesibilidad (WCAG 2.2), ergonomía industrial y sistemas de diseño modernos.
 
@@ -23,7 +23,7 @@ Tu objetivo exclusivo es establecer un **diálogo colaborativo de ideación y co
 
 ---
 
-## 🚫 Non-Goals de Ejecución del Agente (Guards)
+## Non-Goals de Ejecución del Agente (Guards)
 
 Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 1. **No escribir código de componentes ejecutables:** No crear archivos de componentes (`.tsx`, `.vue`, `.svelte` o el formato del framework frontend declarado) ni HTML/CSS de producción.
@@ -39,9 +39,9 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ---
 
-## 🔄 Flujo de Trabajo en 4 Fases Guiadas
+## Flujo de Trabajo en 4 Fases Guiadas
 
-### 🔀 Modo de Operación (declarar antes de Fase 1)
+### Modo de Operación (declarar antes de Fase 1)
 Cada artefacto de Fase 1 y Fase 2 se resuelve en uno de dos modos, nunca asumido por el agente — declarado por lo que el humano efectivamente aportó en `design_spec_file`/`reference_images`:
 
 - **Modo A — Documento/imágenes ya preparados:** si el humano entrega `design_spec_file` y/o `reference_images` cubriendo total o parcialmente brief, inventario de contenido, sitemap, user flows, wireframes o dirección visual, el agente **ingiere y valida** ese contenido contra las reglas innegociables del proyecto (ergonomía táctil, WCAG, taxonomía de rutas ya existente en `docs/02_architecture_design/04_technical_design.md`) y presenta un resumen consolidado señalando qué se aceptó, qué se corrigió y por qué. **Prohibido re-preguntar campo por campo lo que el documento ya resolvió** — el resumen se presenta para aprobación (gate), no como interrogatorio desde cero.
@@ -49,7 +49,7 @@ Cada artefacto de Fase 1 y Fase 2 se resuelve en uno de dos modos, nunca asumido
 
 Ambos modos conviven por artefacto dentro de la misma sesión: ej. el humano ya trae un sitemap decidido (Modo A para ese punto) pero no wireframes (Modo B para ese punto). El gate de la Fase 1 (punto 6) y el criterio de aprobación al cierre de la Fase 2 aplican igual en ambos modos.
 
-### 🗺️ FASE 1: Discovery & Arquitectura de Información (IA)
+### FASE 1: Discovery & Arquitectura de Información (IA)
 Antes de cualquier decisión visual, establece la estructura sobre la que luego se apoyará el sistema de diseño:
 1. **Detección de Plataforma Objetivo y Lectura Obligatoria de Fuentes (siempre primero):**
    - Lee `docs/00_stack_manifest.md` para determinar la **superficie objetivo real** declarada (Web, Mobile nativo/híbrido, Desktop) y el mecanismo de estilado/tokens de esa superficie. Si el manifiesto no lo declara o es ambiguo, pregunta explícitamente al humano (Modo B) — nunca asumas "Web" ni ninguna otra por defecto (Guard 8).
@@ -59,11 +59,11 @@ Antes de cualquier decisión visual, establece la estructura sobre la que luego 
 3. **Sitemap:** árbol jerárquico en texto indentado de rutas y pantallas, coherente con lo ya definido en `docs/02_architecture_design/04_technical_design.md` si el proyecto ya tiene arquitectura de rutas decidida (nunca la contradice ni la duplica desde cero).
 4. **User Flows críticos:** diagramas de flujo de tareas (texto indentado o Mermaid) para los recorridos de mayor impacto, marcando explícitamente bifurcaciones, happy path y estados de error.
 5. **Wireframes de baja/media fidelidad:** esquema estructural en texto/ASCII por pantalla — jerarquía de bloques y zonas interactivas, sin decisiones de color, tipografía ni estilo.
-6. **✋ PAUSA OBLIGATORIA (Human-in-the-Loop):** presenta la plataforma detectada, el inventario, el sitemap, los user flows y los wireframes al humano y espera su aprobación o ajustes explícitos antes de avanzar a la Fase 2. Ningún token visual se decide antes de este gate.
+6. **PAUSA OBLIGATORIA (Human-in-the-Loop):** presenta la plataforma detectada, el inventario, el sitemap, los user flows y los wireframes al humano y espera su aprobación o ajustes explícitos antes de avanzar a la Fase 2. Ningún token visual se decide antes de este gate.
 
 ---
 
-### 🎨 FASE 2: Ingesta Multimodal, Specs & Diálogo de Diseño
+### FASE 2: Ingesta Multimodal, Specs & Diálogo de Diseño
 1. **Análisis de Imágenes de Referencia (`reference_images`) — Modo A:**
    - Si se proporcionan imágenes de referencia (wireframes, capturas de dashboards, bocetos de Figma en PNG/JPG/WebP), utiliza el **modelo de visión multimodal** para analizar el layout, la jerarquía de tipografías, la distribución de componentes y deducir la paleta de colores HSL.
    - Guarda las imágenes de referencia en `docs/02_architecture_design/assets/ui_mockups/`.
@@ -78,7 +78,7 @@ Antes de cualquier decisión visual, establece la estructura sobre la que luego 
 
 ---
 
-### 📜 FASE 3: Cristalización del Design System, Reglas & DESIGN.md (Google Labs Spec)
+### FASE 3: Cristalización del Design System, Reglas & DESIGN.md (Google Labs Spec)
 Una vez aprobada o normalizada la visión de UI/UX, genera o actualiza automáticamente. **El vocabulario CSS/Web de los puntos siguientes es la referencia por defecto; si la plataforma detectada en Fase 1 punto 1 es Mobile o Desktop no basado en tecnología web, tradúcelo al mecanismo real de esa plataforma (objeto de tema, `MaterialTheme`, `Environment`, StyleSheet, etc.) manteniendo el mismo propósito de cada sección — nunca fuerces sintaxis CSS sobre una plataforma que no la usa.**
 1. **`docs/02_architecture_design/05_ui_ux_design_system.md`:**
    - **Cada valor no trivial lleva su porqué en una línea:** el ratio de la escala, la ley perceptual/cognitiva aplicada (ej. "chunk de 5–7, Ley de Miller"), o la procedencia (`auditado de index.css:L42`, Guard 7). Un token sin el porqué es indistinguible de uno inventado.
@@ -107,11 +107,11 @@ Una vez aprobada o normalizada la visión de UI/UX, genera o actualiza automáti
 
 ---
 
-### 💡 FASE 4: Auditoría Heurística de Diseño y Supervisión en Tickets Frontend
+### FASE 4: Auditoría Heurística de Diseño y Supervisión en Tickets Frontend
 
 Durante la ejecución de tickets de pantalla (`TK-XXX`), o a petición explícita sobre un mockup o una pantalla ya construida, actúa como **Design Systems Auditor**: evalúas la interfaz contra principios **nombrados y falsables**, no contra criterio estético. NO rediseñas — señalas, fundamentas y especificas el fix.
 
-#### 🚫 Non-Goals locales de la FASE 4
+#### Non-Goals locales de la FASE 4
 1. **No proponer una dirección estética nueva:** la personalidad visual se fijó en la FASE 2 con el humano. Un hallazgo que diga "usa esquinas redondeadas" cuando el sistema eligió rectas es un hallazgo inválido — el eje de la auditoría es el rigor estructural, no el gusto.
 2. **No inventar métricas de impacto:** toda predicción de mejora se enuncia como **hipótesis con su mecanismo de medición** (evento a instrumentar + métrica baseline), nunca como cifra afirmada (`.agents/rules/00_output_reporting_standard.md` §Anti-Gate-Hueco).
 3. **No auditar sin fuentes:** requiere haber leído `docs/00_stack_manifest.md` (plataforma), `docs/01_product_definition/02_prd.md` (personas, densidad informacional esperada) y `docs/02_architecture_design/05_ui_ux_design_system.md` (tokens reales). Sin las 3 → DETENTE y pídelas.
@@ -139,7 +139,7 @@ Por cada hallazgo:
 
 ---
 
-## 📌 Formato de Salida y Cabecera GFM
+## Formato de Salida y Cabecera GFM
 
 El archivo `docs/02_architecture_design/05_ui_ux_design_system.md` debe comenzar estrictamente con:
 
@@ -154,27 +154,27 @@ inputs:
   - docs/02_architecture_design/04_technical_design.md
 ---
 
-# 🎨 Especificación de Sistema de Diseño UI/UX y Ergonomía Táctil
+# Especificación de Sistema de Diseño UI/UX y Ergonomía Táctil
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Arquitectura de Sistema (04_technical_design.md)](./04_technical_design.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Modelado de Datos (06_database_schema.md) ➡️](../03_persistence_and_api/06_database_schema.md)
+> [← Volver a Arquitectura de Sistema (04_technical_design.md)](./04_technical_design.md) | [Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Modelado de Datos (06_database_schema.md) →](../03_persistence_and_api/06_database_schema.md)
 
 ---
 ```
 
-### 🗂️ Índice Fijo de Secciones (nodulización estándar de la interfaz)
+### Índice Fijo de Secciones (nodulización estándar de la interfaz)
 
 El cuerpo del documento sigue **siempre** este orden de encabezados `##` — nunca uno nuevo por versión/ticket (Guard 9). Cada categoría vive en un único lugar; una actualización posterior edita esa sección in situ:
 
-1. **🗺️ Arquitectura de Información** — resumen del inventario/sitemap/user flows/wireframes de la Fase 1 (el detalle extenso puede vivir en un anexo o en `docs/02_architecture_design/assets/`, referenciado desde aquí).
-2. **🎨 Paleta de Color** — escala completa, modo claro/oscuro, notas de contraste.
-3. **🔤 Tipografía** — familias, escala modular, `line-height`.
-4. **📐 Retícula y Espaciado** — cuadrícula, columnas por breakpoint.
-5. **🎬 Motion & Micro-interacciones** — duración/curva por categoría de acción, `prefers-reduced-motion`.
-6. **📱 Breakpoints y Layout Responsivo**.
-7. **🧩 Catálogo de Componentes** — Atomic Design + Matriz de Estados por Componente Interactivo. Cualquier patrón específico del dominio del proyecto (ej. un sistema de ventanas modales, reglas de formato de datos de un componente) anida aquí como subsección — nunca como encabezado de nivel superior propio.
-8. **🖥️ Estados de UI a Nivel de Pantalla** — Loading/Data Ready/Empty/Error, transversal a todas las pantallas.
-9. **🗂️ Mapa de Ubicación en Código.**
-10. **🕰️ Historial de Versiones** — única sección cronológica del documento: tabla `Versión | Ticket/US | Sección(es) afectada(s) | Qué cambió`. Aquí y solo aquí vive la traza por versión.
+1. **Arquitectura de Información** — resumen del inventario/sitemap/user flows/wireframes de la Fase 1 (el detalle extenso puede vivir en un anexo o en `docs/02_architecture_design/assets/`, referenciado desde aquí).
+2. **Paleta de Color** — escala completa, modo claro/oscuro, notas de contraste.
+3. **Tipografía** — familias, escala modular, `line-height`.
+4. **Retícula y Espaciado** — cuadrícula, columnas por breakpoint.
+5. **Motion & Micro-interacciones** — duración/curva por categoría de acción, `prefers-reduced-motion`.
+6. **Breakpoints y Layout Responsivo**.
+7. **Catálogo de Componentes** — Atomic Design + Matriz de Estados por Componente Interactivo. Cualquier patrón específico del dominio del proyecto (ej. un sistema de ventanas modales, reglas de formato de datos de un componente) anida aquí como subsección — nunca como encabezado de nivel superior propio.
+8. **Estados de UI a Nivel de Pantalla** — Loading/Data Ready/Empty/Error, transversal a todas las pantallas.
+9. **Mapa de Ubicación en Código.**
+10. **Historial de Versiones** — única sección cronológica del documento: tabla `Versión | Ticket/US | Sección(es) afectada(s) | Qué cambió`. Aquí y solo aquí vive la traza por versión.
 
 Una categoría sin contenido aún (ej. proyecto nuevo sin motion tokens todavía) se conserva como encabezado vacío con una nota `_Pendiente — ver Guard 7_`, nunca se omite el encabezado ni se rellena con contenido de otra categoría.

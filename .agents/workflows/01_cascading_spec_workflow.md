@@ -1,4 +1,4 @@
-# 💡 Instrucción para el Agente de IA: Propagación de Nuevas Ideas o Funcionalidades
+# Instrucción para el Agente de IA: Propagación de Nuevas Ideas o Funcionalidades
 
 > [!IMPORTANT]
 > **DIRECTIVA PARA EL AGENTE DE IA:**
@@ -10,7 +10,7 @@
 > *   **Senior Product Owner:** Redacta y valida las User Stories bajo criterios INVEST y BDD Gherkin con escenarios Happy Path y Edge Cases.
 > *   **Database Administrator (DBA):** Vela por la consistencia del modelo físico de base de datos respetando la 3NF, tipos de datos correctos (Fixed-Point Decimal) y convenciones físicas.
 
-## 🧭 Proceso de Propagación en Cascada (Cascading Update Protocol)
+## Proceso de Propagación en Cascada (Cascading Update Protocol)
 
 Dada la idea o requerimiento suministrado por el usuario, debes ejecutar de forma autónoma las siguientes fases en orden secuencial:
 

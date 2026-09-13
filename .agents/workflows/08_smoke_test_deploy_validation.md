@@ -1,11 +1,11 @@
 ---
 name: 08_smoke_test_deploy_validation
 description: "Workflow de validación post-despliegue: ejecuta smoke tests de contratos HTTP, health checks y verificación de infraestructura OpenTofu para confirmar que el sistema en producción está operativo después de cada deploy."
-version: "1.0.0"
+version: "1.0.1"
 category: "workflows/deployment"
 ---
 
-# 🚀 Workflow 08: Smoke Test & Deploy Validation (v1.0.0)
+# Workflow 08: Smoke Test & Deploy Validation (v1.0.1)
 
 > **DIRECTIVA PARA EL AGENTE:**  
 > Actúa como un **Site Reliability Engineer (SRE)** y **DevSecOps Validator**.  
@@ -16,7 +16,7 @@ category: "workflows/deployment"
 
 ---
 
-## ⚡ Paso 1 — Health Check de Infraestructura (≤1 min)
+## Paso 1 — Health Check de Infraestructura (≤1 min)
 
 Verifica que los servicios críticos de infraestructura estén respondiendo:
 
@@ -34,7 +34,7 @@ Verifica que los servicios críticos de infraestructura estén respondiendo:
 
 ---
 
-## 🔗 Paso 2 — Smoke Tests de Contratos HTTP (≤3 min)
+## Paso 2 — Smoke Tests de Contratos HTTP (≤3 min)
 
 Ejecuta un subconjunto mínimo y representativo de los contratos de API declarados en `docs/03_persistence_and_api/openapi.yaml` para confirmar que los endpoints críticos responden correctamente:
 
@@ -82,7 +82,7 @@ curl -s -X POST "${BACKEND_URL}/api/v1/auth/login-pin" \
 
 ---
 
-## 📊 Paso 3 — Verificación de Métricas y Seguridad (≤1 min)
+## Paso 3 — Verificación de Métricas y Seguridad (≤1 min)
 
 1. **Cabeceras de Seguridad HTTP:** Verificar que las cabeceras obligatorias estén presentes en las respuestas:
    ```bash
@@ -93,9 +93,9 @@ curl -s -X POST "${BACKEND_URL}/api/v1/auth/login-pin" \
 
 ---
 
-## 🎯 Paso 4 — Veredicto y Acción
+## Paso 4 — Veredicto y Acción
 
-### Veredicto PASS ✅
+### Veredicto PASS
 Si los 3 pasos anteriores no emiten errores:
 ```text
 ✅ DEPLOY VALIDADO — Sistema operativo y contratos HTTP confirmados.
@@ -103,10 +103,10 @@ Registrar en docs/05_agile_planning/15_history.md:
   Deploy: [fecha UTC] | Commit: [sha] | Smoke Tests: PASS | Latencia: [ms]
 ```
 
-### Veredicto FAIL 🚨
+### Veredicto FAIL
 Si cualquier smoke test falla:
 ```text
-🚨 DEPLOY FALLIDO — Iniciar protocolo de rollback:
+🔴 DEPLOY FALLIDO — Iniciar protocolo de rollback:
 1. Ejecutar: tofu apply -target=[recurso_anterior]
 2. Notificar al equipo con el stacktrace del smoke test fallido.
 3. Abrir ticket de regresión invocando [07_production_observability_workflow.md](07_production_observability_workflow.md).
@@ -115,7 +115,7 @@ Si cualquier smoke test falla:
 
 ---
 
-## 🔄 Integración en el Pipeline CI/CD
+## Integración en el Pipeline CI/CD
 
 Este workflow se añade como **Job 5** al pipeline de `SK-10`:
 
@@ -136,7 +136,7 @@ smoke-test:
 
 ---
 
-## 📁 Script Asociado
+## Script Asociado
 
 Este workflow genera el script de automatización en `.agents/scripts/smoke_test.sh`.  
 Invoca [05_test_runner_workflow.md](05_test_runner_workflow.md) si se detectan regresiones.  

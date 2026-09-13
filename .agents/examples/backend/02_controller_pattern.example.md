@@ -1,10 +1,10 @@
-# 📐 Patrón Agnóstico: Controlador REST e Infraestructura
+# Patrón Agnóstico: Controlador REST e Infraestructura
 
 Este documento define la estructura abstracta (pseudocódigo) de un **Controlador HTTP REST** con sanitización activa de entradas y manejo de errores. Es 100% agnóstico de lenguaje y framework web.
 
 ---
 
-## 🧩 Pseudocódigo de Referencia:
+## Pseudocódigo de Referencia:
 
 ```text
 ESQUEMA_SANITIZACION EsquemaEntradaHTTP:

@@ -1,4 +1,4 @@
-# 🔢 Política de Versionado — Skills y Workflows
+# Política de Versionado — Skills y Workflows
 
 `.agents/` versiona cada skill de forma independiente (`version` en su frontmatter) y el framework completo como un todo (`version` en el frontmatter de [README.md](README.md)). No existe hoy una matriz automática de compatibilidad — este documento fija la política hasta que exista tooling para verificarla.
 

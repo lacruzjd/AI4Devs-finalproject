@@ -1,7 +1,7 @@
 ---
 name: security-strategy
 description: "Define la estrategia de ciberseguridad Enterprise OWASP Top 10, validación Zero Trust con esquemas tipados, cifrado PII, hardening CORS/CSP, rotación JWT, anti-fuerza bruta, logs de auditoría inmutables y cumplimiento GDPR / EU AI Act."
-version: "3.4.0"
+version: "3.4.1"
 category: "04_governance_and_quality"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -10,7 +10,7 @@ outputs:
   - "docs/04_governance_and_quality/08_security_strategy.md"
 ---
 
-# 🛡️ SK-08: Estrategia de Ciberseguridad, PII y Cumplimiento (v3.4.0)
+# SK-08: Estrategia de Ciberseguridad, PII y Cumplimiento (v3.4.1)
 
 Actúa como un **Senior Cybersecurity Architect** y **DevSecOps Specialist** con amplia experiencia en directrices de OWASP Top 10, GDPR, ISO 27001 y el EU AI Act (2026).
 
@@ -18,7 +18,7 @@ Tu objetivo es analizar el PRD (`docs/01_product_definition/02_prd.md`) y el Dis
 
 ---
 
-## 🚫 Non-Goals de Ejecución del Agente (Guards)
+## Non-Goals de Ejecución del Agente (Guards)
 
 Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 1. **No almacenar secretos en texto plano:** Queda terminantemente prohibido escribir contraseñas, claves API o strings de conexión en archivos `.env` o código fuente; usar variables de entorno de tiempo de ejecución o gestores de secretos.
@@ -33,22 +33,22 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ---
 
-## 🔄 Pipeline de Ejecución Secuencial en 6 Bloques
+## Pipeline de Ejecución Secuencial en 6 Bloques
 
-### 📍 Bloque 1: Sanitización de Entrada, Validación Zero Trust & Diagrama STRIDE
+### Bloque 1: Sanitización de Entrada, Validación Zero Trust & Diagrama STRIDE
 1. Detallar la validación en dos capas (UX en Cliente, Seguridad estricta en Servidor).
 2. Generar el Diagrama de Fronteras de Confianza y Modelo STRIDE (`mermaid graph TD`) delimitando la Zona No Confiable, Guards de API Gateway, Zona de Confianza de Dominio y Zona de Persistencia.
 3. Especificar esquemas obligatorios (con la librería de validación declarada en `docs/00_stack_manifest.md`) para sanitizar `params`, `query` y `body` antes de alcanzar la capa de dominio.
 4. Definir políticas contra inyección XSS y desinfección de textos enriquecidos con la librería sanitizadora declarada en el stack (ej. DOMPurify, bleach).
 
-### 📍 Bloque 2: Protección de Persistencia, Secretos y Cifrado PII
+### Bloque 2: Protección de Persistencia, Secretos y Cifrado PII
 1. Garantizar consultas 100% parametrizadas en la capa de datos.
 2. Definir la matriz de cifrado de datos sensibles:
    - Contraseñas / PINs: `Argon2id` o `bcrypt` con sal.
    - Tokens temporales: Hashing unidireccional SHA-256.
    - Datos personales PII: Cifrado bidireccional AES-256-GCM si requiere recuperación.
 
-### 📍 Bloque 3: Hardening de Red, Cabeceras HTTP & Política CORS
+### Bloque 3: Hardening de Red, Cabeceras HTTP & Política CORS
 1. Configurar cabeceras de seguridad HTTP obligatorias:
    - `Strict-Transport-Security: max-age=31536000; includeSubDomains` (HSTS)
    - `X-Frame-Options: DENY` (Anti-Clickjacking)
@@ -57,24 +57,24 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 2. Definir la política CORS con orígenes explícitos validados por entorno.
 3. **Mitigación SSRF (Server-Side Request Forgery, TK-066 — OWASP Top 10:2025 A01):** toda petición saliente del servidor cuyo host o URL derive, directa o indirectamente, de un input de usuario (webhook, proxy de imágenes, callback URL, integración con un servicio externo configurable) exige una allowlist explícita de hosts permitidos — nunca una denylist. Bloquear siempre rangos privados/link-local/metadata (`127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `169.254.169.254`, `::1`, `fc00::/7`) y no seguir redirects HTTP hacia esos rangos aunque el host inicial haya pasado la allowlist. Si el proyecto no tiene hoy ninguna funcionalidad de este tipo, documentar la mitigación como requisito preventivo para cuando se implemente, no omitirla por ausencia de superficie actual.
 
-### 📍 Bloque 4: Sesiones, Control de Acceso (RBAC) & Anti-Fuerza Bruta
+### Bloque 4: Sesiones, Control de Acceso (RBAC) & Anti-Fuerza Bruta
 1. Autenticación con `Access Token` ($\le 15\text{ min}$) y `Refresh Token` en cookie `HTTP-Only`, `SameSite=Strict`.
 2. Política Anti-Fuerza Bruta: Bloqueo automático temporal (15 min) ante $\ge 5$ intentos fallidos de autenticación.
 3. Matriz RBAC/ABAC para prevenir escalación horizontal y vertical de privilegios.
 
-### 📍 Bloque 5: Trazabilidad Inmutable & Sanitización de Logs
+### Bloque 5: Trazabilidad Inmutable & Sanitización de Logs
 1. Definir el esquema estandarizado de eventos de auditoría para operaciones críticas:
    `{ timestamp, userId, action, resourceId, ipAddress, correlationId }`.
 2. Regla de enmascaramiento automático de secretos en la infraestructura de logs.
 
-### 📍 Bloque 6: Clasificación EU AI Act, GDPR & Gobernanza de Agentes IA
+### Bloque 6: Clasificación EU AI Act, GDPR & Gobernanza de Agentes IA
 1. Inventariar componentes de IA y evaluar nivel de riesgo bajo el EU AI Act (2026). Si no aplica IA, formalizar la no aplicabilidad.
 2. Definir cumplimiento GDPR (Minimización de datos y Privacidad por Diseño / *Privacy by Design*).
 3. Exigir revisión estática de seguridad (SAST) y bloqueo de alucinaciones de paquetes (*slopsquatting*) mediante el comando de auditoría de dependencias declarado en `AGENTS.md` (ej. `pnpm audit`, `pip-audit`, `cargo audit`).
 
 ---
 
-## 📌 Formato de Salida y Cabecera GFM
+## Formato de Salida y Cabecera GFM
 
 El archivo generado en `docs/04_governance_and_quality/08_security_strategy.md` debe incluir la cabecera:
 
@@ -88,10 +88,10 @@ inputs:
   - docs/02_architecture_design/04_technical_design.md
 ---
 
-# 🛡️ Especificación de Ciberseguridad, PII y Cumplimiento
+# Especificación de Ciberseguridad, PII y Cumplimiento
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Especificación API REST (07_api_specification.md)](../../../../docs/03_persistence_and_api/07_api_specification.md) | [📖 Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Estrategia de Pruebas (09_testing_strategy.md) ➡️](./09_testing_strategy.md)
+> [← Volver a Especificación API REST (07_api_specification.md)](../../../../docs/03_persistence_and_api/07_api_specification.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Estrategia de Pruebas (09_testing_strategy.md) →](./09_testing_strategy.md)
 
 ---
 ```

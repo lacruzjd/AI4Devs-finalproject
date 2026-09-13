@@ -1,7 +1,7 @@
 ---
 name: prd-generation
 description: "Genera el Documento de Requisitos de Producto (PRD) agnóstico de alta fidelidad con ejecuciones secuenciales por fases, Naming Strategy, Historias INVEST, BDD Gherkin con códigos HTTP y políticas TDD."
-version: "2.3.0"
+version: "2.3.1"
 category: "01_product_definition"
 inputs:
   - "docs/01_product_definition/01_product_discovery.md"
@@ -14,14 +14,14 @@ Actúa como un Senior Product Manager y Principal Product Architect experto en m
 
 ---
 
-## 📌 FASES SECUENCIALES DE EJECUCIÓN DEL AGENTE (WORKFLOW PIPELINE)
+## FASES SECUENCIALES DE EJECUCIÓN DEL AGENTE (WORKFLOW PIPELINE)
 
-### 🔹 FASE 1: Ingesta y Validación de Contratos (Tiempo estimado: 3–5 min)
+### FASE 1: Ingesta y Validación de Contratos (Tiempo estimado: 3–5 min)
 * **Dependencias Explícitas:** `docs/01_product_definition/01_product_discovery.md` y `01_glosario_y_reglas_negocio.md`.
 * **Criterio de Aceptación Verificable:** Mapeo completo de los User Personas, la UVP y las Invariantes sin vacíos de dominio.
 * **Lo que NO DEBE cambiar:** Los archivos de entrada `01_product_discovery.md` y `01_glosario_y_reglas_negocio.md` son inmutables y no se alteran.
 
-### 🔹 FASE 2: Protocolo de Naming Strategy (Tiempo estimado: 2–5 min)
+### FASE 2: Protocolo de Naming Strategy (Tiempo estimado: 2–5 min)
 * **Dependencias Explícitas:** Términos de Lenguaje Ubicuo y UVP validados en la Fase 1.
 * **Protocolo Operativo:**
   1. *Nombre Definido:* Si `01_product_discovery.md` ya especifica un nombre definitivo, utilízalo incondicionalmente para titular el PRD y nombrar el archivo de salida (`03_[nombre]_prd.md`).
@@ -29,14 +29,14 @@ Actúa como un Senior Product Manager y Principal Product Architect experto en m
 * **Criterio de Aceptación Verificable:** Confirmación del nombre definitivo del producto.
 * **Lo que NO DEBE cambiar:** La delimitación del MVP ni los objetivos de KPIs de negocio.
 
-### 🔹 FASE 3: Generación de Especificación PRD & BDD (Tiempo estimado: 5–10 min)
+### FASE 3: Generación de Especificación PRD & BDD (Tiempo estimado: 5–10 min)
 * **Dependencias Explícitas:** Nombre confirmado (Fase 2) + Invariantes del Glosario de la Fase 1.
 * **Criterio de Aceptación Verificable:** Archivo `02_prd.md` creado con navegación GFM, 6 secciones 1-indexed, BDD con respuestas HTTP exactas y política TDD anti-Test Theater.
 * **Lo que NO DEBE cambiar:** Las Invariantes de Negocio declaradas en `01_glosario_y_reglas_negocio.md`.
 
 ---
 
-## 🛑 NON-GOALS DE LA EJECUCIÓN DEL AGENTE (FUERA DE ALCANCE)
+## NON-GOALS DE LA EJECUCIÓN DEL AGENTE (FUERA DE ALCANCE)
 1. **No escribir código de producción:** El agente NO debe generar código de aplicación en ningún lenguaje o framework durante la ejecución de este skill — el stack tecnológico todavía no ha sido decidido en este punto del ciclo (se decide después, en `SK-04`).
 2. **No alterar el modelo de datos de infraestructura:** No crear schemas de ORM ni migraciones SQL.
 3. **No ejecutar ni modificar suites de pruebas:** Ninguna suite de pruebas existente se toca hasta la fase de desarrollo/codificación.
@@ -47,12 +47,12 @@ Tu objetivo es procesar los insumos y generar un PRD agnóstico estructurado baj
 
 ---
 
-`> **Navegación:** [01_product_discovery.md](../../../../docs/01_product_definition/01_product_discovery.md) ➔ [01_glosario_y_reglas_negocio.md](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) ➔ [ 02_prd.md ]`
+`> **Navegación:** [01_product_discovery.md](../../../../docs/01_product_definition/01_product_discovery.md) → [01_glosario_y_reglas_negocio.md](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) → [ 02_prd.md ]`
 
 
-# 📝 Documento de Requisitos de Producto (PRD) - [NOMBRE_PRODUCTO]
+# Documento de Requisitos de Producto (PRD) - [NOMBRE_PRODUCTO]
 
-## 📌 ÍNDICE DE CONTENIDOS
+## ÍNDICE DE CONTENIDOS
 1. [Descripción General del Producto](#1-descripción-general-del-producto)
 2. [Definición de Usuarios (User Personas)](#2-definición-de-usuarios-user-personas)
 3. [Flujo End-to-End Prioritario](#3-flujo-end-to-end-prioritario)

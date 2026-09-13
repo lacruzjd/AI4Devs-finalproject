@@ -1,14 +1,14 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.16.0"
+version: "2.17.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
 license: "MIT"
 ---
 
-# 🤖 momoy
+# momoy
 > Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado.
 
 **momoy** es el nombre del framework; `.agents/` es la carpeta donde se instala en cada proyecto.
@@ -16,17 +16,17 @@ license: "MIT"
 Este directorio contiene las meta-directivas, reglas de gobernanza y habilidades procedimentales que guían el comportamiento de cualquier asistente de desarrollo basado en Inteligencia Artificial que lea `AGENTS.md` (Claude Code, Gemini, Google Antigravity, Codex, etc.) en el proyecto.
 
 > [!IMPORTANT]
-> **✋ REGLA INNEGOCIABLE DE APROBACIÓN PREVIA (HUMAN-IN-THE-LOOP):**
+> **REGLA INNEGOCIABLE DE APROBACIÓN PREVIA (HUMAN-IN-THE-LOOP):**
 > Antes de guardar cambios o crear cualquier archivo de especificación, diseño, sistema de color, arquitectura o código fuente, el Agente DEBE presentar primero su propuesta completa o borrador al Usuario (Especialista) y obtener su confirmación o aprobación explícita. Queda terminantemente prohibido modificar o crear archivos en disco sin previa autorización del usuario. **Esta regla cubre también al propio `.agents/`** — un cambio a `rules/`, `skills/` o `workflows/` (propuesto por el agente, o recibido vía PR externo tras instalar/actualizar el framework) no gobierna ninguna invocación hasta que el humano confirmó explícitamente ese diff ([`rules/03_untrusted_content_standard.md`](rules/03_untrusted_content_standard.md), Regla 5).
 
 > [!IMPORTANT]
-> **📦 FASE 0 OBLIGATORIA — LECTURA DEL STACK MANIFEST (Guard 24):**
+> **FASE 0 OBLIGATORIA — LECTURA DEL STACK MANIFEST (Guard 24):**
 > Antes de ejecutar cualquier Skill que genere código, configuración o infraestructura, el agente DEBE leer `docs/00_stack_manifest.md` como **Fase 0**. Este archivo es la **Fuente Única de Verdad (SSoT)** del stack tecnológico aprobado por el humano. Si una herramienta, versión o comando no aparece en ese manifiesto → **DETENERSE e informar al humano**. Nunca asumir ni inventar decisiones tecnológicas.
 
 
 ---
 
-## 📥 0. Instalación en un Proyecto Nuevo
+## 0. Instalación en un Proyecto Nuevo
 
 Desde un repositorio que ya tenga `.agents/` (como este), instala una copia en otro proyecto:
 ```bash
@@ -36,7 +36,7 @@ Copia `.agents/` completo y genera `AGENTS.md` (stub de arranque, no el contrato
 
 Si no tienes acceso a un repo con `.agents/` ya instalado, copia manualmente la carpeta `.agents/` completa al proyecto destino y crea a mano los 3 archivos de entrypoint con el contenido que genera `install.sh` — no hay dependencia de build ni paquete que instalar, son archivos markdown planos.
 
-### 🚀 Primeros Pasos (Quickstart)
+### Primeros Pasos (Quickstart)
 
 `.agents/` no genera nada por sí solo — guía a un agente de IA a través de un flujo progresivo, con aprobación humana explícita en cada paso (ver banner HITL arriba):
 
@@ -48,7 +48,7 @@ Si no tienes acceso a un repo con `.agents/` ya instalado, copia manualmente la 
 
 ---
 
-## 🗺️ 1. Arquitectura del Arnés momoy
+## 1. Arquitectura del Arnés momoy
 
 El marco opera bajo una arquitectura desacoplada en 3 capas de responsabilidad:
 
@@ -83,7 +83,7 @@ flowchart TD
 
 ---
 
-## ⚡ 2. Guía de Invocación Rápida (Cheatsheet de Prompts)
+## 2. Guía de Invocación Rápida (Cheatsheet de Prompts)
 
 | Deseo / Tarea | Prompt de Invocación Recomendado |
 |:---|:---|
@@ -101,15 +101,15 @@ flowchart TD
 
 ---
 
-## 💡 3. Meta-Protocolos de Trabajo (Master Workflows)
+## 3. Meta-Protocolos de Trabajo (Master Workflows)
 
 Para asegurar que el desarrollo se realice bajo el enfoque **Verified Spec-Driven Development (VSDD)**, el agente debe seguir strictly estos flujos maestros:
 
 *   **[Mapa y Trazo Maestro VSDD](workflows/00_master_vsdd_workflow.md):** Diagrama de secuencia y explicación end-to-end desde la idea inicial hasta el commit atómico en Git.
-*   **[Bootstrap de Proyecto Greenfield](workflows/00_greenfield_bootstrap_workflow.md):** Se ejecuta **una única vez por proyecto**, antes que cualquier otro workflow: decide el stack tecnológico con el humano, genera `docs/00_stack_manifest.md`, scaffoldea el repositorio y el esqueleto mínimo de `docs/` para que el resto de la cascada pueda operar (`Idea ➔ Repositorio Operativo`).
-*   **[Adopción de Proyecto Brownfield](workflows/00_brownfield_adoption_workflow.md):** El equivalente para código existente sin `docs/` previo — se ejecuta **una única vez por proyecto**: reconstruye producto, dominio y stack por ingeniería inversa + entrevista humana obligatoria (nunca por inferencia silenciosa), descubre (no decide) el stack real vía `SK-04`, y cataloga deuda técnica (`Código Existente ➔ .agents/ Operativo`).
-*   **[Protocolo de Especificación en Cascada (Nuevas Ideas / Specs)](workflows/01_cascading_spec_workflow.md):** Guía paso a paso para analizar el impacto, actualizar el PRD, modelar la base de datos, adaptar el contrato OpenAPI y registrar los tickets de Agile de forma secuencial (`Idea ➔ docs/`).
-*   **[Protocolo de Desarrollo en Cascada (Codificación / Tickets)](workflows/02_cascading_dev_workflow.md):** Guía paso a paso para ejecutar un ticket técnico desde la extracción de reglas, migraciones, TDD, verificación de linter, pruebas visuales y commit atómico (`TK-XXX ➔ apps/`).
+*   **[Bootstrap de Proyecto Greenfield](workflows/00_greenfield_bootstrap_workflow.md):** Se ejecuta **una única vez por proyecto**, antes que cualquier otro workflow: decide el stack tecnológico con el humano, genera `docs/00_stack_manifest.md`, scaffoldea el repositorio y el esqueleto mínimo de `docs/` para que el resto de la cascada pueda operar (`Idea → Repositorio Operativo`).
+*   **[Adopción de Proyecto Brownfield](workflows/00_brownfield_adoption_workflow.md):** El equivalente para código existente sin `docs/` previo — se ejecuta **una única vez por proyecto**: reconstruye producto, dominio y stack por ingeniería inversa + entrevista humana obligatoria (nunca por inferencia silenciosa), descubre (no decide) el stack real vía `SK-04`, y cataloga deuda técnica (`Código Existente → .agents/ Operativo`).
+*   **[Protocolo de Especificación en Cascada (Nuevas Ideas / Specs)](workflows/01_cascading_spec_workflow.md):** Guía paso a paso para analizar el impacto, actualizar el PRD, modelar la base de datos, adaptar el contrato OpenAPI y registrar los tickets de Agile de forma secuencial (`Idea → docs/`).
+*   **[Protocolo de Desarrollo en Cascada (Codificación / Tickets)](workflows/02_cascading_dev_workflow.md):** Guía paso a paso para ejecutar un ticket técnico desde la extracción de reglas, migraciones, TDD, verificación de linter, pruebas visuales y commit atómico (`TK-XXX → apps/`).
 *   **[Auditoría de Especificaciones VSDD Workflow](workflows/03_spec_audit_workflow.md):** Meta-prompt de auditoría en 7 fases para auditar la suficiencia de la documentación viva antes de codificar (`docs/`).
 *   **[Auditoría de Código y Calidad VSDD Workflow](workflows/04_dev_audit_workflow.md):** Meta-prompt de auditoría en 7 fases para la revisión adversarial del Reviewer Independiente sobre el código antes de hacer commit (`apps/`).
 *   **[Agente Autónomo de Testing Workflow](workflows/05_test_runner_workflow.md):** Subagente especializado en el bucle autónomo TDD (Red-Green-Refactor).
@@ -120,7 +120,7 @@ Para asegurar que el desarrollo se realice bajo el enfoque **Verified Spec-Drive
 
 ---
 
-## 🔴 4. Reglas y Estándares del Proyecto (Project Specifications)
+## 4. Reglas y Estándares del Proyecto (Project Specifications)
 
 Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestructura IaC es **dinámica y agnóstica**, e inferida directamente por las habilidades a partir de la documentación viva del proyecto en `docs/`:
 
@@ -132,7 +132,7 @@ Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestruc
 
 ---
 
-## 🔵 5. Catálogo de Skills por Fase y Rol Técnico
+## 5. Catálogo de Skills por Fase y Rol Técnico
 
 Las 35 habilidades son runbooks especializados organizados por fases y roles técnicos que la IA carga bajo demanda:
 
@@ -161,7 +161,7 @@ Las 35 habilidades son runbooks especializados organizados por fases y roles té
 
 ---
 
-## 🧹 6. Mantenimiento y Verificación de Integridad
+## 6. Mantenimiento y Verificación de Integridad
 
 Para verificar autónomamente que el arnés `.agents/` no contenga enlaces rotos ni colisiones tras modificar o añadir habilidades:
 
@@ -171,7 +171,7 @@ bash .agents/scripts/validate_agents.sh
 
 ---
 
-## 📜 7. Licencia y Reutilización
+## 7. Licencia y Reutilización
 
 Este marco de gobernanza y habilidades (`.agents/`) se distribuye bajo la **[Licencia MIT](LICENSE)**. Es 100% abierto, portátil y reutilizable en cualquier proyecto o repositorio comercial o privado sin restricciones de tipo Copyleft / GPL.
 

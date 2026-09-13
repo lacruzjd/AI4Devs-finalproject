@@ -1,4 +1,4 @@
-# ⚙️ Instrucción para el Agente de IA: Protocolo de Desarrollo en Cascada
+# Instrucción para el Agente de IA: Protocolo de Desarrollo en Cascada
 
 > [!IMPORTANT]
 > **DIRECTIVA PARA EL AGENTE DE IA:**
@@ -12,7 +12,7 @@
 
 ---
 
-## 🧭 Proceso de Desarrollo en Cascada (Cascading Development Protocol)
+## Proceso de Desarrollo en Cascada (Cascading Development Protocol)
 
 Dado el ticket técnico (`TK-XXX`) o requerimiento de codificación suministrado por el usuario, debes ejecutar de forma autónoma las siguientes fases en orden secuencial:
 
@@ -47,7 +47,7 @@ Si el ticket modifica o crea modelos de base de datos:
 ### FASE 3: Implementación Guiada por Pruebas - TDD (`SK-16` / `SK-17` & `05_test_runner_workflow`)
 Ejecuta la skill correspondiente ([SK-16 Backend](../skills/development/02_backend_development/SK-16_develop_backend_ticket.md) o [SK-17 Frontend](../skills/development/03_frontend_development/SK-17_develop_frontend_ticket.md)) delegando el bucle determinista de pruebas al subagente [05_test_runner_workflow.md](05_test_runner_workflow.md):
 1. **RED:** Escribir primero el test unitario o de integración usando `InMemoryRepository` fakes, confirmando el estado de fallo explícito.
-2. **GREEN:** Implementar el código mínimo en capas Hexagonales (`Domain` ➔ `Application` ➔ `Infrastructure`) hasta pasar el test.
+2. **GREEN:** Implementar el código mínimo en capas Hexagonales (`Domain` → `Application` → `Infrastructure`) hasta pasar el test.
 3. **REFACTOR & MUTATION:** Limpiar código e invocar la verificación de mutación según el umbral definido en `docs/04_governance_and_quality/rules/testing_rules.md`.
 
 ---
@@ -106,7 +106,7 @@ Si esta fase no encuentra ninguna corrección que pase el filtro del punto 1, re
 
 ---
 
-## 🚫 REGLAS DE EJECUCIÓN INNEGOCIABLES:
+## REGLAS DE EJECUCIÓN INNEGOCIABLES:
 1. **No Vibe-Coding (Guard 26):** Jamás comiences a escribir clases o controladores sin haber leído las reglas en `docs/04_governance_and_quality/rules/` y el ticket específico — y si ese ticket no existe todavía, el primer paso es crearlo vía la Etapa 1 (`01_cascading_spec_workflow.md`), nunca escribir el código primero y documentarlo después.
 2. **InMemory Fakes:** Nunca uses mocks complejos de bases de datos para tests unitarios. Utiliza repositorios falsos en memoria (`InMemoryRepository`).
 3. **Commit por Ticket:** No consolides el trabajo de varios tickets en un solo commit. Mantén la trazabilidad git impecable.

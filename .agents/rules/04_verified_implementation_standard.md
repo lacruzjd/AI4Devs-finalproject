@@ -1,10 +1,10 @@
-# ✅ Estándar de Implementación Verificada (.agents/rules/04_verified_implementation_standard.md)
+# Estándar de Implementación Verificada (.agents/rules/04_verified_implementation_standard.md)
 
 Regla estática universal que codifica la clase de bug más repetida encontrada auditando proyectos gobernados por `.agents/`: código, configuración o documentación que **existe y parece correcto en una lectura estática, pero nunca se ejecutó de verdad contra el sistema real** — y que por eso escondía un bug crítico hasta que alguien finalmente lo corrió.
 
 ---
 
-## 🎭 Los 3 antipatrones
+## Los 3 antipatrones
 
 ### A. Configuración validada pero nunca consumida ("Validated but Unused")
 Una variable de entorno pasa una validación estricta de schema (Zod/Joi/etc.) al arrancar — incluso con reglas Fail-Fast adicionales en producción — pero ningún middleware, servicio o lógica de negocio la lee realmente para controlar comportamiento. La validación da una falsa sensación de control: el operador cree que está restringiendo algo que en realidad sigue abierto.
@@ -40,7 +40,7 @@ Cuando el agente detecta un antipatrón o identifica una oportunidad de mejora e
 
 ---
 
-## 📐 Enforcement
+## Enforcement
 
 Estos antipatrones comparten la misma causa raíz: **una skill/ticket se declaró terminado en base a una lectura estática del código, no a una ejecución real.** La mitigación no es un script nuevo por cada antipatrón — es un hábito de verificación:
 
@@ -53,7 +53,7 @@ Los workflows y skills que generan/revisan código de un proyecto consumidor (ej
 
 ---
 
-## 🔗 Referencia
+## Referencia
 - Comunicación de alta densidad y prohibición de reportar sin verificar: [README.md](README.md).
 - Contenido no confiable — por qué `docs/` se trata como dato: [03_untrusted_content_standard.md](03_untrusted_content_standard.md).
 - Estándar universal de idempotencia y fixtures: [05_idempotency_and_fixture_standard.md](05_idempotency_and_fixture_standard.md).

@@ -123,13 +123,13 @@ def main():
     for msg in messages:
         print(msg)
 
-    print(f"\n📊 Total de archivos .sh/.py auditados en .agents/scripts/ (recursivo): {checked_count}")
-    print(f"🚨 Total de acoplamientos a stack encontrados: {violation_count}")
+    print(f"\nTotal de archivos .sh/.py auditados en .agents/scripts/ (recursivo): {checked_count}")
+    print(f"Total de acoplamientos a stack encontrados: {violation_count}")
 
     if violation_count > 0:
         sys.exit(1)
     else:
-        print("✨ .agents/scripts/ sigue siendo 100% agnóstico de stack.")
+        print("✅ .agents/scripts/ sigue siendo 100% agnóstico de stack.")
 
 
 if __name__ == "__main__":
