@@ -5,13 +5,7 @@ Static universal behavior rules and non-goals protection active at all times acr
 ---
 
 ## Root Contract Generation Standard (AGENTS.md Blueprint)
-When generating or initializing the root `AGENTS.md` contract for any project, the AI agent MUST strictly follow the audited 6-section blueprint:
-1. **Quick Agent Execution Commands:** Define exact CLI commands with flags for `test`, `build`, `lint`, and `schema validation` at the top of the file.
-2. **Project Context & Tech Stack:** Explicitly specify Backend, Frontend, DB/ORM, Sanitization, Precision library, Testing runner, and Workspace tooling.
-3. **Few-Shot Pattern Standards:** Provide short code snippets contrasting `Avoided` vs `Preferred` patterns (e.g. Value Objects vs primitives, In-Memory Fakes vs DB mocks).
-4. **Security Boundaries & Restricted Zones ("Don't Touch"):** Enforce rules against committing real secrets, modifying applied migrations, and the **Test Protection Guard** (prohibiting skipping, deleting, or disabling failing tests).
-5. **Communication & Anti-Verbosity Policy:** Mandatory High-Density Rationale, zero conversational preamble, no artifact re-summarization.
-6. **Quality Gates & Cascading Integration:** Enforce TDD Red-Green-Refactor, active input sanitization with the validation library declared in `docs/00_stack_manifest.md`, 0 lint/build errors, atomic Git commits, and independent reviewer audit.
+When generating or initializing the root `AGENTS.md` contract for any project, the AI agent MUST follow the 6-section blueprint defined in [`SK-35_generate_root_contract.md`](../skills/specs/04_governance_and_quality/SK-35_generate_root_contract.md) (Phase 1). That skill is the single source of the blueprint; it is not repeated here so the two cannot drift apart.
 
 ---
 

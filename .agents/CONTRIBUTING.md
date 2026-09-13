@@ -6,7 +6,7 @@
 
 ## Añadir una nueva Skill
 
-1. **ID secuencial sin huecos ni duplicados.** Las skills se numeran `SK-01` a `SK-34` (hoy) sin saltos. Antes de crear una nueva, corre `bash .agents/scripts/validate_agents.sh` para confirmar el siguiente ID libre — el script falla si detecta un ID duplicado y avisa (no bloqueante) si hay huecos.
+1. **ID secuencial sin huecos ni duplicados.** Las skills se numeran de forma correlativa desde `SK-01`, sin saltos (el total actual lo reporta `validate_agents.sh`; no se anota aquí para que no quede obsoleto). Antes de crear una nueva, corre `bash .agents/scripts/validate_agents.sh` para confirmar el siguiente ID libre — el script falla si detecta un ID duplicado y avisa (no bloqueante) si hay huecos.
 2. **Ubicación por fase y rol**, no por conveniencia:
    - `skills/specs/<NN>_<fase>/` para skills de la Fase Documental (Product Owner / Architect).
    - `skills/development/<NN>_<fase>/` para skills de Codificación y Calidad (Developer / QA / DevSecOps).
@@ -26,7 +26,7 @@
    ---
    ```
    Cada ruta en `required_rules` DEBE existir en el repo — `check_links.py` lo valida en CI y falla si no.
-4. **Registrar la skill en `README.md`** (sección 5, catálogo) con su enlace relativo.
+4. **Registrar la skill en `README.md`** (sección 4, catálogo) con su enlace relativo.
 5. **Versionado semántico independiente por skill.** Cambios de comportamiento incompatibles → MAJOR; nuevas fases/checklist → MINOR; correcciones de redacción → PATCH.
 
 ## Añadir o modificar un Workflow
@@ -45,7 +45,7 @@ Los comandos (`/momoy`, `/momoy-*`) son la interfaz pública de momoy: siguen el
 
 1. **Ubicación y nombre:** `skills/<nombre>/SKILL.md`, con `name` igual al directorio, en minúsculas y guiones, y el prefijo `momoy-` reservado (evita chocar con comandos nativos como `/init` o `/code-review`).
 2. **Solo campos portables en el frontmatter:** `name`, `description`, `license`, `metadata`. `description` dice **qué hace y cuándo usarlo** (y cuándo no), en una sola línea de hasta 1024 caracteres, y termina con "Solo por invocación explícita del usuario." — es la única señal que Antigravity y Gemini tienen para no activarlo solos.
-3. **Punto de entrada delgado:** el cuerpo declara la entrada esperada y referencia el workflow, script o procedimiento `SK-NN` que ejecuta (`.agents/workflows/...`, `.agents/skills/specs|development/.../SK-NN_*.md`); nunca copia el procedimiento ni apunta a otro comando. Si ambos discrepan, manda lo referenciado.
+3. **Punto de entrada delgado:** el cuerpo declara la entrada esperada y referencia el workflow, script o procedimiento `SK-NN` que ejecuta (`.agents/workflows/...`, `.agents/skills/specs|development/.../SK-NN_*.md`); nunca copia el procedimiento ni apunta a otro comando. Si ambos discrepan, manda lo referenciado. **Ningún paso, pausa ni regla propia vive en el comando**: si hace falta, se añade al procedimiento, para que también lo reciba quien lo invoque sin skills. El cuerpo es solo `**Entrada:**`, una frase de delegación y las reglas estándar.
 4. **Invocación explícita en cada herramienta:** `agents/openai.yaml` con `policy.allow_implicit_invocation: false` (Codex). Para Claude Code no se edita la fuente: `sync_claude_skills.sh` genera la copia en `.claude/skills/` con `disable-model-invocation: true` — córrelo tras añadir o renombrar un comando.
 5. **Registrar el comando** en la tabla de la sección 2 de `README.md`.
 6. **Filtro antes de crear uno:** (a) tiene un disparador humano propio, (b) se usa fuera de un workflow, (c) ningún comando existente lo cubre y (d) el procedimiento que ejecuta ya existe. Si falla (a), (b) o (c), no es un comando — y si una skill `SK-NN` no la invoca ningún workflow pese a no tener uso independiente, lo que falta es cablearla, no un comando. Si solo falla (d), el comando se crea junto con su procedimiento, nunca antes.

@@ -1,7 +1,7 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.20.0"
+version: "2.21.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
@@ -89,6 +89,8 @@ flowchart TD
     S_Dev --> Rules
 ```
 
+El recorrido end-to-end del ciclo VSDD, y el diagnóstico de estado que ejecuta `/momoy`, están en el [Mapa y Trazo Maestro VSDD](workflows/00_master_vsdd_workflow.md).
+
 ---
 
 ## 2. Comandos de momoy
@@ -144,26 +146,7 @@ Sin argumentos genera un informe del repositorio que **no bloquea** (la deuda do
 
 ---
 
-## 3. Meta-Protocolos de Trabajo (Master Workflows)
-
-Para asegurar que el desarrollo se realice bajo el enfoque **Verified Spec-Driven Development (VSDD)**, el agente debe seguir strictly estos flujos maestros:
-
-*   **[Mapa y Trazo Maestro VSDD](workflows/00_master_vsdd_workflow.md):** Diagrama de secuencia y explicación end-to-end desde la idea inicial hasta el commit atómico en Git.
-*   **[Bootstrap de Proyecto Greenfield](workflows/00_greenfield_bootstrap_workflow.md):** Se ejecuta **una única vez por proyecto**, antes que cualquier otro workflow: decide el stack tecnológico con el humano, genera `docs/00_stack_manifest.md`, scaffoldea el repositorio y el esqueleto mínimo de `docs/` para que el resto de la cascada pueda operar (`Idea → Repositorio Operativo`).
-*   **[Adopción de Proyecto Brownfield](workflows/00_brownfield_adoption_workflow.md):** El equivalente para código existente sin `docs/` previo — se ejecuta **una única vez por proyecto**: reconstruye producto, dominio y stack por ingeniería inversa + entrevista humana obligatoria (nunca por inferencia silenciosa), descubre (no decide) el stack real vía `SK-04`, y cataloga deuda técnica (`Código Existente → .agents/ Operativo`).
-*   **[Protocolo de Especificación en Cascada (Nuevas Ideas / Specs)](workflows/01_cascading_spec_workflow.md):** Guía paso a paso para analizar el impacto, actualizar el PRD, modelar la base de datos, adaptar el contrato OpenAPI y registrar los tickets de Agile de forma secuencial (`Idea → docs/`).
-*   **[Protocolo de Desarrollo en Cascada (Codificación / Tickets)](workflows/02_cascading_dev_workflow.md):** Guía paso a paso para ejecutar un ticket técnico desde la extracción de reglas, migraciones, TDD, verificación de linter, pruebas visuales y commit atómico (`TK-XXX → apps/`).
-*   **[Auditoría de Especificaciones VSDD Workflow](workflows/03_spec_audit_workflow.md):** Meta-prompt de auditoría en 7 fases para auditar la suficiencia de la documentación viva antes de codificar (`docs/`).
-*   **[Auditoría de Código y Calidad VSDD Workflow](workflows/04_dev_audit_workflow.md):** Meta-prompt de auditoría en 7 fases para la revisión adversarial del Reviewer Independiente sobre el código antes de hacer commit (`apps/`).
-*   **[Agente Autónomo de Testing Workflow](workflows/05_test_runner_workflow.md):** Subagente especializado en el bucle autónomo TDD (Red-Green-Refactor).
-*   **[Pipeline QA Completo v2.1 Workflow](workflows/06_full_qa_pipeline.md):** Pipeline QA completo con Mutation Score >= 70% y veredicto JSON Schema.
-*   **[Observabilidad en Producción Shift-Right Workflow v2.0](workflows/07_production_observability_workflow.md):** Captura logs/stacktraces de producción, genera BDD Gherkin, pruebas de regresión y cierra el bucle convirtiendo incidencias en tickets `TK-XXX` del backlog.
-*   **[Smoke Test & Deploy Validation Workflow](workflows/08_smoke_test_deploy_validation.md):** Valida post-despliegue ejecutando health checks, smoke tests de contratos HTTP (3 Oráculos) y verifica seguridad de cabeceras. Emite veredicto PASS/FAIL con rollback automático OpenTofu si falla.
-*   **[Verificación en Vivo del Stack Completo Workflow](workflows/09_live_stack_verification_workflow.md):** Levanta la infraestructura real declarada en `docs/00_stack_manifest.md` (nunca asumida), recorre el flujo crítico del ticket con el motor E2E declarado, captura evidencia, y limpia el entorno de prueba por completo al terminar — el procedimiento accionable detrás del Antipatrón B de `rules/04_verified_implementation_standard.md`.
-
----
-
-## 4. Reglas y Estándares del Proyecto (Project Specifications)
+## 3. Reglas y Estándares del Proyecto (Project Specifications)
 
 Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestructura IaC es **dinámica y agnóstica**, e inferida directamente por las habilidades a partir de la documentación viva del proyecto en `docs/`:
 
@@ -175,7 +158,7 @@ Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestruc
 
 ---
 
-## 5. Catálogo de Skills por Fase y Rol Técnico
+## 4. Catálogo de Skills por Fase y Rol Técnico
 
 Las 35 habilidades son runbooks especializados organizados por fases y roles técnicos que la IA carga bajo demanda:
 
@@ -204,17 +187,7 @@ Las 35 habilidades son runbooks especializados organizados por fases y roles té
 
 ---
 
-## 6. Mantenimiento y Verificación de Integridad
-
-Para verificar autónomamente que el arnés `.agents/` no contenga enlaces rotos ni colisiones tras modificar o añadir habilidades:
-
-```bash
-bash .agents/scripts/validate_agents.sh
-```
-
----
-
-## 7. Licencia y Reutilización
+## 5. Licencia y Reutilización
 
 Este marco de gobernanza y habilidades (`.agents/`) se distribuye bajo la **[Licencia MIT](LICENSE)**. Es 100% abierto, portátil y reutilizable en cualquier proyecto o repositorio comercial o privado sin restricciones de tipo Copyleft / GPL.
 

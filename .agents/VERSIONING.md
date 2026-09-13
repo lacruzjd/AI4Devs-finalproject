@@ -1,4 +1,4 @@
-# Política de Versionado — Skills y Workflows
+# Política de Versionado — Skills, Workflows y Comandos
 
 `.agents/` versiona cada skill de forma independiente (`version` en su frontmatter) y el framework completo como un todo (`version` en el frontmatter de [README.md](README.md)). No existe hoy una matriz automática de compatibilidad — este documento fija la política hasta que exista tooling para verificarla.
 
@@ -16,6 +16,16 @@
 - **Consecuencia:** si vas a hacer un cambio MAJOR a una skill, audita primero qué workflows la invocan (`grep -rl "SK-NN" .agents/workflows/`) y confirma que la nueva versión sigue siendo compatible con el paso donde se invoca, antes de fusionar.
 - Un cambio MAJOR en una skill ampliamente referenciada (ej. SK-16, SK-19, SK-27) es candidato a bump MINOR del framework completo en `README.md`.
 
+## Reglas de versionado de los Comandos
+
+Los comandos (`skills/momoy*/SKILL.md`) versionan en `metadata.version`, porque el estándar Agent Skills no admite `version` en la raíz del frontmatter.
+
+- **MAJOR** — cambia de forma incompatible cómo se invoca: se renombra el comando, se elimina o reinterpreta su argumento, o pasa a delegar en un procedimiento distinto.
+- **MINOR** — se añade un argumento opcional o una regla estándar nueva sin romper la invocación existente.
+- **PATCH** — cambios de redacción del cuerpo o de la descripción que no alteran qué se ejecuta.
+
+Un comando nunca versiona el comportamiento del procedimiento en el que delega: si cambia el workflow o la skill, sube la versión de ese archivo, no la del comando.
+
 ## Qué hacer antes de un cambio MAJOR a una skill
 
 1. `grep -rl "SK-NN" .agents/workflows/ .agents/skills/` para listar todos los que la referencian.
@@ -25,4 +35,4 @@
 
 ## Por qué no hay una matriz automática hoy
 
-Generar automáticamente "workflow X requiere skill Y ≥ versión Z" exigiría que cada workflow declare rangos de compatibilidad explícitos — hoy no lo hace, y añadirlo sin que el equipo lo mantenga activamente generaría una matriz que miente por abandono, peor que no tener matriz. Se prefiere la disciplina manual descrita arriba hasta que haya evidencia de que el catálogo (34 skills) creció lo suficiente para justificar la inversión en tooling.
+Generar automáticamente "workflow X requiere skill Y ≥ versión Z" exigiría que cada workflow declare rangos de compatibilidad explícitos — hoy no lo hace, y añadirlo sin que el equipo lo mantenga activamente generaría una matriz que miente por abandono, peor que no tener matriz. Se prefiere la disciplina manual descrita arriba hasta que haya evidencia de que el catálogo creció lo suficiente para justificar la inversión en tooling.

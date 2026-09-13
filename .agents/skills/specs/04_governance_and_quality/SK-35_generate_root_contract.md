@@ -1,7 +1,7 @@
 ---
 name: root-contract-generation
 description: "Genera o actualiza el contrato operativo raíz AGENTS.md siguiendo el blueprint de 6 secciones, y los archivos de entrypoint por herramienta de IA (CLAUDE.md, GEMINI.md) que garantizan que AGENTS.md se lea antes de cualquier acción."
-version: "1.0.1"
+version: "1.0.2"
 category: "04_governance_and_quality"
 inputs:
   - "docs/00_stack_manifest.md"
@@ -30,7 +30,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 ## Pipeline de Ejecución Secuencial en 2 Fases
 
 ### Fase 1: Generación de `AGENTS.md` (Blueprint de 6 Secciones)
-Siguiendo estrictamente el estándar ya definido en [`.agents/rules/README.md`](../../../rules/README.md#root-contract-generation-standard-agentsmd-blueprint):
+Este skill es la **fuente única** del blueprint de 6 secciones de `AGENTS.md`; `rules/README.md` solo lo referencia:
 1. **Quick Agent Execution Commands:** Extrae de `package.json`/manifiesto de build los comandos reales de `test`, `build`, `lint` y validación de contrato/schema — cópialos literalmente, no los parafrasees.
 2. **Project Context & Tech Stack:** Resume la tabla de `docs/00_stack_manifest.md` (Backend, Frontend, DB/ORM, Librería de Validación, Librería de Precisión, Test Runner, Workspace Tooling) — referencia el manifiesto como fuente, no dupliques la tabla completa.
 3. **Few-Shot Pattern Standards:** Si `.agents/examples/00_few_shot_patterns.md` tiene contenido aplicable al stack recién confirmado, referencia esos patrones; si el stack es nuevo para el catálogo de ejemplos, genera 1-2 snippets cortos `Avoided` vs `Preferred` específicos de ese stack.
