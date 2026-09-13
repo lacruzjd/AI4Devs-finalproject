@@ -1,7 +1,7 @@
 ---
 name: user-stories
 description: "Redacta el backlog de Historias de Usuario bajo la estructura de las 4 Preguntas Clave (Como/Cuando/Quiero/Para), Precondiciones, BDD Gherkin (Happy Path, Error Path, QA Edge Case), NFRs y checklist INVEST."
-version: "3.2.0"
+version: "3.3.0"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -31,6 +31,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 3. **No omitir sintaxis BDD Gherkin:** Prohibido definir criterios de aceptación en texto informal; exigir strictly `Given` (Dado), `When` (Cuando), `Then` (Entonces).
 4. **Mínimo 3 Escenarios BDD Obligatorios:** Toda Historia de Usuario DEBE incluir obligatoriamente 3 escenarios: Happy Path, Flujo de Error y QA Edge Case.
 5. **Secciones de Precondiciones y NFRs Obligatorias:** Toda ficha debe incluir precondiciones explícitas y requisitos no funcionales de Rendimiento ($<500\text{ms}$) y Ergonomía Táctil ($\ge 48\text{px}$).
+6. **Validación declarada (etapa 2, `SK-37`):** toda historia en `backlog`, `approved` o `in_progress` declara `value_risk` y `validation`. `validation` es un `EXP-NNN` existente —cuya decisión debe ser `seguir` para que la historia esté `approved`— o `exenta — <motivo>`; con `value_risk: alto` la exención no vale. Prohibido inventar el experimento o el motivo: ambos vienen del humano. Verificado por el gate `historia` de `.agents/scripts/check_spec_artifacts.py`.
 
 ---
 
@@ -61,6 +62,8 @@ document: user_story
 id: US-XXX
 version: 1.1.0
 status: approved  # vocabulario cerrado: backlog | approved | in_progress | done | cancelled
+value_risk: medio  # alto | medio | bajo — lo decide el humano en la FASE 1.5 del workflow 01
+validation: EXP-NNN  # o bien: exenta — <motivo>. Con value_risk alto la exención no vale
 inputs:
   - docs/01_product_definition/02_prd.md
   - docs/02_architecture_design/04_technical_design.md

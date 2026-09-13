@@ -1,7 +1,7 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.21.0"
+version: "2.22.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
@@ -54,7 +54,7 @@ El marco opera bajo una arquitectura desacoplada: una capa de entrada (comandos)
 
 ```mermaid
 flowchart TD
-    subgraph CAPA0 ["0. CAPA DE ENTRADA (17 comandos /momoy-*, estándar Agent Skills)"]
+    subgraph CAPA0 ["0. CAPA DE ENTRADA (18 comandos /momoy-*, estándar Agent Skills)"]
         CMD["skills/momoy*/SKILL.md — puntos de entrada delgados hacia workflows o SK-NN"]
     end
 
@@ -66,7 +66,7 @@ flowchart TD
     end
 
     subgraph CAPA2 ["2. CAPA DE HABILIDADES PROCEDIMENTALES (36 Skills)"]
-        S_Spec["Skills de Specs (SK-01 a SK-15, SK-35, SK-36)"]
+        S_Spec["Skills de Specs (SK-01 a SK-15, SK-35 a SK-37)"]
         S_Dev["Skills de Dev (SK-16 a SK-34)"]
     end
 
@@ -102,6 +102,7 @@ momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [
 | `/momoy` | Diagnostica el estado del proyecto y recomienda el siguiente comando (solo lectura) | Punto de entrada; cuando no sabes qué toca |
 | `/momoy-greenfield [idea]` | Bootstrap de proyecto nuevo ([`00_greenfield`](workflows/00_greenfield_bootstrap_workflow.md)) | Una sola vez, directorio vacío |
 | `/momoy-brownfield [ruta]` | Adopción en código existente ([`00_brownfield`](workflows/00_brownfield_adoption_workflow.md)) | Una sola vez, código funcionando |
+| `/momoy-experiment [hipótesis o EXP-NNN]` | Diseña un experimento de validación o registra su resultado ([`SK-37`](skills/specs/01_product_definition/SK-37_design_validation_experiment.md)) | Capacidad con riesgo de valor alto, o al volver con la evidencia |
 | `/momoy-spec [idea]` | Cascada de especificaciones ([`01`](workflows/01_cascading_spec_workflow.md)) | Cada idea o funcionalidad nueva |
 | `/momoy-adr [decisión]` | Registro de una decisión de arquitectura con 3 opciones ([`SK-36`](skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md)) | Dos o más caminos viables y costosos de revertir |
 | `/momoy-dev TK-XXX` | Desarrollo de un ticket de punta a punta ([`02`](workflows/02_cascading_dev_workflow.md)) | Cada ticket, uno a la vez |
@@ -124,7 +125,8 @@ Las propiedades mecánicas de lo que generan las skills de especificación se ve
 | Gate | Etapa | Qué comprueba |
 |:---|:---|:---|
 | `kpi` | Problema | Cada KPI en tabla con fuente de datos, línea base, umbral, ventana y fecha de revisión |
-| `historia` | Requisitos | Frontmatter de `SK-11`, estado válido, al menos 3 escenarios Given/When/Then, precondiciones y NFRs |
+| `experimento` | Validación | Cada `EXP-NNN` con criterio fijado antes del resultado; si concluyó, muestra, evidencia anonimizada en el repo y decisión coherente con la muestra |
+| `historia` | Requisitos | Frontmatter de `SK-11`, estado válido, al menos 3 escenarios Given/When/Then, precondiciones y NFRs; si la historia está abierta, `value_risk` y `validation` declarados |
 | `ready` | Planificación | Definition of Ready de `SK-12`: estado, puntos 1/2/3/5, tipo backend o frontend, historia existente y secciones obligatorias |
 | `trazabilidad` | Requisitos, diseño y planificación | Cada historia y ticket enlazado desde la matriz, enlaces que resuelven y ADRs aceptados que nombran artefactos existentes |
 
@@ -163,7 +165,7 @@ Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestruc
 Las 35 habilidades son runbooks especializados organizados por fases y roles técnicos que la IA carga bajo demanda:
 
 ### Fase Documental (Product Owner & Architect Roles)
-*   **01_product_definition:** [SK-01 Descubrimiento de Producto](skills/specs/01_product_definition/SK-01_discover_product_vision.md) y [SK-02 Generación del PRD](skills/specs/01_product_definition/SK-02_generate_prd.md).
+*   **01_product_definition:** [SK-01 Descubrimiento de Producto](skills/specs/01_product_definition/SK-01_discover_product_vision.md), [SK-02 Generación del PRD](skills/specs/01_product_definition/SK-02_generate_prd.md) y [SK-37 Experimento de Validación](skills/specs/01_product_definition/SK-37_design_validation_experiment.md).
 *   **02_architecture_design:** [SK-03 Modelo de Dominio](skills/specs/02_architecture_design/SK-03_design_domain_model.md), [SK-04 Diseño Técnico](skills/specs/02_architecture_design/SK-04_design_technical_architecture.md), [SK-05 Asistente de Diseño UI/UX](skills/specs/02_architecture_design/SK-05_design_ui_ux_system.md) y [SK-36 Registro de Decisiones de Arquitectura (ADR)](skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md).
 *   **03_persistence_and_api:** [SK-06 Esquema de Base de Datos](skills/specs/03_persistence_and_api/SK-06_design_database_schema.md) y [SK-07 Especificación API REST](skills/specs/03_persistence_and_api/SK-07_design_api_specification.md).
 *   **04_governance_and_quality:** [SK-08 Estrategia de Seguridad](skills/specs/04_governance_and_quality/SK-08_define_security_strategy.md), [SK-09 Estrategia de Pruebas](skills/specs/04_governance_and_quality/SK-09_define_testing_strategy.md), [SK-10 Pipeline CI/CD & OpenTofu IaC](skills/specs/04_governance_and_quality/SK-10_configure_cicd_pipeline.md) y [SK-35 Generación del Contrato Operativo Raíz (AGENTS.md)](skills/specs/04_governance_and_quality/SK-35_generate_root_contract.md).

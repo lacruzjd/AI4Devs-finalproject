@@ -1,7 +1,7 @@
 ---
 name: product-discovery
 description: "Guía la fase de Descubrimiento de Producto (Product Discovery), investigación de mercado web activa, análisis Buy vs Build, graduación de incertidumbre, evaluación de oportunidades IA, Lean Canvas Mermaid Diagram (9 bloques) y delimitación agnóstica de specs MVP."
-version: "2.7.0"
+version: "2.8.0"
 category: "01_product_definition"
 inputs:
   - product_idea_or_research_md
@@ -154,7 +154,7 @@ graph TD
 4. ENTORNO FÍSICO Y DISPOSITIVOS DE USO: Factores de forma y condiciones operativas táctiles/móviles/escritorio.
 
 ## 5. Delimitación del Alcance y Funciones Principales del MVP
-1. HIPÓTESIS DE VALIDACIÓN: Estructura "Creemos que si permitimos a [User Persona] realizar [acción], lograremos [impacto]".
+1. HIPÓTESIS DE VALIDACIÓN: Estructura "Creemos que si permitimos a [User Persona] realizar [acción], lograremos [impacto]". Formularla no la valida: toda hipótesis con riesgo de valor alto se pone a prueba con [`SK-37`](SK-37_design_validation_experiment.md) antes de especificarse, y la investigación del Modo B no cuenta como evidencia.
 2. USER PERSONA: Perfil del usuario, frustraciones y disparadores de uso.
 3. FUNCIONES PRINCIPALES Y HAPPY PATH (Slice Vertical): Secuencia lógica numerada del flujo de valor E2E.
 4. FUERA DE ALCANCE (Non-goals): Límites explícitos para prevenir el crecimiento descontrolado del alcance (scope creep).
