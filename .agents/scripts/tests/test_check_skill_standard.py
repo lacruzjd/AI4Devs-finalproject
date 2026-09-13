@@ -33,6 +33,10 @@ class CheckSkillStandardTests(unittest.TestCase):
         os.makedirs(os.path.join(self.agents_dir, "workflows"))
         with open(os.path.join(self.agents_dir, "workflows", "02_cascading_dev_workflow.md"), "w") as f:
             f.write("# workflow\n")
+        sk_dir = os.path.join(self.agents_dir, "skills", "specs", "02_architecture_design")
+        os.makedirs(sk_dir)
+        with open(os.path.join(sk_dir, "SK-36_generate_architecture_decision_record.md"), "w") as f:
+            f.write("---\nname: architecture-decision-record\n---\n")
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -128,6 +132,35 @@ class CheckSkillStandardTests(unittest.TestCase):
     def test_command_without_entrypoint_reference_is_detected(self):
         self._write_command("momoy-dev", body=VALID_COMMAND.format(name="momoy-dev").replace(
             "Lee y ejecuta `.agents/workflows/02_cascading_dev_workflow.md`.", "Implementa el ticket aquí mismo."))
+
+        checked, violations, messages = run_checks(self.agents_dir)
+
+        self.assertEqual(violations, 1, msg=messages)
+        self.assertIn("no referencia ningún", messages[0])
+
+    def test_command_referencing_sk_procedure_is_valid(self):
+        self._write_command("momoy-adr", body=VALID_COMMAND.format(name="momoy-adr").replace(
+            ".agents/workflows/02_cascading_dev_workflow.md",
+            ".agents/skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md"))
+
+        checked, violations, messages = run_checks(self.agents_dir)
+
+        self.assertEqual(violations, 0, msg=messages)
+
+    def test_command_with_broken_sk_procedure_reference_is_detected(self):
+        self._write_command("momoy-adr", body=VALID_COMMAND.format(name="momoy-adr").replace(
+            ".agents/workflows/02_cascading_dev_workflow.md",
+            ".agents/skills/specs/02_architecture_design/SK-99_missing.md"))
+
+        checked, violations, messages = run_checks(self.agents_dir)
+
+        self.assertEqual(violations, 1, msg=messages)
+        self.assertIn("referencia rota", messages[0])
+
+    def test_command_referencing_only_another_command_is_detected(self):
+        self._write_command("momoy-dev")
+        self._write_command("momoy-alias", body=VALID_COMMAND.format(name="momoy-alias").replace(
+            ".agents/workflows/02_cascading_dev_workflow.md", ".agents/skills/momoy-dev/SKILL.md"))
 
         checked, violations, messages = run_checks(self.agents_dir)
 

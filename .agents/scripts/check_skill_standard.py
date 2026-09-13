@@ -23,8 +23,10 @@ Reglas para cada subdirectorio directo de `.agents/skills/`:
 
 Reglas adicionales para los comandos de momoy (nombre `momoy` o `momoy-*`):
 
-6. Referencian al menos una ruta `.agents/workflows/...` o `.agents/scripts/...` que existe:
-   el comando es un punto de entrada, la fuente de verdad es el workflow/script.
+6. Referencian al menos una ruta que existe: un workflow (`.agents/workflows/...`), un script
+   (`.agents/scripts/...`) o un procedimiento SK-NN (`.agents/skills/specs|development/.../SK-NN_*.md`).
+   El comando es un punto de entrada; la fuente de verdad es lo que referencia. Nunca otro
+   comando: encadenar comandos esconde el procedimiento real.
 7. Declaran `agents/openai.yaml` con `allow_implicit_invocation: false`: un agente no debe
    lanzar por su cuenta una cascada que la gobernanza de momoy exige aprobar.
 """
@@ -40,7 +42,10 @@ MAX_DESCRIPTION = 1024
 MAX_LINES = 500
 FRONTMATTER = re.compile(r"^---\n(.*?)\n---\n", re.S)
 TOP_LEVEL_KEY = re.compile(r"^([A-Za-z0-9_-]+):(.*)$")
-ENTRYPOINT_REFERENCE = re.compile(r"\.agents/(?:workflows|scripts)/[A-Za-z0-9_./-]+\.(?:md|sh|py)")
+ENTRYPOINT_REFERENCE = re.compile(
+    r"\.agents/(?:workflows|scripts)/[A-Za-z0-9_./-]+\.(?:md|sh|py)"
+    r"|\.agents/skills/(?:specs|development)/[A-Za-z0-9_./-]*SK-\d+_[A-Za-z0-9_-]+\.md"
+)
 IMPLICIT_OFF = re.compile(r"^\s*allow_implicit_invocation:\s*false\s*$", re.M)
 
 
@@ -130,7 +135,7 @@ def run_checks(agents_dir):
 
         references = ENTRYPOINT_REFERENCE.findall(text)
         if not references:
-            fail(f"{rel}: el comando no referencia ningún .agents/workflows/ o .agents/scripts/ — debe ser un punto de entrada, no una copia del procedimiento.")
+            fail(f"{rel}: el comando no referencia ningún workflow, script o procedimiento SK-NN — debe ser un punto de entrada, no una copia del procedimiento.")
         for ref in sorted(set(references)):
             if not os.path.isfile(os.path.join(project_root, ref)):
                 fail(f"{rel}: referencia rota '{ref}' — no existe.")
