@@ -11,7 +11,7 @@ import sys
 
 OUT = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path(__file__).parent / "dist" / "ciclo-momoy.html"
 
-VERSION = "2.24.0"
+VERSION = "2.25.0"
 MEASURED = "13 sep 2026"
 
 PHASES = {
@@ -99,11 +99,10 @@ STAGES = [
          cmds="/momoy-release · /momoy-smoke · /momoy-deps"),
     dict(n=9, short="Operación", title="Operación y observabilidad", phase="operate",
          q="¿Sabemos que funciona antes de que un usuario nos avise?",
-         now=S(0, 0, 0, 0, 0, 0), before=S(0, 0, 0, 0, 0, 0),
-         today="Nada: cero SLO, SLI, presupuesto de error, backups, runbooks o costes en momoy.",
-         todo=["Workflow y comando <code>/momoy-operate</code>: SLI y SLO derivados de los NFRs, presupuesto de error con política escrita.",
-               "Alertas como código sobre síntomas, cada una con su runbook; simulacro real de restauración de backup; presupuesto de coste."],
-         cmds="(ola 3) /momoy-operate"),
+         now=S(2, 2, 2, 2, 2, 0), before=S(0, 0, 0, 0, 0, 0),
+         today="<code>SK-40</code> y <code>/momoy-operate</code>: SLOs de disponibilidad y latencia, una alerta sobre síntomas con su runbook por SLO, backups con RPO y RTO, política de presupuesto de error y simulacros con evidencia. El gate <code>operacion</code> trata como inexistente un SLO sin alerta, una alerta sin runbook ensayado o un backup nunca restaurado; con el presupuesto agotado, <code>release</code> rechaza funcionalidades.",
+         todo=["Probarlo en real: diseñar la operación de un servicio desplegado y ejecutar un simulacro de restauración con evidencia. RestoStock no declara herramientas de observabilidad y su despliegue en Render no tiene registro de release, así que el gate todavía no puede verlo."],
+         cmds="/momoy-operate"),
     dict(n=10, short="Incidentes", title="Incidentes y postmortems", phase="operate",
          q="Cuando algo falla, ¿qué aprende el sistema para que no se repita?",
          now=S(2, 2, 2, 2, 2, 2), before=S(1, 1, 0, 2, 1, 0),
@@ -139,13 +138,14 @@ EVOLUTION = [
     ("2.22.0", "Etapa 2: validación", "SK-37 y /momoy-experiment: experimentos con criterio fijado antes, evidencia anonimizada y decisión humana; toda historia abierta declara su validación. Primer cambio de momoy escrito con TDD.", "18", "93"),
     ("2.23.0", "Ola 1: cerrar el ciclo", "SK-38 y SK-39 con sus comandos y gates; nueva carpeta docs/06_release_and_operations/; primer postmortem real, que destapó un defecto latente todavía abierto (TK-145).", "20", "105"),
     ("2.24.0", "Ola 2: release", "Workflow 10 y /momoy-release con gate release; el workflow 08 deja de destruir infraestructura sin aprobación y de incluir contenido de un proyecto concreto.", "21", "114"),
+    ("2.25.0", "Ola 3: operación", "SK-40 y /momoy-operate con gate operacion: SLOs, alertas con runbook ensayado, backups con simulacro de restauración y presupuesto de error que congela funcionalidades. Ya no queda ninguna etapa ausente.", "22", "122"),
 ]
 
 WAVES = [
     ("Ola 0", "Verificar lo que ya existe", "Etapas 1, 3, 4 y 5", "done", "Hecha en 2.20.0: gates kpi, historia, ready y trazabilidad."),
     ("Ola 1", "Cerrar el ciclo", "Etapas 11 y 10", "done", "Hecha en 2.23.0: postmortem probado en real con PM-001; la medición de resultados espera datos de uso real."),
     ("Ola 2", "Liberar con seguridad", "Etapa 8", "partial", "Hecha en 2.24.0, salvo ejecutarla en un release real con ensayo de rollback."),
-    ("Ola 3", "Operar", "Etapa 9", "next", "/momoy-operate con simulacro de restauración y alerta que dispara."),
+    ("Ola 3", "Operar", "Etapa 9", "partial", "Hecha en 2.25.0, salvo un simulacro de restauración real con evidencia."),
     ("Ola 4", "Completar los bordes", "Etapas 2 y 12", "partial", "Etapa 2 hecha en 2.22.0, salvo probarla en real. Quedan /momoy-maintain y /momoy-retire."),
 ]
 
@@ -200,7 +200,7 @@ svg.append(f'<path class="loop" d="M{x11:.1f} {y11:.1f} Q{CX - 40} {CY - 40} {x1
 svg.append(f'<text class="loop-label" x="{CX - 46}" y="{CY - 44}" text-anchor="middle">se cierra, pero</text>')
 svg.append(f'<text class="loop-label" x="{CX - 46}" y="{CY - 28}" text-anchor="middle">sin datos reales aún</text>')
 svg.append(f'<text class="center-name" x="{CX}" y="{CY + 22}" text-anchor="middle">momoy</text>')
-svg.append(f'<text class="center-meta" x="{CX}" y="{CY + 44}" text-anchor="middle">{VERSION} · 39 SK · 21 comandos</text>')
+svg.append(f'<text class="center-meta" x="{CX}" y="{CY + 44}" text-anchor="middle">{VERSION} · 40 SK · 22 comandos</text>')
 for s in STAGES:
     x, y = pos(s["n"], R)
     lx, ly = pos(s["n"], LR)
@@ -511,7 +511,7 @@ code.cmd {{ font-size: 0.8rem; word-break: break-word; color: var(--c); backgrou
     <div class="verdict">
       <p class="eyebrow">Estado actual</p>
       <h2 id="verdict-title">{counts['strong']} de 12 etapas ya son fuertes</h2>
-      <p class="lede">Propósito final: que momoy sea fuerte en las doce. Con la ola 1 el ciclo ya se cierra en procedimiento. El hueco mayor es la operación (etapa 9), y la medición de resultados espera datos de uso real.</p>
+      <p class="lede">Propósito final: que momoy sea fuerte en las doce. Tras la ola 3 ya no queda ninguna etapa ausente: el ciclo entero tiene procedimiento, artefacto, gate, pausa humana y comando. Lo que separa a las etapas «casi» de «fuertes» es ejecutarlas en real.</p>
       <div class="tally" role="list">
         <div role="listitem"><b>{counts['strong']}</b><span>fuertes</span></div>
         <div role="listitem"><b>{counts['near']}</b><span>casi</span></div>
