@@ -1,7 +1,7 @@
 ---
 name: user-stories
 description: "Redacta el backlog de Historias de Usuario bajo la estructura de las 4 Preguntas Clave (Como/Cuando/Quiero/Para), Precondiciones, BDD Gherkin (Happy Path, Error Path, QA Edge Case), NFRs y checklist INVEST."
-version: "3.1.1"
+version: "3.2.0"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -60,7 +60,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 document: user_story
 id: US-XXX
 version: 1.1.0
-status: approved
+status: approved  # vocabulario cerrado: backlog | approved | in_progress | done | cancelled
 inputs:
   - docs/01_product_definition/02_prd.md
   - docs/02_architecture_design/04_technical_design.md

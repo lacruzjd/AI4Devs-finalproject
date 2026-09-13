@@ -1,7 +1,7 @@
 ---
 name: prd-generation
 description: "Genera el Documento de Requisitos de Producto (PRD) agnóstico de alta fidelidad con ejecuciones secuenciales por fases, Naming Strategy, Historias INVEST, BDD Gherkin con códigos HTTP y políticas TDD."
-version: "2.3.1"
+version: "2.4.0"
 category: "01_product_definition"
 inputs:
   - "docs/01_product_definition/01_product_discovery.md"
@@ -71,7 +71,7 @@ Describe el dolor real de negocio, las ineficiencias o las pérdidas financieras
 Define el propósito central de la solución y explica cómo el software resolverá el problema planteado, delimitándolo estrictamente al flujo principal descrito en el insumo.
 
 ### 1.3. Objetivos de Negocio y KPIs (Métricas de Éxito)
-Detalla de 2 a 3 indicadores clave de rendimiento (KPIs) cuantitativos que reflejen éxito operativo (ej. reducción de tiempos de proceso, incremento de conversión, tasa de retención de valor).
+Detalla de 2 a 3 indicadores clave de rendimiento (KPIs) cuantitativos que reflejen éxito operativo (ej. reducción de tiempos de proceso, incremento de conversión, tasa de retención de valor), en una tabla con exactamente estas columnas: `| KPI | Fuente de datos | Línea base | Umbral de éxito | Ventana | Fecha de revisión |`. La **fuente de datos** dice de dónde saldrá el dato real; la **línea base**, desde dónde se parte (si aún no se midió, `Por medir` y cuándo); la **fecha de revisión** va en `AAAA-MM-DD` y es la que después dispara la medición de resultados. Si un KPI no tiene fuente posible, escribe `No medible: <motivo>` en esa columna — nunca inventes una fuente ni una cifra. Verificado por `.agents/scripts/check_spec_artifacts.py` (gate `kpi`).
 
 ---
 

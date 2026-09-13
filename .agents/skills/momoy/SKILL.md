@@ -4,7 +4,7 @@ description: "Punto de entrada de momoy: diagnostica en qué etapa del ciclo VSD
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # /momoy
@@ -15,10 +15,11 @@ Lee `.agents/workflows/00_master_vsdd_workflow.md` (el mapa del ciclo VSDD) y di
 
 1. **¿Bootstrapeado?** Si `AGENTS.md` no existe o es el stub de `install.sh` (contiene "proyecto sin bootstrapear"), el proyecto no arrancó: recomienda `/momoy-greenfield` si el directorio no tiene código relevante, o `/momoy-brownfield` si ya tiene código funcionando.
 2. **¿Stack aprobado?** Si falta `docs/00_stack_manifest.md`, el bootstrap quedó incompleto: recomienda retomar el workflow de bootstrap que corresponda.
-3. **¿Tickets pendientes?** Revisa los `status` del frontmatter de `docs/05_agile_planning/12_tickets/**/TK-*.md` (y `12_indice_tickets.md` si existe). Si hay tickets aprobados sin cerrar, recomienda `/momoy-dev TK-XXX` para el siguiente según el orden del índice.
+3. **¿Tickets pendientes?** Revisa los `status` del frontmatter de `docs/05_agile_planning/12_tickets/**/TK-*.md` (y `12_indice_tickets.md` si existe). Si hay tickets en `approved` o `in_progress`, recomienda `/momoy-dev TK-XXX` para el siguiente según el orden del índice.
+   - **Salud de las especificaciones:** ejecuta `python3 .agents/scripts/check_spec_artifacts.py` (informe de solo lectura, no bloquea) e incluye su resumen por gate. Si el ticket que vas a recomendar tiene hallazgos (`--ticket TK-XXX`), dilo: no está listo para `/momoy-dev`.
 4. **Sin trabajo pendiente:** recomienda `/momoy-spec [idea]` para la siguiente funcionalidad, o `/momoy-audit-spec` si las especificaciones no se auditaron desde su último cambio.
 
-Responde con: (a) el estado detectado y la evidencia (archivo que lo prueba), (b) el siguiente comando recomendado con su argumento, y (c) la tabla de comandos de la sección 2 de `.agents/README.md`.
+Responde con: (a) el estado detectado y la evidencia (archivo que lo prueba), (b) el resumen de salud de las especificaciones, (c) el siguiente comando recomendado con su argumento, y (d) la tabla de comandos de la sección 2 de `.agents/README.md`.
 
 ## Reglas del comando
 

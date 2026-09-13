@@ -1,7 +1,7 @@
 ---
 name: backlog-tickets
 description: "Desglosa las Historias de Usuario en tickets técnicos atómicos de backend y frontend (máximo 5 SP), Definition of Done (DoD), Matriz Multidimensional de Priorización Cualitativa e instrucciones de ejecución autónoma para agentes IA."
-version: "3.1.1"
+version: "3.2.0"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -51,7 +51,7 @@ Para cada Historia de Usuario (`US-XXX`), generar:
 Para cada ticket, evaluar los 4 Criterios de Priorización:
 1. **Impacto en Usuario y Valor Negocio:** *Muy Alto*, *Alto*, *Medio*, *Bajo*.
 2. **Urgencia de Mercado y Feedback:** *Muy Alta*, *Alta*, *Media*, *Baja*.
-3. **Complejidad y Esfuerzo Estimado:** Story Points (1, 2, 3, 5, 8).
+3. **Complejidad y Esfuerzo Estimado:** Story Points (1, 2, 3, 5). Un ticket que estimarías en 8 o más se divide antes de registrarlo (Non-Goal 1).
 4. **Riesgos y Dependencias Técnicas Críticas:** Nivel de prioridad (*P0 - Bloqueante*, *P0 - Crítica*, *P1 - Alta*, *P2 - Media*).
 
 ### Paso 3: Publicación del Índice y Fichas Técnicas
@@ -69,7 +69,7 @@ id: TK-XXX
 related_story: US-XXX
 points: 3
 type: backend | frontend
-status: approved
+status: approved  # vocabulario cerrado: backlog | approved | in_progress | done | cancelled
 inputs:
   - docs/05_agile_planning/11_user_stories/{modulo}/US-XXX.md
   - docs/02_architecture_design/04_technical_design.md

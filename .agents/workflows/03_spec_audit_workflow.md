@@ -66,6 +66,11 @@ modelo de datos, glosario, estándares, deltas de cambio (si brownfield).
 
 La ausencia de un documento es un hallazgo, no una nota al pie.
 
+Antes de cualquier juicio, ejecuta la línea base determinista:
+`python3 .agents/scripts/check_spec_artifacts.py --verbose`
+e incorpora sus hallazgos como evidencia de las fases 1 y 4. No los repitas
+como juicio propio: tu trabajo es lo que un script no puede ver.
+
 ## Fase 1 — Conformidad estructural con el método declarado
 
 Si <MÉTODO> exige artefactos concretos, verifica que existan y tengan la forma

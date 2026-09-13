@@ -1,7 +1,7 @@
 ---
 name: product-discovery
 description: "Guía la fase de Descubrimiento de Producto (Product Discovery), investigación de mercado web activa, análisis Buy vs Build, graduación de incertidumbre, evaluación de oportunidades IA, Lean Canvas Mermaid Diagram (9 bloques) y delimitación agnóstica de specs MVP."
-version: "2.6.2"
+version: "2.7.0"
 category: "01_product_definition"
 inputs:
   - product_idea_or_research_md
@@ -145,6 +145,7 @@ graph TD
 ## 3. Visión del Producto, Descripción y Objetivos Estratégicos
 1. MÉTRICA DE LA ESTRELLA DEL NORTE (North Star Metric): Métrica cuantitativa de entrega de valor al usuario.
 2. TEMAS ENTEROS DEL ROADMAP: Módulos funcionales de valor de negocio 100% autónomos.
+3. KPIs MEDIBLES: una tabla con exactamente estas columnas: `| KPI | Fuente de datos | Línea base | Umbral de éxito | Ventana | Fecha de revisión |`. La **fuente de datos** dice de dónde saldrá el dato real; la **línea base**, desde dónde se parte (si aún no se midió, `Por medir` y cuándo); la **fecha de revisión** va en `AAAA-MM-DD` y es la que después dispara la medición de resultados. Si un KPI no tiene fuente posible, escribe `No medible: <motivo>` en esa columna — nunca inventes una fuente ni una cifra. Verificado por `.agents/scripts/check_spec_artifacts.py` (gate `kpi`).
 
 ## 4. Restricciones Operativas, Normativas y Entorno (Contexto Agnóstico)
 1. RESTRICCIONES DE CUMPLIMIENTO Y NORMATIVAS: Privacy, inocuidad, GDPR, EU AI Act o regulaciones sectoriales.

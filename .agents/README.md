@@ -1,7 +1,7 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.19.0"
+version: "2.20.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
@@ -114,6 +114,19 @@ momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [
 | `/momoy-pr [PR o rama]` | Documentación veraz de PRs e historial de entregas ([`SK-15`](skills/specs/05_agile_planning/SK-15_document_pull_requests.md)) | Al abrir o cerrar un PR |
 | `/momoy-deps [paquete]` | Auditoría de seguridad de dependencias ([`SK-23`](skills/development/05_quality_and_lint/SK-23_audit_dependency_security.md)) | Se publica una vulnerabilidad, o antes de añadir o actualizar una dependencia |
 | `/momoy-validate` | Integridad del propio momoy ([`validate_agents.sh`](scripts/validate_agents.sh)) | Antes de proponer un cambio a `.agents/` |
+
+### Gates de especificación
+
+Las propiedades mecánicas de lo que generan las skills de especificación se verifican con un script, no solo con juicio: `python3 .agents/scripts/check_spec_artifacts.py`.
+
+| Gate | Etapa | Qué comprueba |
+|:---|:---|:---|
+| `kpi` | Problema | Cada KPI en tabla con fuente de datos, línea base, umbral, ventana y fecha de revisión |
+| `historia` | Requisitos | Frontmatter de `SK-11`, estado válido, al menos 3 escenarios Given/When/Then, precondiciones y NFRs |
+| `ready` | Planificación | Definition of Ready de `SK-12`: estado, puntos 1/2/3/5, tipo backend o frontend, historia existente y secciones obligatorias |
+| `trazabilidad` | Requisitos, diseño y planificación | Cada historia y ticket enlazado desde la matriz, enlaces que resuelven y ADRs aceptados que nombran artefactos existentes |
+
+Sin argumentos genera un informe del repositorio que **no bloquea** (la deuda documental previa es información). `--changed` revisa solo lo modificado y `--ticket TK-XXX` la Definition of Ready de un ticket; ambos **bloquean** y los invocan `/momoy-spec` (workflow 01) y `/momoy-dev` (workflow 02). Estados válidos de historias y tickets: `backlog`, `approved`, `in_progress`, `done`, `cancelled`.
 
 ### Cómo se invocan según la herramienta
 

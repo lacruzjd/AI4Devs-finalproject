@@ -52,14 +52,16 @@ Antes de redactar cualquier archivo de especificación (Fase 2 en adelante), ide
 ### FASE 3: Gestión del Backlog y Trazabilidad
 1. **User Story:**
    * Crea el archivo `docs/05_agile_planning/11_user_stories/{modulo}/US-NNN.md` (donde `{modulo}` es la subcarpeta del Epic/Módulo correspondiente, y NNN es el correlativo correcto) bajo el formato INVEST.
-   * Redacta al menos 2 escenarios BDD Gherkin (Happy Path y Edge Case).
+   * Redacta al menos 3 escenarios BDD Gherkin (Happy Path, Flujo de Error y Caso Borde), como exige `SK-11`.
    * Enlaza esta historia en `docs/05_agile_planning/11_user_stories/indice_user_stories.md`.
 2. **Tickets Técnicos (Backend/Frontend):**
    * **Garantía de Core:** Asegura que en `docs/05_agile_planning/12_tickets/shared/` existan siempre los tickets habilitadores de infraestructura base: `shared/backend/TK-001.md` (Core Backend Workspace & DB) y `shared/frontend/TK-001-FE.md` (Core Frontend Workspace & Design System Base).
    * Desglosa las historias de usuario en tickets atómicos y guárdalos en las subcarpetas de Epic/Módulo correspondientes de `docs/05_agile_planning/12_tickets/` (ej. `12_tickets/{modulo}/backend/TK-NNN.md` y `12_tickets/{modulo}/frontend/TK-NNN-X.md`).
    * Para cada ticket, indica la estimación en Story Points, prioridad MoSCoW, capas de código afectadas y Definition of Done (DoD) estricto (exigiendo TDD y cumplimiento de estrategias de seguridad/ergonomía).
    * Enlaza los tickets creados en el archivo `docs/05_agile_planning/12_tickets/indice_tickets.md`.
-3. **Mapa del Backlog (docs/05_agile_planning/14_backlog_map.md):** Actualiza el diagrama Mermaid para incluir el nuevo nodo de la Epic (si corresponde), la nueva User Story (`US-NNN`) y sus respectivos Tickets Técnicos de Backend y Frontend, definiendo sus relaciones. Agrega la fila correspondiente en la **Tabla de Navegación del Backlog (Alternativa)** inferior para garantizar la navegabilidad.
+3. **Matriz de Trazabilidad (`docs/05_agile_planning/13_matriz_trazabilidad.md`):** añade o actualiza la fila del requisito con enlaces a la historia y a cada ticket nuevo siguiendo [`SK-13`](../skills/specs/05_agile_planning/SK-13_generate_traceability_matrix.md). Un artefacto mencionado sin enlace no cuenta como trazado.
+4. **Gate de especificación (bloqueante):** antes de actualizar el mapa y de dar la cascada por cerrada, ejecuta `python3 .agents/scripts/check_spec_artifacts.py --changed`. Revisa KPIs, historias, tickets, matriz y ADRs que esta cascada creó o modificó. Si reporta hallazgos, corrígelos en los artefactos antes de continuar; la deuda de archivos que no tocaste no bloquea.
+5. **Mapa del Backlog (docs/05_agile_planning/14_backlog_map.md):** Actualiza el diagrama Mermaid para incluir el nuevo nodo de la Epic (si corresponde), la nueva User Story (`US-NNN`) y sus respectivos Tickets Técnicos de Backend y Frontend, definiendo sus relaciones. Agrega la fila correspondiente en la **Tabla de Navegación del Backlog (Alternativa)** inferior para garantizar la navegabilidad.
 
 ### FASE 4: Consolidación del README y Estructura
 1. **README y Estructura:** Si el cambio altera la estructura de directorios, modifica la sección de mapa de ficheros en el `readme.md` y en `docs/02_architecture_design/`.
