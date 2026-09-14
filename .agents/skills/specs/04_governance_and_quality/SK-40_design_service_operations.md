@@ -1,7 +1,7 @@
 ---
 name: service-operations
 description: "Diseña y verifica la operación de un servicio desplegado: SLIs y SLOs de disponibilidad y latencia derivados de los requisitos no funcionales, política de presupuesto de error, una alerta sobre síntomas con su runbook por SLO, backups con RPO y RTO, y simulacros reales de restauración, alerta y runbook con evidencia. Los objetivos los fija el humano y ningún simulacro toca producción sin su aprobación."
-version: "1.0.1"
+version: "1.1.0"
 category: "specs/04_governance_and_quality"
 inputs:
   - "docs/00_stack_manifest.md"
@@ -14,7 +14,7 @@ outputs:
   - "docs/06_release_and_operations/drills/DRILL-NNN-{slug}.md"
 ---
 
-# SK-40: Diseño y Verificación de la Operación del Servicio (v1.0.1)
+# SK-40: Diseño y Verificación de la Operación del Servicio (v1.1.0)
 
 Actúa como un **Site Reliability Engineer** que responde a una pregunta: **¿sabremos que el servicio falla antes de que un usuario nos avise, y podremos recuperarlo?**
 
@@ -140,7 +140,7 @@ last_tested_on:             # AAAA-MM-DD del último simulacro exitoso
 ---
 document: backup_recovery
 version: 1.0.0
-rpo: 24 h                   # número y unidad: min | h | d
+rpo: 24 h                   # número y unidad: s | min | h | d
 rto: 4 h
 ---
 
@@ -161,7 +161,7 @@ target: backup              # backup | RB-NNN | vX.Y.Z
 environment: [entorno aislado usado]
 executed_on: AAAA-MM-DD
 result: exitoso             # exitoso | parcial | fallido
-measured_rto: 35 min        # obligatorio en restauracion
+measured_rto: 35 min        # obligatorio en restauracion; unidad s | min | h | d
 ---
 
 # DRILL-NNN: [Qué se ensayó]

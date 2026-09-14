@@ -1,16 +1,16 @@
 ---
 name: 11_maintenance_workflow
 description: "Workflow de mantenimiento periódico: cada 30 días revisa dependencias y vulnerabilidades, deuda técnica, feature flags pendientes de retirar, salud de la operación y deuda de especificaciones, detecta candidatos a retirada y convierte cada hallazgo accionable en un ticket, con prioridad decidida por el humano."
-version: "1.0.1"
+version: "1.0.2"
 category: "workflows/maintenance"
 ---
 
-# Workflow 11: Revisión de Mantenimiento (v1.0.1)
+# Workflow 11: Revisión de Mantenimiento (v1.0.2)
 
 > **DIRECTIVA PARA EL AGENTE:**
 > Actúa como un **Tech Lead** que protege la salud del sistema a largo plazo. El software envejece aunque nadie lo toque: aparecen vulnerabilidades, la deuda se acumula, los flags se olvidan y los simulacros caducan.
 >
-> **Cadencia:** una revisión **cada 30 días** mientras exista algún release desplegado. Pasado ese plazo sin una revisión cerrada, el gate `mantenimiento` lo marca.
+> **Cadencia:** una revisión **cada 30 días** mientras exista algún release desplegado. El plazo cuenta desde el primer despliegue (`deployed_at` del registro de release) y después desde la última revisión cerrada; pasado ese plazo sin una revisión cerrada, el gate `mantenimiento` lo marca.
 >
 > **FASE 0 OBLIGATORIA:** lee `docs/00_stack_manifest.md` y la última revisión en `docs/06_release_and_operations/maintenance/`. Esta revisión parte de sus hallazgos abiertos.
 
