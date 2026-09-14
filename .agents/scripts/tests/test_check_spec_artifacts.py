@@ -7,7 +7,7 @@ import unittest
 from datetime import date
 
 sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(__file__), "..")))
-from check_spec_artifacts import run_checks  # noqa: E402
+from check_spec_artifacts import parse_args, run_checks  # noqa: E402
 
 KPI_TABLE = """# PRD
 
@@ -589,6 +589,17 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         self.assertIn("ADR aceptado huérfano: 'Implementado por' no nombra historias ni tickets", kinds)
         self.assertIn("ADR aceptado apunta a un artefacto que no existe", kinds)
 
+    def test_pending_adr_is_valid_for_30_days_from_its_date(self):
+        pending = (ADR.replace("[`TK-001`](../../05_agile_planning/12_tickets/stock/backend/TK-001.md)", "— pendiente de cascada de spec")
+                   .replace("status: accepted", "status: accepted\ndate: 2026-09-01"))
+        self._write("docs/02_architecture_design/adr/ADR-001-decision.md", pending)
+
+        within, _ = run_checks(self.root, today=date(2026, 10, 1))
+        overdue, _ = run_checks(self.root, today=date(2026, 10, 2))
+
+        self.assertEqual(self._kinds(within, "trazabilidad"), [])
+        self.assertEqual(self._kinds(overdue, "trazabilidad"), ["ADR aceptado pendiente de cascada hace más de 30 días"])
+
     def test_proposed_adr_is_not_checked(self):
         self._write("docs/02_architecture_design/adr/ADR-001-decision.md",
                     ADR.replace("status: accepted", "status: proposed").replace("TK-001", "TK-777"))
@@ -1012,6 +1023,42 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         self.assertGreater(checked, 0)
         self.assertIn("runbook nunca ensayado con éxito", self._kinds(findings, "operacion"))
 
+    def test_changed_drill_does_not_report_untouched_runbooks_or_backup(self):
+        self._write(f"{OPS}/drills/DRILL-003-ensayo.md", drill("DRILL-003", "runbook", "RB-002", result="fallido"))
+        self._write(f"{OPS}/drills/DRILL-001-ensayo.md", drill("DRILL-001", "restauracion", "backup", result="fallido"))
+        new_drill = f"{OPS}/drills/DRILL-004-ensayo.md"
+        self._write(new_drill, drill("DRILL-004", "alerta", "RB-001"))
+        self._write(f"{OPS}/drills/evidence/DRILL-004/salida.txt", "alerta disparada\n")
+
+        findings, _ = run_checks(self.root, scope={new_drill})
+
+        self.assertEqual(self._kinds(findings, "operacion"), [])
+
+    def test_changed_restore_drill_reports_the_backup_it_verifies(self):
+        restore = f"{OPS}/drills/DRILL-001-ensayo.md"
+        self._write(restore, drill("DRILL-001", "restauracion", "backup", result="fallido"))
+
+        findings, _ = run_checks(self.root, scope={restore})
+
+        self.assertIn("backup sin simulacro de restauración exitoso", self._kinds(findings, "operacion"))
+
+    def test_changed_release_checks_operations_it_depends_on(self):
+        os.remove(os.path.join(self.root, SLOS_PATH))
+
+        findings, _ = run_checks(self.root, scope={RELEASE_PATH})
+
+        self.assertIn("servicio desplegado sin slos.md", self._kinds(findings, "operacion"))
+
+    def test_durations_accept_seconds(self):
+        self._write(BACKUP_PATH, BACKUP.replace("rto: 4 h", "rto: 30 s"))
+        self._write(f"{OPS}/drills/DRILL-001-ensayo.md", drill("DRILL-001", "restauracion", "backup", measured_rto="2,5 s"))
+        fast, _ = run_checks(self.root, today=date(2026, 9, 13))
+        self._write(f"{OPS}/drills/DRILL-001-ensayo.md", drill("DRILL-001", "restauracion", "backup", measured_rto="45 s"))
+        slow, _ = run_checks(self.root, today=date(2026, 9, 13))
+
+        self.assertEqual(self._kinds(fast, "operacion"), [])
+        self.assertIn("restauración más lenta que el RTO", self._kinds(slow, "operacion"))
+
     def test_exhausted_error_budget_blocks_features_in_a_planned_release(self):
         self._write(SLOS_PATH, SLOS.replace("| RB-001 | disponible |", "| RB-001 | agotado |"))
         self._write("docs/05_agile_planning/12_tickets/stock/backend/TK-004.md",
@@ -1066,12 +1113,22 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         draft_does_not_count, _ = run_checks(self.root, today=date(2026, 10, 11))
         os.remove(os.path.join(self.root, MNT_PATH))
         os.remove(os.path.join(self.root, "docs/06_release_and_operations/maintenance/MNT-002.md"))
-        never, _ = run_checks(self.root, today=date(2026, 9, 13))
+        first_days, _ = run_checks(self.root, today=date(2026, 10, 9))
+        never, _ = run_checks(self.root, today=date(2026, 10, 10))
 
         self.assertNotIn("revisión de mantenimiento vencida (más de 30 días)", self._kinds(within, "mantenimiento"))
         self.assertIn("revisión de mantenimiento vencida (más de 30 días)", self._kinds(overdue, "mantenimiento"))
         self.assertIn("revisión de mantenimiento vencida (más de 30 días)", self._kinds(draft_does_not_count, "mantenimiento"))
-        self.assertIn("servicio desplegado sin revisión de mantenimiento", self._kinds(never, "mantenimiento"))
+        self.assertEqual(self._kinds(first_days, "mantenimiento"), [])
+        self.assertIn("servicio desplegado hace más de 30 días sin revisión de mantenimiento", self._kinds(never, "mantenimiento"))
+
+    def test_deployed_release_without_valid_date_still_requires_a_review(self):
+        os.remove(os.path.join(self.root, MNT_PATH))
+        self._write(RELEASE_PATH, RELEASE.replace("deployed_at: 2026-09-09T18:54:00-03:00", "deployed_at: ayer"))
+
+        findings, _ = run_checks(self.root, today=date(2026, 9, 13))
+
+        self.assertIn("servicio desplegado sin revisión de mantenimiento", self._kinds(findings, "mantenimiento"))
 
     # retirada (etapa 12)
     def _completed_retirement(self, announced="2026-08-01", completed="2026-09-05"):
@@ -1133,6 +1190,12 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
         self.assertEqual(findings.items, [])
         self.assertEqual(checked, 1)
+
+    def test_cli_accepts_a_simulated_date_and_rejects_malformed_ones(self):
+        self.assertEqual(parse_args(["--today", "2026-10-31"]).today, date(2026, 10, 31))
+        self.assertIsNone(parse_args([]).today)
+        with self.assertRaises(SystemExit):
+            parse_args(["--today", "31/10/2026"])
 
     def test_ticket_mode_checks_only_that_ticket_and_reports_missing_ticket(self):
         self._write("docs/05_agile_planning/11_user_stories/stock/US-001.md", STORY.replace("status: approved", "status: DONE"))

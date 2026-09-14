@@ -169,6 +169,7 @@ STORIES_DIR = "docs/05_agile_planning/11_user_stories"
 TICKETS_DIR = "docs/05_agile_planning/12_tickets"
 MATRIX = "docs/05_agile_planning/13_matriz_trazabilidad.md"
 ADR_DIR = "docs/02_architecture_design/adr"
+ADR_PENDING_DAYS = 30
 
 FRONTMATTER = re.compile(r"^---\n(.*?)\n---\n", re.S)
 TOP_LEVEL_KEY = re.compile(r"^([A-Za-z0-9_-]+):(.*)$")
@@ -189,7 +190,7 @@ OUTCOME_ID = re.compile(r"OUT-\d+")
 RUNBOOK_FILE = re.compile(r"^(RB-\d+).*\.md$")
 DRILL_FILE = re.compile(r"^(DRILL-\d+).*\.md$")
 RUNBOOK_ID = re.compile(r"RB-\d+")
-DURATION = re.compile(r"^(\d+(?:[.,]\d+)?)\s*(min|h|d)$")
+DURATION = re.compile(r"^(\d+(?:[.,]\d+)?)\s*(s|min|h|d)$")
 OUTCOME_FILE = re.compile(r"^(OUT-\d+).*\.md$")
 POSTMORTEM_FILE = re.compile(r"^(PM-\d+).*\.md$")
 ISO_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:\d{2})$")
@@ -546,7 +547,7 @@ def duration_minutes(value):
     if not match:
         return None
     amount = float(match.group(1).replace(",", "."))
-    return amount * {"min": 1, "h": 60, "d": 1440}[match.group(2)]
+    return amount * {"s": 1 / 60, "min": 1, "h": 60, "d": 1440}[match.group(2)]
 
 
 def slo_rows(root):
@@ -680,7 +681,7 @@ def check_operations(root, findings, deployed, today=None):
         rto = duration_minutes(fm.get("rto", ""))
         for field in ("rpo", "rto"):
             if duration_minutes(fm.get(field, "")) is None:
-                findings.add("operacion", BACKUP_DOC, f"{field} no es un número con unidad (min, h, d)", fm.get(field, "(ausente)"))
+                findings.add("operacion", BACKUP_DOC, f"{field} no es un número con unidad (s, min, h, d)", fm.get(field, "(ausente)"))
         found = headings(text)
         for label, options in BACKUP_SECTIONS.items():
             if not has_section(found, options):
@@ -699,6 +700,28 @@ def check_operations(root, findings, deployed, today=None):
     elif deployed:
         findings.add("operacion", BACKUP_DOC, "servicio desplegado sin backup_and_recovery.md")
     return checked
+
+
+def operations_finding_in_scope(root, item, scope, releases_in_scope):
+    """Con --changed, un hallazgo de operación solo cuenta si toca lo cambiado: su propio archivo, el
+    simulacro cambiado que lo verifica (runbook o backup), o el release cambiado que exige slos y backup."""
+    _, path, kind, _ = item
+    if path in scope:
+        return True
+    changed_drills = []
+    for changed in scope:
+        match = DRILL_FILE.match(os.path.basename(changed)) if changed.startswith(DRILLS_DIR + "/") else None
+        evidence = re.match(rf"^{re.escape(DRILLS_DIR)}/evidence/(DRILL-\d+)/", changed)
+        drill_id = match.group(1) if match else (evidence.group(1) if evidence else None)
+        if drill_id:
+            paths = list_top_level(root, DRILLS_DIR, re.compile(rf"^{drill_id}\b.*\.md$"))
+            changed_drills.extend(frontmatter(read(os.path.join(root, p))) or {} for p in paths)
+    runbook = RUNBOOK_FILE.match(os.path.basename(path)) if path.startswith(RUNBOOKS_DIR + "/") else None
+    if runbook and any(d.get("target", "").strip() == runbook.group(1) for d in changed_drills):
+        return True
+    if path == BACKUP_DOC and any(d.get("type") == "restauracion" for d in changed_drills):
+        return True
+    return releases_in_scope and path in (SLOS_DOC, BACKUP_DOC) and "desplegado" in kind
 
 
 # ------------------------------------------------- gates: mantenimiento y retirada
@@ -733,11 +756,27 @@ def check_maintenance(root, path, ticket_ids, findings):
     return fm
 
 
-def check_maintenance_cadence(findings, reviews, deployed, today):
+def first_deployment_date(root):
+    """Fecha del primer despliegue registrado, o None si ninguno declara deployed_at válido."""
+    dates = []
+    for path in list_top_level(root, RELEASES_DIR, RELEASE_FILE):
+        fm = frontmatter(read(os.path.join(root, path))) or {}
+        if fm.get("status") in ("deployed", "rolled_back") and ISO_DATETIME.match(fm.get("deployed_at", "")):
+            dates.append(date.fromisoformat(fm["deployed_at"][:10]))
+    return min(dates) if dates else None
+
+
+def check_maintenance_cadence(findings, reviews, deployed, today, first_deployed=None):
     if not deployed:
         return
     closed = sorted(fm["reviewed_on"] for fm in reviews if fm.get("status") == "closed" and ISO_DATE.match(fm.get("reviewed_on", "")))
-    if not closed:
+    if not closed and first_deployed and today:
+        # La primera revisión vence 30 días después del primer despliegue, no el mismo día (workflow 11).
+        if (today - first_deployed).days > MAINTENANCE_CADENCE_DAYS:
+            findings.add("mantenimiento", MAINTENANCE_DIR,
+                         f"servicio desplegado hace más de {MAINTENANCE_CADENCE_DAYS} días sin revisión de mantenimiento",
+                         f"primer despliegue el {first_deployed.isoformat()}")
+    elif not closed:
         findings.add("mantenimiento", MAINTENANCE_DIR, "servicio desplegado sin revisión de mantenimiento")
     elif today and (today - date.fromisoformat(closed[-1])).days > MAINTENANCE_CADENCE_DAYS:
         findings.add("mantenimiento", MAINTENANCE_DIR, f"revisión de mantenimiento vencida (más de {MAINTENANCE_CADENCE_DAYS} días)",
@@ -1077,14 +1116,19 @@ def check_matrix_membership(path, artifact_id, linked, matrix_text, findings):
         findings.add("trazabilidad", path, "no aparece en la matriz de trazabilidad")
 
 
-def check_adr(root, path, story_ids, ticket_ids, findings):
+def check_adr(root, path, story_ids, ticket_ids, findings, today=None):
     text = read(os.path.join(root, path))
     fm = frontmatter(text) or {}
     if norm(fm.get("status", "")) != "accepted":
         return
     line = next((l for l in text.splitlines() if "implementado por" in norm(l)), "")
     references = STORY_ID.findall(line) + TICKET_ID.findall(line)
-    if not references:
+    decided = fm.get("date", "").strip()
+    if not references and "pendiente de cascada" in norm(line) and ISO_DATE.match(decided) and today:
+        # SK-36 admite "pendiente de cascada" durante un plazo: el ADR suele preceder a sus tickets.
+        if (today - date.fromisoformat(decided)).days > ADR_PENDING_DAYS:
+            findings.add("trazabilidad", path, f"ADR aceptado pendiente de cascada hace más de {ADR_PENDING_DAYS} días", decided)
+    elif not references:
         findings.add("trazabilidad", path, "ADR aceptado huérfano: 'Implementado por' no nombra historias ni tickets")
     for ref in references:
         if ref not in story_ids and ref not in ticket_ids:
@@ -1176,7 +1220,7 @@ def run_checks(root, scope=None, ticket=None, today=None, tags=None):
         if fm:
             reviews.append(fm)
     if scope is None or any(s.startswith(MAINTENANCE_DIR + "/") for s in scope):
-        check_maintenance_cadence(findings, reviews, deployed_any, today)
+        check_maintenance_cadence(findings, reviews, deployed_any, today, first_deployment_date(root))
     story_info = {story_id(p): frontmatter(read(os.path.join(root, p))) or {} for p in stories}
     outcome_ids = {OUTCOME_FILE.match(os.path.basename(p)).group(1) for p in list_top_level(root, OUTCOMES_DIR, OUTCOME_FILE)}
     retirement_paths = list_top_level(root, RETIREMENTS_DIR, RETIREMENT_FILE)
@@ -1190,9 +1234,17 @@ def run_checks(root, scope=None, ticket=None, today=None, tags=None):
         if retired_by and in_scope(path) and not any(r in retirement_ids for r in RETIREMENT_ID.findall(retired_by)):
             findings.add("retirada", path, "retired_by apunta a una retirada que no existe", retired_by)
     ops_prefixes = (SLOS_DOC, BACKUP_DOC, RUNBOOKS_DIR + "/", DRILLS_DIR + "/")
-    if scope is None or any(s.startswith(ops_prefixes) for s in scope):
+    releases_in_scope = scope is not None and any(s.startswith(RELEASES_DIR + "/") for s in scope)
+    if scope is None or releases_in_scope or any(s.startswith(ops_prefixes) for s in scope):
         deployed = any(status in ("deployed", "rolled_back") for status in releases.values())
-        checked += check_operations(root, findings, deployed, today)
+        ops_findings = Findings()
+        ops_checked = check_operations(root, ops_findings, deployed, today)
+        # Un release cambiado solo consulta la operación de la que depende: no la cuenta como revisada.
+        if scope is None or any(s.startswith(ops_prefixes) for s in scope):
+            checked += ops_checked
+        for item in ops_findings.items:
+            if scope is None or operations_finding_in_scope(root, item, scope, releases_in_scope):
+                findings.items.append(item)
     experiments = experiment_decisions(root)
     for path in list_experiments(root):
         experiment_id = EXPERIMENT_FILE.match(os.path.basename(path)).group(1)
@@ -1212,7 +1264,7 @@ def run_checks(root, scope=None, ticket=None, today=None, tags=None):
             checked += 1
     for path in adrs:
         if in_scope(path):
-            check_adr(root, path, story_ids, ticket_ids, findings)
+            check_adr(root, path, story_ids, ticket_ids, findings, today)
             checked += 1
     if in_scope(MATRIX):
         for target in broken:
@@ -1222,18 +1274,32 @@ def run_checks(root, scope=None, ticket=None, today=None, tags=None):
     return findings, checked
 
 
-def main():
+def iso_date(value):
+    try:
+        return date.fromisoformat(value)
+    except ValueError as err:
+        raise argparse.ArgumentTypeError(f"fecha no válida, usa AAAA-MM-DD: {value}") from err
+
+
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="Gates deterministas de especificación de momoy.")
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--changed", action="store_true", help="solo artefactos modificados o nuevos (bloquea)")
     group.add_argument("--ticket", metavar="TK-XXX", help="Definition of Ready de un ticket (bloquea)")
     parser.add_argument("--strict", action="store_true", help="en el informe completo, falla si hay hallazgos")
     parser.add_argument("--verbose", action="store_true", help="lista cada hallazgo del informe completo")
-    args = parser.parse_args()
+    parser.add_argument("--today", type=iso_date, metavar="AAAA-MM-DD",
+                        help="evalúa los plazos como si hoy fuera esta fecha (simulacros, auditorías retroactivas)")
+    return parser.parse_args(argv)
+
+
+def main():
+    args = parse_args()
 
     root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     scope = changed_files(root) if args.changed else None
-    findings, checked = run_checks(root, scope=scope, ticket=args.ticket, today=date.today(), tags=git_tags(root))
+    today = args.today or date.today()
+    findings, checked = run_checks(root, scope=scope, ticket=args.ticket, today=today, tags=git_tags(root))
     blocking = args.changed or args.ticket is not None or args.strict
     marker = "❌" if blocking else "⚠️"
 
