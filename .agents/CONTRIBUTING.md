@@ -79,9 +79,9 @@ Cualquier script de gobernanza cuya lógica sí dependa del stack real (linter, 
 
 momoy se instala en proyectos que no conocen el historial de ningún otro. En skills, workflows, rules y comentarios de scripts:
 
-- **No citar identificadores del historial de un proyecto** (`TK-055`, `US-012`, `REQ-058`, `AUDIT-DEV-006`, `C-DEV-006-4`, un `PM-001`): en otro proyecto no significan nada o coinciden con los suyos. Se describe la lección, no su ID; la procedencia vive en el `CHANGELOG.md`. Los placeholders (`TK-XXX`, `TK-NNN`) y la convención de tickets base (`TK-001`, `TK-001-FE`) sí están permitidos.
-- **No citar guardias por número** ("Guard 24"): cada `AGENTS.md` numera las suyas (`SK-27` lo advierte). Se citan por su nombre o se remite a la regla de momoy correspondiente. Para los propios no-goals de una skill se escribe "Non-Goal N".
-- **No usar ejemplos del dominio de un proyecto** ni su layout de carpetas (`apps/backend`).
+- **No citar identificadores del historial de un proyecto** (un ticket, historia o requisito con su número real, el código de una auditoría o de un postmortem): en otro proyecto no significan nada o coinciden con los suyos. Se describe la lección, no su ID; la procedencia vive en el `CHANGELOG.md`. Los placeholders (`TK-XXX`, `TK-NNN`) y la convención de tickets base (`TK-001`, `TK-001-FE`) sí están permitidos.
+- **No citar guardias por su número** (la palabra *Guard* seguida de una cifra): cada `AGENTS.md` numera las suyas (`SK-27` lo advierte). Se citan por su nombre o se remite a la regla de momoy correspondiente. Para los propios no-goals de una skill se escribe "Non-Goal N".
+- **No usar ejemplos del dominio de un proyecto** ni su layout de carpetas (por ejemplo, las rutas de un monorepo concreto).
 
 Verificado por la segunda pasada de `.agents/scripts/check_agnosticism.py`, **informativa** mientras se limpia la deuda heredada (`--verbose` la lista, `--strict-docs` la vuelve bloqueante).
 
