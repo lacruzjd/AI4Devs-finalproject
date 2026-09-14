@@ -75,6 +75,16 @@ Aplican las mismas guardas que rigen el código generado por las skills ([rules/
 
 Cualquier script de gobernanza cuya lógica sí dependa del stack real (linter, test runner, contrato de API, layout de monorepo) **DEBE generarse por skill** (ej. `SK-27_extract_project_rules.md`) hacia el árbol del **proyecto consumidor** (ej. `docs/04_governance_and_quality/scripts/`), adaptado al stack declarado en `docs/00_stack_manifest.md` — nunca vivir como archivo estático en `.agents/scripts/`. Verificado automáticamente por `.agents/scripts/check_agnosticism.py` (wireado en `validate_agents.sh`), que recorre `.agents/scripts/` **de forma recursiva** (excluyendo `tests/` y `__pycache__` a cualquier profundidad, `TK-065`) y falla si detecta: binarios de gestor de paquetes (`npx`, `pnpm`, `npm`, `pip`, `cargo`...) o rutas de proyecto hardcodeadas dentro de cualquier `*.sh`/`*.py`, **o cualquier archivo con una extensión fuera de la allowlist `.sh`/`.py`/`.md`** — la vía más simple de acoplarse a un stack es escribir el script en otro lenguaje por completo, y ningún substring bloqueado lo detectaría; esto cierra un blind spot que estuvo documentado sin resolver desde `TK-053`/`TK-055`.
 
+### La documentación tampoco se acopla a un proyecto (momoy 2.26.1)
+
+momoy se instala en proyectos que no conocen el historial de ningún otro. En skills, workflows, rules y comentarios de scripts:
+
+- **No citar identificadores del historial de un proyecto** (`TK-055`, `US-012`, `REQ-058`, `AUDIT-DEV-006`, `C-DEV-006-4`, un `PM-001`): en otro proyecto no significan nada o coinciden con los suyos. Se describe la lección, no su ID; la procedencia vive en el `CHANGELOG.md`. Los placeholders (`TK-XXX`, `TK-NNN`) y la convención de tickets base (`TK-001`, `TK-001-FE`) sí están permitidos.
+- **No citar guardias por número** ("Guard 24"): cada `AGENTS.md` numera las suyas (`SK-27` lo advierte). Se citan por su nombre o se remite a la regla de momoy correspondiente. Para los propios no-goals de una skill se escribe "Non-Goal N".
+- **No usar ejemplos del dominio de un proyecto** ni su layout de carpetas (`apps/backend`).
+
+Verificado por la segunda pasada de `.agents/scripts/check_agnosticism.py`, **informativa** mientras se limpia la deuda heredada (`--verbose` la lista, `--strict-docs` la vuelve bloqueante).
+
 ### Sin emojis decorativos (regla permanente, momoy 2.17.0)
 
 momoy es un framework de gobernanza, no un post de blog: los emojis decorativos no aportan información, añaden ruido visual y rompen búsquedas literales sobre títulos. Dos reglas:
