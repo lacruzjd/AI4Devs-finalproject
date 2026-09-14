@@ -319,6 +319,72 @@ DRILLS = {
     "DRILL-003": ("runbook", "RB-002"),
 }
 
+MNT_PATH = f"{OPS}/maintenance/MNT-001.md"
+RET_PATH = f"{OPS}/retirements/RET-001-exportacion.md"
+
+MAINTENANCE = """---
+document: maintenance_review
+id: MNT-001
+version: 1.0.0
+status: closed
+reviewed_on: 2026-09-10
+---
+
+# MNT-001: Revisión de mantenimiento
+
+## Dependencias y vulnerabilidades
+Una vulnerabilidad alta nueva en una dependencia transitiva.
+
+## Deuda técnica
+Índice actualizado; sin elementos nuevos críticos.
+
+## Feature flags pendientes de retirar
+Ninguno.
+
+## Operación
+Simulacro de restauración vigente.
+
+## Especificaciones y ciclo
+Sin KPIs vencidos.
+
+## Hallazgos
+- Actualizar la dependencia vulnerable — TK-003
+- Refactorizar el módulo de reportes — sin acción — riesgo bajo, se revisa en la próxima
+"""
+
+RETIREMENT = """---
+document: retirement
+id: RET-001
+version: 1.0.0
+status: planned
+reason: Decisión del humano tras bajo uso
+announced_on:
+completed_on:
+data_retention_until: no_aplica
+data_disposed_on:
+---
+
+# RET-001: Retirada de la exportación
+
+## Motivo
+Nadie usa la exportación manual desde que existe el reporte automático.
+
+## Impacto
+Un endpoint y un botón de la UI; sin datos propios.
+
+## Historias retiradas
+- US-001
+
+## Aviso a usuarios
+Aviso en el panel con 30 días de antelación.
+
+## Tratamiento de datos
+No genera datos propios.
+
+## Tickets de eliminación
+- TK-003 — eliminar el endpoint de exportación
+"""
+
 PM_PATH = "docs/06_release_and_operations/postmortems/PM-001-despliegue.md"
 OUT_PATH = "docs/01_product_definition/outcomes/OUT-001-merma.md"
 OUT_DATA = "docs/01_product_definition/outcomes/data/OUT-001/merma.csv"
@@ -349,6 +415,8 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         self._write(DONE_TICKET_PATH, TICKET.replace("id: TK-001", "id: TK-003").replace("status: approved", "status: done"))
         self._write(RELEASE_PATH, RELEASE)
         self._write(SLOS_PATH, SLOS)
+        self._write(MNT_PATH, MAINTENANCE)
+        self._write(RET_PATH, RETIREMENT)
         self._write(BACKUP_PATH, BACKUP)
         self._write(f"{OPS}/runbooks/RB-001-errores.md", runbook("RB-001", "Tasa de error alta"))
         self._write(f"{OPS}/runbooks/RB-002-latencia.md", runbook("RB-002", "Latencia alta en registro"))
@@ -373,7 +441,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         findings, checked = run_checks(self.root)
 
         self.assertEqual(findings.items, [])
-        self.assertEqual(checked, 17)
+        self.assertEqual(checked, 19)
 
     # kpi
     def test_prose_kpis_without_table_are_detected(self):
@@ -961,6 +1029,101 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
         self.assertEqual([(k, d) for g, p, k, d in findings.items if g == "release"],
                          [("presupuesto de error agotado: el release incluye funcionalidades", "TK-003")])
+
+    # mantenimiento (etapa 12)
+    def test_closed_review_findings_must_be_traced(self):
+        self._write(MNT_PATH, MAINTENANCE.replace("— TK-003", "— TK-777").replace(
+            "- Refactorizar el módulo de reportes — sin acción — riesgo bajo, se revisa en la próxima", "- Refactorizar el módulo de reportes"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(sorted(self._kinds(findings, "mantenimiento")), [
+            "hallazgo apunta a un ticket que no existe",
+            "hallazgo sin ticket ni 'sin acción — motivo'",
+        ])
+
+    def test_review_with_invalid_status_or_missing_sections_is_detected(self):
+        self._write(MNT_PATH, MAINTENANCE.replace("status: closed", "status: done").replace("## Deuda técnica", "## Notas"))
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "mantenimiento")
+        self.assertIn("status fuera del vocabulario", kinds)
+        self.assertIn("sin sección 'Deuda técnica'", kinds)
+
+    def test_review_without_findings_is_accepted(self):
+        self._write(MNT_PATH, MAINTENANCE.split("## Hallazgos")[0] + "## Hallazgos\nSin hallazgos. Se revisaron dependencias, deuda y operación.\n")
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(findings.items, [])
+
+    def test_maintenance_cadence_is_enforced_once_something_is_deployed(self):
+        within, _ = run_checks(self.root, today=date(2026, 10, 9))
+        overdue, _ = run_checks(self.root, today=date(2026, 10, 11))
+        self._write("docs/06_release_and_operations/maintenance/MNT-002.md",
+                    MAINTENANCE.replace("id: MNT-001", "id: MNT-002").replace("status: closed", "status: draft").replace("2026-09-10", "2026-10-10"))
+        draft_does_not_count, _ = run_checks(self.root, today=date(2026, 10, 11))
+        os.remove(os.path.join(self.root, MNT_PATH))
+        os.remove(os.path.join(self.root, "docs/06_release_and_operations/maintenance/MNT-002.md"))
+        never, _ = run_checks(self.root, today=date(2026, 9, 13))
+
+        self.assertNotIn("revisión de mantenimiento vencida (más de 30 días)", self._kinds(within, "mantenimiento"))
+        self.assertIn("revisión de mantenimiento vencida (más de 30 días)", self._kinds(overdue, "mantenimiento"))
+        self.assertIn("revisión de mantenimiento vencida (más de 30 días)", self._kinds(draft_does_not_count, "mantenimiento"))
+        self.assertIn("servicio desplegado sin revisión de mantenimiento", self._kinds(never, "mantenimiento"))
+
+    # retirada (etapa 12)
+    def _completed_retirement(self, announced="2026-08-01", completed="2026-09-05"):
+        return (RETIREMENT.replace("status: planned", "status: completed")
+                .replace("announced_on:\n", f"announced_on: {announced}\n").replace("completed_on:\n", f"completed_on: {completed}\n"))
+
+    def test_completed_retirement_with_everything_in_place_passes(self):
+        self._write(RET_PATH, self._completed_retirement())
+        self._write("docs/05_agile_planning/11_user_stories/stock/US-001.md",
+                    STORY.replace("status: approved", "status: done").replace("inputs:", "retired_by: RET-001\ninputs:"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(findings.items, [])
+
+    def test_completed_retirement_gaps_are_detected(self):
+        self._write(RET_PATH, self._completed_retirement(announced="2026-08-20").replace("- TK-003 — eliminar", "- TK-001 — eliminar"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(sorted(self._kinds(findings, "retirada")), [
+            "aviso con menos de 30 días de antelación",
+            "historia retirada sin retired_by: RET-001",
+            "ticket de eliminación sin cerrar",
+        ])
+
+    def test_retirement_format_and_reason_are_checked(self):
+        self._write(RET_PATH, RETIREMENT.replace("status: planned", "status: archived")
+                    .replace("reason: Decisión del humano tras bajo uso", "reason: OUT-404")
+                    .replace("data_retention_until: no_aplica", "data_retention_until: pronto"))
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "retirada")
+        self.assertIn("status fuera del vocabulario", kinds)
+        self.assertIn("reason apunta a un informe de resultados que no existe", kinds)
+        self.assertIn("data_retention_until no es AAAA-MM-DD ni no_aplica", kinds)
+
+    def test_expired_retention_without_recorded_disposal_is_detected(self):
+        self._write(RET_PATH, RETIREMENT.replace("data_retention_until: no_aplica", "data_retention_until: 2026-09-01"))
+
+        findings, _ = run_checks(self.root, today=date(2026, 9, 13))
+
+        self.assertIn("retención vencida sin registrar la anonimización o eliminación de los datos", self._kinds(findings, "retirada"))
+
+    def test_story_marked_as_retired_by_an_unknown_retirement_is_detected(self):
+        self._write("docs/05_agile_planning/11_user_stories/stock/US-001.md",
+                    STORY.replace("status: approved", "status: done").replace("inputs:", "retired_by: RET-099\ninputs:"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("retired_by apunta a una retirada que no existe", self._kinds(findings, "retirada"))
 
     # modos
     def test_changed_scope_ignores_untouched_debt(self):

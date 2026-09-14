@@ -11,7 +11,7 @@ SK-01/SK-02 (KPIs), SK-11 (historias), SK-12 (tickets), SK-13 (matriz) y SK-36 (
 declaran obligatorio. Solo depende de la taxonomía fija de docs/ que momoy impone, no del
 stack del proyecto (CONTRIBUTING.md, regla de .agents/scripts/).
 
-Nueve gates:
+Once gates:
   kpi          Cada KPI está en una tabla con fuente, línea base, umbral, ventana y fecha de revisión.
   resultado    Cada OUT-NNN (SK-39) tiene veredicto por KPI sostenido por datos del repo y una
                recomendación coherente con su estado; un KPI con la fecha de revisión vencida y sin
@@ -23,6 +23,10 @@ Nueve gates:
   operacion    Un servicio con un release desplegado tiene SLOs de disponibilidad y latencia, cada uno
                con alerta y runbook ensayado con éxito, y backup con RPO/RTO y un simulacro de
                restauración exitoso de hace menos de 90 días que cumple el RTO (SK-40).
+  mantenimiento Cada MNT-NNN (workflow 11) cerrado traza sus hallazgos; con algo desplegado, pasar 30 días
+               sin una revisión cerrada es un hallazgo.
+  retirada     Cada RET-NNN (SK-41) completado tiene aviso de al menos 30 días, tickets de eliminación
+               cerrados e historias con retired_by; la retención vencida exige registrar el borrado.
   postmortem   Cada PM-NNN (SK-38) tiene línea de tiempo con horas, análisis de por qué ningún gate lo
                detectó y, si está cerrado, acciones trazadas; uno crítico o alto sin cerrar pasados
                5 días desde la resolución es un hallazgo.
@@ -120,6 +124,30 @@ RELEASE_SECTIONS = {
 }
 CHANGELOG = "CHANGELOG.md"
 
+# Mantenimiento y retirada (etapa 12, workflow 11 y SK-41).
+MAINTENANCE_DIR = "docs/06_release_and_operations/maintenance"
+MAINTENANCE_STATUS = ("draft", "closed")
+MAINTENANCE_CADENCE_DAYS = 30
+MAINTENANCE_SECTIONS = {
+    "Dependencias y vulnerabilidades": ("dependencias",),
+    "Deuda técnica": ("deuda tecnica",),
+    "Feature flags pendientes de retirar": ("feature flags",),
+    "Operación": ("operacion",),
+    "Especificaciones y ciclo": ("especificaciones",),
+    "Hallazgos": ("hallazgos",),
+}
+RETIREMENTS_DIR = "docs/06_release_and_operations/retirements"
+RETIREMENT_STATUS = ("planned", "announced", "completed", "cancelled")
+RETIREMENT_NOTICE_DAYS = 30
+RETIREMENT_SECTIONS = {
+    "Motivo": ("motivo",),
+    "Impacto": ("impacto",),
+    "Historias retiradas": ("historias retiradas",),
+    "Aviso a usuarios": ("aviso a usuarios",),
+    "Tratamiento de datos": ("tratamiento de datos",),
+    "Tickets de eliminación": ("tickets de eliminacion",),
+}
+
 # Operación (etapa 9, SK-40).
 OPS_DIR = "docs/06_release_and_operations"
 SLOS_DOC = f"{OPS_DIR}/slos.md"
@@ -153,6 +181,10 @@ EXPERIMENT_FILE = re.compile(r"^(EXP-\d+).*\.md$")
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
 RELEASE_FILE = re.compile(r"^v(\d+\.\d+\.\d+)(?:-[a-z0-9-]+)?\.md$")
 RELEASE_REF = re.compile(r"\bv(\d+\.\d+\.\d+)\b")
+MAINTENANCE_FILE = re.compile(r"^(MNT-\d+).*\.md$")
+RETIREMENT_FILE = re.compile(r"^(RET-\d+).*\.md$")
+RETIREMENT_ID = re.compile(r"RET-\d+")
+OUTCOME_ID = re.compile(r"OUT-\d+")
 RUNBOOK_FILE = re.compile(r"^(RB-\d+).*\.md$")
 DRILL_FILE = re.compile(r"^(DRILL-\d+).*\.md$")
 RUNBOOK_ID = re.compile(r"RB-\d+")
@@ -229,6 +261,21 @@ def section_lines(text, options):
         if inside:
             lines.append(line)
     return lines
+
+
+def untraced_items(items, ticket_ids):
+    """Para acciones o hallazgos que deben apuntar a un ticket existente o declararse
+    `sin acción — motivo`: devuelve [("missing", ticket) | ("untraced", texto)]."""
+    problems = []
+    for item in items:
+        referenced = TICKET_ID.findall(item)
+        if referenced:
+            problems.extend(("missing", ticket) for ticket in referenced if ticket not in ticket_ids)
+        else:
+            reason = norm(item).split("sin accion", 1)
+            if len(reason) < 2 or len(reason[1].strip()) < 10:
+                problems.append(("untraced", item[:60]))
+    return problems
 
 
 def list_top_level(root, rel_dir, pattern):
@@ -653,6 +700,111 @@ def check_operations(root, findings, deployed, today=None):
     return checked
 
 
+# ------------------------------------------------- gates: mantenimiento y retirada
+
+def check_maintenance(root, path, ticket_ids, findings):
+    text = read(os.path.join(root, path))
+    fm = frontmatter(text)
+    if fm is None:
+        findings.add("mantenimiento", path, "sin frontmatter")
+        return None
+    review_id = MAINTENANCE_FILE.match(os.path.basename(path)).group(1)
+    if fm.get("document") != "maintenance_review":
+        findings.add("mantenimiento", path, "document distinto de 'maintenance_review'", fm.get("document", "(ausente)"))
+    if fm.get("id") != review_id:
+        findings.add("mantenimiento", path, "id ausente o distinto del nombre de archivo", fm.get("id", "(ausente)"))
+    if fm.get("status") not in MAINTENANCE_STATUS:
+        findings.add("mantenimiento", path, "status fuera del vocabulario", fm.get("status", "(ausente)"))
+    if not ISO_DATE.match(fm.get("reviewed_on", "")):
+        findings.add("mantenimiento", path, "reviewed_on no es AAAA-MM-DD", fm.get("reviewed_on", "(ausente)"))
+    found = headings(text)
+    for label, options in MAINTENANCE_SECTIONS.items():
+        if not has_section(found, options):
+            findings.add("mantenimiento", path, f"sin sección '{label}'")
+    if fm.get("status") == "closed":
+        lines = section_lines(text, ("hallazgos",))
+        items = bullets(lines)
+        if not items and not " ".join(l.strip() for l in lines).lower().startswith("sin hallazgos"):
+            findings.add("mantenimiento", path, "revisión cerrada sin hallazgos trazados ni 'Sin hallazgos.'")
+        for problem, detail in untraced_items(items, ticket_ids):
+            kind = "hallazgo apunta a un ticket que no existe" if problem == "missing" else "hallazgo sin ticket ni 'sin acción — motivo'"
+            findings.add("mantenimiento", path, kind, detail)
+    return fm
+
+
+def check_maintenance_cadence(findings, reviews, deployed, today):
+    if not deployed:
+        return
+    closed = sorted(fm["reviewed_on"] for fm in reviews if fm.get("status") == "closed" and ISO_DATE.match(fm.get("reviewed_on", "")))
+    if not closed:
+        findings.add("mantenimiento", MAINTENANCE_DIR, "servicio desplegado sin revisión de mantenimiento")
+    elif today and (today - date.fromisoformat(closed[-1])).days > MAINTENANCE_CADENCE_DAYS:
+        findings.add("mantenimiento", MAINTENANCE_DIR, f"revisión de mantenimiento vencida (más de {MAINTENANCE_CADENCE_DAYS} días)",
+                     f"última cerrada el {closed[-1]}")
+
+
+def check_retirement(root, path, stories, tickets, outcome_ids, findings, today=None):
+    text = read(os.path.join(root, path))
+    fm = frontmatter(text)
+    if fm is None:
+        findings.add("retirada", path, "sin frontmatter")
+        return
+    ret_id = RETIREMENT_FILE.match(os.path.basename(path)).group(1)
+    status = fm.get("status")
+    if fm.get("document") != "retirement":
+        findings.add("retirada", path, "document distinto de 'retirement'", fm.get("document", "(ausente)"))
+    if fm.get("id") != ret_id:
+        findings.add("retirada", path, "id ausente o distinto del nombre de archivo", fm.get("id", "(ausente)"))
+    if status not in RETIREMENT_STATUS:
+        findings.add("retirada", path, "status fuera del vocabulario", status or "(ausente)")
+    reason = fm.get("reason", "").strip()
+    if not reason:
+        findings.add("retirada", path, "retirada sin motivo")
+    for outcome in OUTCOME_ID.findall(reason):
+        if outcome not in outcome_ids:
+            findings.add("retirada", path, "reason apunta a un informe de resultados que no existe", outcome)
+    retention = fm.get("data_retention_until", "").strip()
+    if retention != "no_aplica" and not ISO_DATE.match(retention):
+        findings.add("retirada", path, "data_retention_until no es AAAA-MM-DD ni no_aplica", retention or "(ausente)")
+    found = headings(text)
+    for label, options in RETIREMENT_SECTIONS.items():
+        if not has_section(found, options):
+            findings.add("retirada", path, f"sin sección '{label}'")
+
+    retired = [sid for line in bullets(section_lines(text, ("historias retiradas",))) for sid in STORY_ID.findall(line)]
+    removals = [tid for line in bullets(section_lines(text, ("tickets de eliminacion",))) for tid in TICKET_ID.findall(line)]
+    if status != "cancelled":
+        if not retired:
+            findings.add("retirada", path, "retirada sin historias retiradas")
+        if not removals:
+            findings.add("retirada", path, "retirada sin tickets de eliminación")
+    for story in retired:
+        if story not in stories:
+            findings.add("retirada", path, "historia retirada que no existe", story)
+    for ticket in removals:
+        if ticket not in tickets:
+            findings.add("retirada", path, "ticket de eliminación que no existe", ticket)
+
+    announced = fm.get("announced_on", "")
+    if status in ("announced", "completed") and not ISO_DATE.match(announced):
+        findings.add("retirada", path, "retirada anunciada sin announced_on", announced or "(ausente)")
+    if status == "completed":
+        completed = fm.get("completed_on", "")
+        if not ISO_DATE.match(completed):
+            findings.add("retirada", path, "retirada completada sin completed_on", completed or "(ausente)")
+        elif ISO_DATE.match(announced) and (date.fromisoformat(completed) - date.fromisoformat(announced)).days < RETIREMENT_NOTICE_DAYS:
+            findings.add("retirada", path, f"aviso con menos de {RETIREMENT_NOTICE_DAYS} días de antelación", f"{announced} → {completed}")
+        for ticket in removals:
+            if ticket in tickets and tickets[ticket].get("status") != "done":
+                findings.add("retirada", path, "ticket de eliminación sin cerrar", f"{ticket}: {tickets[ticket].get('status')}")
+        for story in retired:
+            if story in stories and stories[story].get("retired_by") != ret_id:
+                findings.add("retirada", path, f"historia retirada sin retired_by: {ret_id}", story)
+    if (status != "cancelled" and ISO_DATE.match(retention) and today and today > date.fromisoformat(retention)
+            and not ISO_DATE.match(fm.get("data_disposed_on", ""))):
+        findings.add("retirada", path, "retención vencida sin registrar la anonimización o eliminación de los datos", retention)
+
+
 # --------------------------------------------------------- gate: postmortem
 
 def check_postmortem(root, path, ticket_ids, findings, today=None):
@@ -698,16 +850,9 @@ def check_postmortem(root, path, ticket_ids, findings, today=None):
         actions = [l.strip()[2:] for l in section_lines(text, POSTMORTEM_SECTIONS["Acciones"]) if l.strip().startswith(("- ", "* "))]
         if not actions:
             findings.add("postmortem", path, "postmortem cerrado sin acciones")
-        for action in actions:
-            referenced = TICKET_ID.findall(action)
-            if referenced:
-                for ticket in referenced:
-                    if ticket not in ticket_ids:
-                        findings.add("postmortem", path, "acción apunta a un ticket que no existe", ticket)
-            else:
-                reason = norm(action).split("sin accion", 1)
-                if len(reason) < 2 or len(reason[1].strip()) < 10:
-                    findings.add("postmortem", path, "acción sin ticket ni 'sin acción — motivo'", action[:60])
+        for problem, detail in untraced_items(actions, ticket_ids):
+            kind = "acción apunta a un ticket que no existe" if problem == "missing" else "acción sin ticket ni 'sin acción — motivo'"
+            findings.add("postmortem", path, kind, detail)
     elif (fm.get("severity") in MANDATORY_SEVERITIES and today and "resolved_at" in moments
           and today > moments["resolved_at"].date() + timedelta(days=POSTMORTEM_DEADLINE_DAYS)):
         findings.add("postmortem", path, f"postmortem obligatorio sin cerrar pasados {POSTMORTEM_DEADLINE_DAYS} días de la resolución",
@@ -1019,6 +1164,30 @@ def run_checks(root, scope=None, ticket=None, today=None, tags=None):
         if in_scope(path):
             check_release(root, path, ticket_info, releases, findings, tags, exhausted)
             checked += 1
+    deployed_any = any(status in ("deployed", "rolled_back") for status in releases.values())
+    reviews = []
+    for path in list_top_level(root, MAINTENANCE_DIR, MAINTENANCE_FILE):
+        if in_scope(path):
+            fm = check_maintenance(root, path, ticket_ids, findings)
+            checked += 1
+        else:
+            fm = frontmatter(read(os.path.join(root, path)))
+        if fm:
+            reviews.append(fm)
+    if scope is None or any(s.startswith(MAINTENANCE_DIR + "/") for s in scope):
+        check_maintenance_cadence(findings, reviews, deployed_any, today)
+    story_info = {story_id(p): frontmatter(read(os.path.join(root, p))) or {} for p in stories}
+    outcome_ids = {OUTCOME_FILE.match(os.path.basename(p)).group(1) for p in list_top_level(root, OUTCOMES_DIR, OUTCOME_FILE)}
+    retirement_paths = list_top_level(root, RETIREMENTS_DIR, RETIREMENT_FILE)
+    retirement_ids = {RETIREMENT_FILE.match(os.path.basename(p)).group(1) for p in retirement_paths}
+    for path in retirement_paths:
+        if in_scope(path):
+            check_retirement(root, path, story_info, ticket_info, outcome_ids, findings, today)
+            checked += 1
+    for path in stories:
+        retired_by = story_info[story_id(path)].get("retired_by", "")
+        if retired_by and in_scope(path) and not any(r in retirement_ids for r in RETIREMENT_ID.findall(retired_by)):
+            findings.add("retirada", path, "retired_by apunta a una retirada que no existe", retired_by)
     ops_prefixes = (SLOS_DOC, BACKUP_DOC, RUNBOOKS_DIR + "/", DRILLS_DIR + "/")
     if scope is None or any(s.startswith(ops_prefixes) for s in scope):
         deployed = any(status in ("deployed", "rolled_back") for status in releases.values())
@@ -1073,7 +1242,7 @@ def main():
     else:
         by_gate = Counter(gate for gate, *_ in findings.items)
         by_kind = Counter((gate, kind) for gate, _, kind, _ in findings.items)
-        for gate in ("kpi", "resultado", "experimento", "historia", "ready", "trazabilidad", "release", "operacion", "postmortem"):
+        for gate in ("kpi", "resultado", "experimento", "historia", "ready", "trazabilidad", "release", "operacion", "mantenimiento", "retirada", "postmortem"):
             print(f"\n[{gate}] {by_gate.get(gate, 0)} hallazgos")
             for (g, kind), count in sorted(by_kind.items(), key=lambda kv: -kv[1]):
                 if g == gate:
