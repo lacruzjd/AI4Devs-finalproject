@@ -18,7 +18,7 @@ Dada la idea o requerimiento suministrado por el usuario, debes ejecutar de form
 
 ### FASE 0: Lectura y Mapeo de Contexto (Obligatorio)
 Antes de proponer o realizar cualquier cambio, debes:
-1. Leer los archivos de índices (`docs/05_agile_planning/11_user_stories/indice_user_stories.md` y `docs/05_agile_planning/12_tickets/indice_tickets.md`) para determinar el **siguiente identificador correlativo libre** (ej. `US-007` y `TK-008`). Está terminantemente prohibido usar placeholders como `US-XXX` o `TK-XXX`.
+1. Leer los archivos de índices (`docs/05_agile_planning/11_user_stories/indice_user_stories.md` y `docs/05_agile_planning/12_tickets/indice_tickets.md`) para determinar el **siguiente identificador correlativo libre** (el número siguiente al último usado en cada índice). Está terminantemente prohibido usar placeholders como `US-XXX` o `TK-XXX`.
 2. Leer el estado actual del esquema de persistencia en `docs/03_persistence_and_api/06_database_schema.md` y los documentos del core en `docs/01_product_definition/`, `docs/02_architecture_design/` y `readme.md` para mapear el impacto real.
 3. Determinar el módulo/epic de la funcionalidad para guardarla en la carpeta adecuada. Si la funcionalidad pertenece a un módulo existente, debes utilizar exactamente sus carpetas ya creadas. Si es un módulo o epic completamente nuevo, debes crear una nueva carpeta bajo el mismo estándar de módulos.
 
@@ -29,13 +29,13 @@ Responde en tu primer turno con un breve reporte estructural:
 3. ¿Afecta al modelo físico de base de datos?
 4. ¿Afecta o introduce nuevos endpoints en la API?
 
-### FASE 1.5: Interrogatorio de Reglas de Negocio y Fuentes Técnicas (Human-in-the-Loop, Guard 28 & Guard 34)
+### FASE 1.5: Interrogatorio de Reglas de Negocio y Fuentes Técnicas (Human-in-the-Loop)
 Antes de redactar cualquier archivo de especificación (Fase 2 en adelante), identifica toda decisión de regla de negocio o fuente de documentación técnica que la funcionalidad introduce y que **no** esté ya resuelta por un patrón idéntico ya existente. Para cada una, formula una pregunta abierta explícita al humano (vía `AskUserQuestion` o pregunta directa) — nunca la resuelvas copiando en silencio el patrón del ticket más parecido o asumiendo URLs de documentación. Ejemplos de lo que SIEMPRE requiere pregunta:
 1. **Control de acceso:** ¿qué rol(es) pueden ejecutar cada operación nueva (crear/editar/eliminar/listar)?
 2. **Integridad y duplicados:** ¿se permite un registro duplicado, o debe rechazarse/advertirse?
 3. **Dominio de datos:** ¿los campos nuevos aceptan cualquier valor (texto libre) o deben restringirse a un conjunto cerrado?
 4. **Casos límite y fallas:** ¿qué pasa si la operación falla a mitad de camino, o si un dato referenciado no existe?
-5. **Fuentes de Documentación Técnica (Guard 34):** Si la historia requiere integrar una nueva herramienta, librería o API, pregunta al humano: *"¿Tienes enlaces a documentación oficial o guías internas preferidas para redactar las reglas de codificación en `docs/04_governance_and_quality/rules/`?"*
+5. **Fuentes de Documentación Técnica:** Si la historia requiere integrar una nueva herramienta, librería o API, pregunta al humano: *"¿Tienes enlaces a documentación oficial o guías internas preferidas para redactar las reglas de codificación en `docs/04_governance_and_quality/rules/`?"*
 6. **Riesgo de valor y validación (etapa 2):** *"¿Cuál es el riesgo de valor de esta capacidad —alto, medio o bajo—? ¿Hay un experimento que la respalde, o por qué queda exenta?"* Registra la respuesta en `value_risk` y `validation` de cada historia (`SK-11`). Si el riesgo es **alto** y no existe un `EXP-NNN` con `decision: seguir`, **DETENTE antes de la Fase 2**: recomienda `/momoy-experiment [hipótesis]` y no especifiques la capacidad hasta tener la evidencia. Con riesgo medio o bajo, una exención con motivo explícito del humano es válida.
 
 **Excepción explícita:** si la funcionalidad es una extensión byte-a-byte de un patrón ya aprobado sin ninguna decisión de negocio nueva (ej. un campo idéntico en forma a otro ya existente), documenta esa equivalencia en el reporte de la Fase 1 y omite esta fase — no la conviertas en burocracia para cambios triviales. La pregunta 6 no se omite: declara igualmente `value_risk: bajo` y `validation: exenta — extensión de un patrón ya aprobado`.
@@ -44,7 +44,7 @@ Antes de redactar cualquier archivo de especificación (Fase 2 en adelante), ide
 
 ### FASE 2: Modificación de Requisitos, Modelo y Sistema de Diseño
 1. **PRD (`docs/01_product_definition/`):** Integra la funcionalidad en la descripción de alcance o flujos alternativos.
-2. **Diseño de Arquitectura, Base de Datos y UI/UX (`DESIGN.md` - Guard 29):**
+2. **Diseño de Arquitectura, Base de Datos y UI/UX (`DESIGN.md`):**
    * Si la funcionalidad afecta o crea pantallas/componentes UI, invoca [`SK-05: Sistema de Diseño UI/UX`](../skills/specs/02_architecture_design/SK-05_design_ui_ux_system.md) para actualizar `docs/02_architecture_design/05_ui_ux_design_system.md` y `DESIGN.md` en la raíz con los nuevos tokens visuales, estados de UI y componentes antes de escribir código frontend.
    * Si requiere cambios de base de datos, edita el esquema declarativo oficial (convención snake_case en BD, camelCase en código, uso estricto de Decimal para montos/cantidades físicas, uso de Enums nativos para campos cerrados e índices de búsqueda).
    * Actualiza el modelo lógico en `docs/02_architecture_design/` y `docs/03_persistence_and_api/`.
@@ -74,4 +74,4 @@ Antes de redactar cualquier archivo de especificación (Fase 2 en adelante), ide
 **REGLAS DE EJECUCIÓN (INNEGOCIABLES):**
 *   **Ediciones no destructivas:** Mantén intactos todos los comentarios, explicaciones y estructuras de los documentos preexistentes. Realiza únicamente ediciones localizadas y quirúrgicas.
 *   **Convenciones:** Redacta todas las explicaciones de negocio en español profesional, dejando los términos técnicos de programación (nombres de variables, tipos de datos, consultas de persistencia) en inglés. Muestra el diff de los cambios realizados.
-*   **Interrogatorio Obligatorio (Guard 28):** No avances a la Fase 2 sin haber resuelto la Fase 1.5 — ninguna decisión de regla de negocio queda implícita en la spec o el código sin haber sido primero una pregunta explícita respondida por el humano.
+*   **Interrogatorio Obligatorio:** No avances a la Fase 2 sin haber resuelto la Fase 1.5 — ninguna decisión de regla de negocio queda implícita en la spec o el código sin haber sido primero una pregunta explícita respondida por el humano.

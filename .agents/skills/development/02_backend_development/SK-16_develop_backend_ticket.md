@@ -1,7 +1,7 @@
 ---
 name: SK-16_develop_backend_ticket
 description: "Guía el desarrollo atómico de un ticket backend respetando la Arquitectura Hexagonal en Vertical Slices, TDD, sanitización activa de DTOs, precisión matemática de punto fijo, Eager Loading (Anti-N+1), CRUDs de entidades secundarias/pivotes, transacciones de BD, alineación de contrato y mutation score >= 70%."
-version: "3.11.1"
+version: "3.11.2"
 category: "development/02_backend_development"
 inputs:
   - ticket_id: "ID o ruta del ticket técnico (ej. TK-001 o docs/05_agile_planning/tickets/TK-001.md)"
@@ -19,7 +19,7 @@ outputs:
   - "Gate ticket-scoped de complejidad/longitud/profundidad y gate de duplicación (jscpd) en verde"
 ---
 
-# SK-16: Desarrollador de Tickets Backend (v3.11.1)
+# SK-16: Desarrollador de Tickets Backend (v3.11.2)
 
 Actúa como un **Senior Backend Software Engineer** y **Clean Architecture Advocate**. Tu objetivo es implementar de forma atómica el ticket backend especificado en `ticket_id` respetando la Arquitectura Hexagonal en Vertical Slices, TDD estricto y las guardias universales de calidad.
 
@@ -29,7 +29,7 @@ Sigue strictly este flujo de trabajo secuencial:
 
 ## FASE 1: Descubrimiento de Especificaciones y Contratos
 1. **Leer Especificaciones:** Lee el ticket en `docs/05_agile_planning/tickets/{ticket_id}`, el esquema de datos y el contrato de API en `docs/03_persistence_and_api/` (o las rutas declaradas en `AGENTS.md`).
-   - **Fail-Fast Obligatorio (Guard 26, `AGENTS.md`):** si `{ticket_id}` no existe como archivo — porque te pidieron implementar una funcionalidad nueva sin ticket previo — DETENTE. No implementes primero y documentes después: informa al humano que falta la Etapa 1 (`01_cascading_spec_workflow.md`: `SK-02`/`SK-11`/`SK-12`/`SK-13`/`SK-14`) y espera a que exista el `TK-XXX.md` antes de continuar con este skill.
+   - **Fail-Fast Obligatorio (spec antes que código):** si `{ticket_id}` no existe como archivo — porque te pidieron implementar una funcionalidad nueva sin ticket previo — DETENTE. No implementes primero y documentes después: informa al humano que falta la Etapa 1 (`01_cascading_spec_workflow.md`: `SK-02`/`SK-11`/`SK-12`/`SK-13`/`SK-14`) y espera a que exista el `TK-XXX.md` antes de continuar con este skill.
 2. **Consultar Comandos Oficiales:** Lee `AGENTS.md` para extraer los comandos declarados para testing, build, lint, linter de contrato de API y gestión de base de datos.
 3. **Descubrir Reglas del Proyecto:** Lee las directivas declaradas en `required_rules` en `docs/04_governance_and_quality/rules/`.
 
@@ -76,7 +76,7 @@ Antes de dar por completado el ticket, debes validar y verificar los siguientes 
 - [ ] ¿El contrato de API del proyecto está sincronizado según `backend_rules.md` y pasa su linter sin errores?
 - [ ] ¿No se usaron tipos inseguros (`any` / casting sin parsear) en ninguna capa?
 - [ ] ¿Las fechas usan huso horario UTC (ISO 8601 `YYYY-MM-DDTHH:mm:ssZ`)?
-- [ ] **(TK-066) Si este ticket agrega código que hace peticiones HTTP salientes cuyo host/URL deriva de input de usuario** (webhook, proxy, callback URL, integración externa configurable): ¿aplica allowlist explícita de hosts y bloquea rangos privados/link-local/metadata sin seguir redirects hacia ellos? Ver `docs/04_governance_and_quality/08_security_strategy.md` Bloque 3 (mitigación SSRF). N/A si el ticket no introduce peticiones salientes.
+- [ ] ** Si este ticket agrega código que hace peticiones HTTP salientes cuyo host/URL deriva de input de usuario** (webhook, proxy, callback URL, integración externa configurable): ¿aplica allowlist explícita de hosts y bloquea rangos privados/link-local/metadata sin seguir redirects hacia ellos? Ver `docs/04_governance_and_quality/08_security_strategy.md` Bloque 3 (mitigación SSRF). N/A si el ticket no introduce peticiones salientes.
 
 ---
 

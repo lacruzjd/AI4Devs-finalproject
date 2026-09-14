@@ -69,11 +69,11 @@ Aplican las mismas guardas que rigen el código generado por las skills ([rules/
 - No añadir una skill que duplique el alcance de otra existente; extiende la existente con una nueva fase antes de crear una paralela.
 - No fusionar una skill sin `required_rules` verificables ni un `output` concreto y verificable.
 
-### `.agents/scripts/` es SOLO tooling universal (regla permanente, `TK-038`)
+### `.agents/scripts/` es SOLO tooling universal (regla permanente)
 
 `install.sh` copia `.agents/` **verbatim** (`cp -R`) a cualquier proyecto nuevo, sin importar su stack — así que ningún archivo bajo `.agents/scripts/` puede depender del lenguaje, gestor de paquetes, test runner o layout de directorios que un proyecto consumidor haya elegido. Un script ahí solo puede operar sobre (a) la estructura propia de `.agents/` (skills, workflows, rules), o (b) la taxonomía fija de `docs/` que el propio framework VSDD impone a cualquier proyecto (ej. `docs/02_architecture_design/03_domain_model.md` — mismo path en cualquier stack).
 
-Cualquier script de gobernanza cuya lógica sí dependa del stack real (linter, test runner, contrato de API, layout de monorepo) **DEBE generarse por skill** (ej. `SK-27_extract_project_rules.md`) hacia el árbol del **proyecto consumidor** (ej. `docs/04_governance_and_quality/scripts/`), adaptado al stack declarado en `docs/00_stack_manifest.md` — nunca vivir como archivo estático en `.agents/scripts/`. Verificado automáticamente por `.agents/scripts/check_agnosticism.py` (wireado en `validate_agents.sh`), que recorre `.agents/scripts/` **de forma recursiva** (excluyendo `tests/` y `__pycache__` a cualquier profundidad, `TK-065`) y falla si detecta: binarios de gestor de paquetes (`npx`, `pnpm`, `npm`, `pip`, `cargo`...) o rutas de proyecto hardcodeadas dentro de cualquier `*.sh`/`*.py`, **o cualquier archivo con una extensión fuera de la allowlist `.sh`/`.py`/`.md`** — la vía más simple de acoplarse a un stack es escribir el script en otro lenguaje por completo, y ningún substring bloqueado lo detectaría; esto cierra un blind spot que estuvo documentado sin resolver desde `TK-053`/`TK-055`.
+Cualquier script de gobernanza cuya lógica sí dependa del stack real (linter, test runner, contrato de API, layout de monorepo) **DEBE generarse por skill** (ej. `SK-27_extract_project_rules.md`) hacia el árbol del **proyecto consumidor** (ej. `docs/04_governance_and_quality/scripts/`), adaptado al stack declarado en `docs/00_stack_manifest.md` — nunca vivir como archivo estático en `.agents/scripts/`. Verificado automáticamente por `.agents/scripts/check_agnosticism.py` (wireado en `validate_agents.sh`), que recorre `.agents/scripts/` **de forma recursiva** (excluyendo `tests/` y `__pycache__` a cualquier profundidad) y falla si detecta: binarios de gestor de paquetes (`npx`, `pnpm`, `npm`, `pip`, `cargo`...) o rutas de proyecto hardcodeadas dentro de cualquier `*.sh`/`*.py`, **o cualquier archivo con una extensión fuera de la allowlist `.sh`/`.py`/`.md`** — la vía más simple de acoplarse a un stack es escribir el script en otro lenguaje por completo, y ningún substring bloqueado lo detectaría; esto cierra un blind spot que estuvo documentado sin resolver durante varias versiones.
 
 ### La documentación tampoco se acopla a un proyecto (momoy 2.26.1)
 
@@ -109,7 +109,7 @@ Verificado automáticamente por `.agents/scripts/check_emoji_policy.py` (wireado
 
 ## Git hook `commit-msg`
 
-Todo commit debe referenciar un ticket `TK-XXX` en el mensaje (ej. `[TK-028]`) — lo exige `.husky/commit-msg`, instalado automáticamente vía `pnpm install` (script `prepare`). Excepciones: commits `Merge`/`Revert` automáticos de git, o un bypass explícito añadiendo `[skip-tk]` al mensaje para casos deliberados fuera del ciclo VSDD.
+Todo commit debe referenciar un ticket `TK-XXX` en el mensaje (ej. `[TK-NNN]`) — lo exige `.husky/commit-msg`, instalado automáticamente vía `pnpm install` (script `prepare`). Excepciones: commits `Merge`/`Revert` automáticos de git, o un bypass explícito añadiendo `[skip-tk]` al mensaje para casos deliberados fuera del ciclo VSDD.
 
 ## Licencia
 

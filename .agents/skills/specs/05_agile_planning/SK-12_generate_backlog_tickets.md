@@ -1,7 +1,7 @@
 ---
 name: backlog-tickets
 description: "Desglosa las Historias de Usuario en tickets técnicos atómicos de backend y frontend (máximo 5 SP), Definition of Done (DoD), Matriz Multidimensional de Priorización Cualitativa e instrucciones de ejecución autónoma para agentes IA."
-version: "3.2.0"
+version: "3.2.1"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -15,7 +15,7 @@ outputs:
   - "docs/05_agile_planning/12_tickets/indice_tickets.md"
 ---
 
-# SK-12: Desglose de Tickets Técnicos, Priorización Cualitativa e Instrucciones para IA (v3.1.1)
+# SK-12: Desglose de Tickets Técnicos, Priorización Cualitativa e Instrucciones para IA (v3.2.1)
 
 Actúa como un **Principal Software Architect** y **Technical Lead** experto en descomposición de tareas ágiles, evaluación de prioridades de negocio, arquitectura hexagonal en slices verticales y preparación de tickets listos para ejecución autónoma por agentes de IA codificadores.
 
@@ -120,10 +120,10 @@ inputs:
 ---
 
 ## Instrucciones de Ejecución Autónoma para Agente IA
-1. **Fichas a crear/modificar:**
-   - `apps/backend/src/modules/{modulo}/domain/...`
-   - `apps/backend/src/modules/{modulo}/application/...`
-   - `apps/backend/src/modules/{modulo}/infrastructure/...`
+1. **Fichas a crear/modificar** (`{backend_dir}` es el directorio backend declarado en `docs/00_stack_manifest.md`):
+   - `{backend_dir}/{modulo}/domain/...`
+   - `{backend_dir}/{modulo}/application/...`
+   - `{backend_dir}/{modulo}/infrastructure/...`
 2. **Ejecutar TDD Suite:** comando de test declarado en `AGENTS.md`, acotado al módulo `{modulo}`.
 3. **Comando de Verificación Total:** comandos de build y lint declarados en `AGENTS.md`.
 ```

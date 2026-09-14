@@ -2,7 +2,7 @@
 
 > [!IMPORTANT]
 > **DIRECTIVA PARA EL AGENTE DE IA:**
-> Este workflow se ejecuta **una única vez por proyecto**, cuando el usuario suministra una idea de negocio sobre un directorio **vacío o sin código previo relevante** que todavía NO tiene `docs/00_stack_manifest.md` ni `docs/01_product_definition/02_prd.md`. Resuelve el problema de "huevo y gallina" que ningún otro workflow cubre: antes de que exista un stack aprobado y un esqueleto de repositorio, ninguna otra skill de `.agents/` puede generar código (Guard 24) ni completar su Fase 0 de lectura de índices.
+> Este workflow se ejecuta **una única vez por proyecto**, cuando el usuario suministra una idea de negocio sobre un directorio **vacío o sin código previo relevante** que todavía NO tiene `docs/00_stack_manifest.md` ni `docs/01_product_definition/02_prd.md`. Resuelve el problema de "huevo y gallina" que ningún otro workflow cubre: antes de que exista un stack aprobado y un esqueleto de repositorio, ninguna otra skill de `.agents/` puede generar código ni completar su Fase 0 de lectura de índices.
 >
 > **¿Ya existe código?** Si el directorio tiene un repositorio con código funcional (aunque no tenga `docs/`), este NO es tu workflow — usa [`00_brownfield_adoption_workflow.md`](00_brownfield_adoption_workflow.md), que descubre el stack por inspección en vez de decidirlo desde cero.
 >
@@ -33,7 +33,7 @@ Este workflow **no reimplementa** la generación de PRD: delega íntegramente en
 Esta es la fase más irreversible del bootstrap — un cambio de stack posterior es costoso. Este workflow **no reimplementa** la lógica de decisión de stack: invoca [`SK-04: Arquitectura de Sistema y Stack Tecnológico`](../skills/specs/02_architecture_design/SK-04_design_technical_architecture.md), que ya define el protocolo completo:
 1. `SK-04` analiza el PRD y el Modelo de Dominio de FASE 1 y propone 2-3 combinaciones de stack completas con trade-offs y matriz de riesgos — nunca una sola opción impuesta.
 2. `SK-04` ejecuta su propia **PAUSA OBLIGATORIA (Human-in-the-Loop)** esperando confirmación explícita antes de escribir nada.
-3. Tras la aprobación, `SK-04` escribe tanto `docs/02_architecture_design/04_technical_design.md` (justificación completa + diagramas C4) como `docs/00_stack_manifest.md` (la tabla canónica de 8 secciones que Guard 24 exige).
+3. Tras la aprobación, `SK-04` escribe tanto `docs/02_architecture_design/04_technical_design.md` (justificación completa + diagramas C4) como `docs/00_stack_manifest.md` (las 9 secciones canónicas que el agente lee antes de generar código).
 4. Este workflow solo continúa a FASE 3 una vez que `docs/00_stack_manifest.md` existe con `status: approved`.
 
 ### FASE 3: Scaffolding del Repositorio
@@ -56,7 +56,7 @@ Usando exclusivamente las tecnologías ya confirmadas en `docs/00_stack_manifest
 
 ### FASE 5: Traspaso al Ciclo Cascada Estándar
 1. Presenta al humano un resumen ejecutivo: stack confirmado, estructura creada, artefactos de `docs/` generados.
-2. Pregunta explícitamente si desea continuar de inmediato con la primera pasada de [`01_cascading_spec_workflow.md`](01_cascading_spec_workflow.md) (usando el propio PRD de FASE 1 como la "idea" a propagar, generando `US-001` y el ticket core `TK-001` de infraestructura) o detenerse aquí para revisión manual.
+2. Pregunta explícitamente si desea continuar de inmediato con la primera pasada de [`01_cascading_spec_workflow.md`](01_cascading_spec_workflow.md) (usando el propio PRD de FASE 1 como la "idea" a propagar, generando la primera historia y el ticket core `TK-001` de infraestructura) o detenerse aquí para revisión manual.
 3. A partir de este punto, este workflow **no vuelve a invocarse** para el mismo proyecto — el ciclo de vida continúa exclusivamente por [`00_master_vsdd_workflow.md`](00_master_vsdd_workflow.md).
 
 ---

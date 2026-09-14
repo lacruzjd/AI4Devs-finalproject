@@ -1,10 +1,10 @@
 ---
 name: SK-21_audit_ui_accessibility
 description: "Guía procedimental para auditar la accesibilidad WCAG 2.2 AA/AAA, contraste HSL, foco visible, tamaños táctiles ergonómicos y regresión visual (screenshot diffing) de la interfaz de usuario."
-version: "1.3.1"
+version: "1.3.2"
 category: "development/06_visual_qa"
 inputs:
-  - target_url: "URL del servidor frontend a auditar — si no se pasa explícitamente, se infiere de docs/00_stack_manifest.md §7 (Frontend Dev Server); nunca asumir un puerto por defecto hardcodeado en la skill (Guard 24)"
+  - target_url: "URL del servidor frontend a auditar — si no se pasa explícitamente, se infiere de docs/00_stack_manifest.md §7 (Frontend Dev Server); nunca asumir un puerto por defecto hardcodeado en la skill"
   - min_touch_size: "Tamaño táctil mínimo en píxeles (default: 48px)"
 outputs:
   - "Reporte de auditoría de accesibilidad WCAG y contraste HSL"
@@ -19,7 +19,7 @@ Sigue estrictamente este flujo de trabajo secuencial:
 
 ---
 
-## FASE 0 OBLIGATORIA (Guard 24): Descubrimiento de `target_url`
+## FASE 0 OBLIGATORIA: Descubrimiento de `target_url`
 1. Si `target_url` no fue pasado explícitamente como input, lee `docs/00_stack_manifest.md` §7 ("URLs de Desarrollo Local") para obtener la URL del **Frontend Dev Server** declarada ahí.
 2. Si el manifiesto no declara ninguna URL de frontend todavía, **DETENTE** y pregunta al humano — nunca asumas un puerto por defecto (`5173`, `3000`, u otro) como si fuera universal a cualquier proyecto que instale `.agents/`. Mismo criterio ya establecido en `workflows/08_smoke_test_deploy_validation.md` para `BACKEND_URL`.
 
@@ -69,8 +69,8 @@ Sigue estrictamente este flujo de trabajo secuencial:
 
 ---
 
-## FASE 5: Regresión Visual (Screenshot Diffing, TK-055)
-1. **Baseline Versionado:** las capturas de referencia viven en `e2e/visual-baselines/` (path fijo del framework VSDD, no específico de un proyecto — mismo criterio que `e2e/pages/` de Guard 21), commiteadas junto al código que las produce.
+## FASE 5: Regresión Visual (Screenshot Diffing)
+1. **Baseline Versionado:** las capturas de referencia viven en `e2e/visual-baselines/` (path fijo del framework VSDD, no específico de un proyecto — mismo criterio que `e2e/pages/` de los Page Object Models), commiteadas junto al código que las produce.
 2. **Captura y Comparación:** usa el motor de comparación de imágenes del runner E2E declarado en `docs/00_stack_manifest.md` (ej. `expect(page).toHaveScreenshot()` de Playwright) contra el baseline. Umbral de diff **conservador por defecto** (ej. `maxDiffPixelRatio: 0.01`) para absorber ruido de antialiasing/fuentes sin absorber una regresión real de layout (CLS > 0.1).
 3. **Un diff real SIEMPRE falla el gate — nunca se auto-acepta.** Si el diff corresponde a un rediseño intencional (no una regresión), el humano debe correr explícitamente el comando de re-baseline del runner (ej. `--update-snapshots`) como una acción deliberada y commitear el nuevo baseline en un commit separado y declarado como tal — nunca como efecto colateral silencioso de una corrida normal del gate.
 4. **Alcance:** ejecuta esta comparación sobre los componentes que el ticket en curso modificó visualmente, no el catálogo completo de baselines en cada corrida (mismo criterio acotado al diff que `check_ticket_code_quality.sh`).

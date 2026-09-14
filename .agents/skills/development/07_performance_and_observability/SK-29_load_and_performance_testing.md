@@ -1,11 +1,11 @@
 ---
 name: SK-29_load_and_performance_testing
 description: "Diseña, genera y ejecuta pruebas no-funcionales de carga y rendimiento de forma agnóstica a la pila tecnológica. La regresión visual vive en SK-21 (development/06_visual_qa), no aquí — evita duplicación entre skills con responsabilidades distintas."
-version: "1.2.1"
+version: "1.2.2"
 category: "development/07_performance_and_observability"
 inputs:
   - api_spec_path: "Ruta opcional a la especificación de API (OpenAPI, GraphQL, gRPC)"
-  - target_url: "URL base del entorno de pruebas o staging — si no se pasa, se infiere de docs/00_stack_manifest.md §7 (Guard 24)"
+  - target_url: "URL base del entorno de pruebas o staging — si no se pasa, se infiere de docs/00_stack_manifest.md §7"
 outputs:
   - "Scripts de carga en k6/Artillery en e2e/performance/ o tests/load/"
   - "Reporte de SLAs de latencia (p95 < 200ms, p99 < 500ms, tasa de error 0%)"
@@ -15,14 +15,14 @@ Actúa como un Principal Performance & Infrastructure QA Engineer. Tu objetivo e
 
 ---
 
-## FASE 0 OBLIGATORIA (Guard 24): Descubrimiento de `target_url`
+## FASE 0 OBLIGATORIA: Descubrimiento de `target_url`
 1. Si `target_url` no fue pasado explícitamente, lee `docs/00_stack_manifest.md` §7 ("URLs de Desarrollo Local") para obtener la URL del entorno a probar (Backend Dev Server, o la URL de staging si está declarada).
 2. Si el manifiesto no declara ninguna URL utilizable, **DETENTE** y pregunta al humano — nunca generes un script de carga apuntando a un host/puerto/ruta asumidos (ej. `localhost:3000/api/health`) como si fueran universales a cualquier proyecto que instale `.agents/`. Mismo criterio ya establecido en `workflows/08_smoke_test_deploy_validation.md` y `SK-21`.
 
 ---
 
 ## FASE 1: Análisis de SLAs y Criterios No-Funcionales
-1. **Definición de Umbrales de Rendimiento (Guard 24 — NFR del proyecto antes que default genérico):**
+1. **Definición de Umbrales de Rendimiento (NFR del proyecto antes que default genérico):**
    - **Fuente primaria:** busca un NFR de latencia ya declarado para el/los endpoint(s) bajo prueba, en la sección "Criterios de Aceptación No Funcionales (NFRs)" de la User Story asociada (`docs/05_agile_planning/11_user_stories/{modulo}/US-XXX.md`) o en `docs/01_product_definition/02_prd.md`. Si existe, ese es el umbral bloqueante real — nunca lo sobrescribas con un default genérico.
    - **Fallback documentado (solo si el proyecto NO declaró un NFR para ese endpoint):** p95 < 200ms, p99 < 500ms bajo carga sostenida. Repórtalo explícitamente como "SLA por defecto, sin NFR específico del proyecto" en el reporte final — nunca lo presentes como si fuera un requisito de negocio confirmado.
    - **Tasa de Error HTTP (Error Rate):** 0.00% bajo volumen nominal — este sí es un criterio de ingeniería de carga universal, no depende del dominio de negocio.

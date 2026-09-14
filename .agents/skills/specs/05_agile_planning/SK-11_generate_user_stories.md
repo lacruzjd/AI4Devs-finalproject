@@ -1,7 +1,7 @@
 ---
 name: user-stories
 description: "Redacta el backlog de Historias de Usuario bajo la estructura de las 4 Preguntas Clave (Como/Cuando/Quiero/Para), Precondiciones, BDD Gherkin (Happy Path, Error Path, QA Edge Case), NFRs y checklist INVEST."
-version: "3.4.0"
+version: "3.4.1"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -11,7 +11,7 @@ outputs:
   - "docs/05_agile_planning/11_user_stories/indice_user_stories.md"
 ---
 
-# SK-11: Historias de Usuario Profesional INVEST y Criterios BDD (v3.1.1)
+# SK-11: Historias de Usuario Profesional INVEST y Criterios BDD (v3.4.1)
 
 Actúa como un **Lead Agile Product Owner** y **Senior QA Automation Specialist** experto en marcos ágiles (Scrum/Kanban), especificación por comportamiento (BDD Gherkin) y análisis de casos borde (Edge Cases).
 
@@ -40,7 +40,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ### Paso 1: Identificación y Estructuración INVEST de 4 Preguntas
 1. Extraer las capacidades prioritarias del MVP desde `docs/01_product_definition/02_prd.md`.
-2. Para cada historia, asignar un ID correlativo único (`US-001`, `US-002`...) y redactar la narrativa de 4 preguntas.
+2. Para cada historia, asignar un ID correlativo único (`US-NNN`, el siguiente libre del índice) y redactar la narrativa de 4 preguntas.
 3. Validar cada historia frente al checklist **INVEST**.
 
 ### Paso 2: Especificación de Precondiciones, BDD Gherkin (3 Escenarios) y NFRs

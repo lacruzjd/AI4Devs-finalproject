@@ -1,7 +1,7 @@
 ---
 name: traceability-matrix
 description: "Audita la trazabilidad biyectiva End-to-End del sistema (regla de cero orfandad) y autogenera la Matriz de Trazabilidad SDD."
-version: "3.3.0"
+version: "3.3.1"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -13,7 +13,7 @@ outputs:
   - "docs/05_agile_planning/13_matriz_trazabilidad.md"
 ---
 
-# SK-13: Matriz de Trazabilidad End-to-End (v3.2.1)
+# SK-13: Matriz de Trazabilidad End-to-End (v3.3.1)
 
 Actúa como un **Lead Quality & Governance Architect** experto en trazabilidad documental, gestión de requerimientos y auditoría de alineación entre especificaciones de negocio, esquemas de BD, contratos de API y tickets de trabajo.
 
@@ -44,7 +44,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
    - **ADR huérfano:** un ADR `Accepted` cuyo campo `Implementado por:` no nombra ninguna historia/ticket existente — la decisión se tomó pero nadie la ejecutó, o la ejecutó sin registrarlo.
    - **Decisión no registrada:** un ticket cuyo alcance resuelve una disyuntiva con ≥2 caminos viables sin ADR que la respalde (ver Test Decisivo de `SK-36` Fase 1).
 
-   Ambos casos se **reportan al humano**, nunca se corrigen inventando el enlace que falta (misma prohibición de invención del Guard 2 de este skill).
+   Ambos casos se **reportan al humano**, nunca se corrigen inventando el enlace que falta (misma prohibición de invención del Non-Goal 2 de este skill).
 3. **Verificación determinista antes de dar la matriz por buena:** ejecuta `python3 .agents/scripts/check_spec_artifacts.py --changed`. Su gate `trazabilidad` comprueba lo mecánico — cada historia y ticket enlazado desde la matriz (distingue "no aparece" de "aparece sin enlace"), enlaces que resuelven y ADRs `accepted` que nombran artefactos existentes —; la "decisión no registrada" sigue siendo juicio y se revisa a mano.
 
 ---

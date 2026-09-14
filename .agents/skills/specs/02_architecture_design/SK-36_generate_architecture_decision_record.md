@@ -1,7 +1,7 @@
 ---
 name: architecture-decision-record
-description: "Registra una decisión arquitectónicamente significativa como ADR (Architecture Decision Record): enmarca el problema y sus fuerzas, genera un mínimo de 3 opciones defendibles con matriz comparativa, somete la elección al humano (Guard 28) y persiste la decisión con sus consecuencias, alternativas descartadas y trazabilidad a las historias/tickets que la implementan."
-version: "1.0.1"
+description: "Registra una decisión arquitectónicamente significativa como ADR (Architecture Decision Record): enmarca el problema y sus fuerzas, genera un mínimo de 3 opciones defendibles con matriz comparativa, somete la elección al humano y persiste la decisión con sus consecuencias, alternativas descartadas y trazabilidad a las historias/tickets que la implementan."
+version: "1.0.2"
 category: "02_architecture_design"
 inputs:
   - "docs/00_stack_manifest.md"
@@ -11,7 +11,7 @@ outputs:
   - "docs/02_architecture_design/adr/ADR-XXX-{slug}.md"
 ---
 
-# SK-36: Registro de Decisiones de Arquitectura (ADR) (v1.0.1)
+# SK-36: Registro de Decisiones de Arquitectura (ADR) (v1.0.2)
 
 Actúa como un **Principal Software Architect** experto en Architecture Decision Records (formato Michael Nygard), análisis de trade-offs y facilitación de decisiones técnicas con múltiples caminos viables.
 
@@ -23,19 +23,19 @@ Tu objetivo es transformar una disyuntiva técnica en un **documento de decisió
 
 Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
-1. **No decidir por el humano:** este skill produce opciones y una recomendación; la elección se confirma en la PAUSA HitL de la Fase 3. Prohibido escribir un ADR con `status: accepted` sin esa confirmación explícita (coherente con el Guard 28 de `AGENTS.md` y la regla innegociable de aprobación previa de [`README.md`](../../../README.md)).
+1. **No decidir por el humano:** este skill produce opciones y una recomendación; la elección se confirma en la PAUSA HitL de la Fase 3. Prohibido escribir un ADR con `status: accepted` sin esa confirmación explícita (coherente con el interrogatorio de reglas de negocio y la regla innegociable de aprobación previa de [`README.md`](../../../README.md)).
 2. **Prohibición de Opciones de Paja (Anti-Strawman):** cada una de las ≥3 opciones DEBE ser una que un ingeniero competente defendería de verdad en una revisión. Prohibido rellenar la matriz con alternativas absurdas para que la preferida gane por descarte. Si genuinamente solo existen 2 caminos viables, decláralo explícitamente y explica por qué no hay un tercero — nunca lo inventes.
 3. **No generar ADRs de ceremonia:** si la decisión tiene **un solo camino viable** (impuesto por el stack manifest, por una norma legal, o porque las alternativas ya fueron descartadas en un ADR previo), NO se crea un ADR — se documenta en el artefacto que corresponda y se informa al humano. Ver el Test Decisivo de la Fase 1.
 4. **No reescribir la decisión de un ADR `Accepted`:** un ADR aceptado es un registro histórico inmutable en su sección de Decisión. Si la decisión cambia, se crea un ADR **nuevo** que lo supersede y el anterior pasa a `Superseded`, nunca se edita en su lugar (protocolo de la Fase 4).
 5. **No inventar trazabilidad:** el campo `Implementado por:` solo enlaza historias, tickets o rutas de código que **existen y fueron verificadas** en disco. Si la decisión aún no tiene implementación, se declara `— pendiente de cascada de spec`, jamás un ID plausible pero inexistente.
-6. **No asumir el stack:** lee `docs/00_stack_manifest.md` como Fase 0 (Guard 24). Prohibido proponer opciones basadas en herramientas o versiones no declaradas ahí sin marcarlas explícitamente como "requiere aprobación de stack nueva".
+6. **No asumir el stack:** lee `docs/00_stack_manifest.md` como Fase 0. Prohibido proponer opciones basadas en herramientas o versiones no declaradas ahí sin marcarlas explícitamente como "requiere aprobación de stack nueva".
 7. **No escribir código de implementación:** este skill produce un documento de decisión, nunca archivos de aplicación, migraciones ni configuración.
 
 ---
 
 ## Pipeline de Ejecución Secuencial por Fases
 
-### Fase 0: Lectura de Fuentes (Guard 24)
+### Fase 0: Lectura de Fuentes
 
 1. Leer `docs/00_stack_manifest.md` — restricciones y herramientas ya aprobadas.
 2. Leer `docs/02_architecture_design/04_technical_design.md` — arquitectura vigente que la decisión debe respetar o cambiar conscientemente.
@@ -92,8 +92,8 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
    | `Deprecated` | Ya no aplica y nada lo reemplaza |
    | `Superseded` | Reemplazado por otro ADR — DEBE nombrar cuál |
 
-3. **Protocolo de supersesión (Guard 4):** para cambiar una decisión aceptada, crear el ADR nuevo, poner el anterior en `Superseded — reemplazado por ADR-NNN` y añadir en el nuevo `Supersede: ADR-MMM`. Nunca editar la sección de Decisión del ADR viejo.
-4. **Trazabilidad (Guard 5):** rellenar `Implementado por:` con las historias/tickets **verificados en disco**. Si aún no existen, dejar `— pendiente de cascada de spec` y señalar al humano que el siguiente paso es [`01_cascading_spec_workflow.md`](../../../workflows/01_cascading_spec_workflow.md).
+3. **Protocolo de supersesión (Non-Goal 4):** para cambiar una decisión aceptada, crear el ADR nuevo, poner el anterior en `Superseded — reemplazado por ADR-NNN` y añadir en el nuevo `Supersede: ADR-MMM`. Nunca editar la sección de Decisión del ADR viejo.
+4. **Trazabilidad (Non-Goal 5):** rellenar `Implementado por:` con las historias/tickets **verificados en disco**. Si aún no existen, dejar `— pendiente de cascada de spec` y señalar al humano que el siguiente paso es [`01_cascading_spec_workflow.md`](../../../workflows/01_cascading_spec_workflow.md).
 5. **Reporte final:** usar la **Plantilla B** de [`rules/00_output_reporting_standard.md`](../../../rules/00_output_reporting_standard.md) (skills de `specs/`).
 
 ---

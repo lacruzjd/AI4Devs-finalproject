@@ -19,7 +19,7 @@ graph TD
     STEP4 --> STEP5["5. Definición de Oráculos Multi-Capa (UI + Red + Estado)"]
     STEP5 --> STEP6["6. Generación de Código de Prueba (Sin Sleeps Fijos)"]
     STEP6 --> STEP7["7. Diagnóstico y Triage (SK-22)"]
-    STEP7 --> STEP8["8. Endurecimiento Senior (Helpers / POM - Guard 20)"]
+    STEP7 --> STEP8["8. Endurecimiento Senior (Helpers / POM)"]
 ```
 
 ---
@@ -35,4 +35,4 @@ graph TD
 | **5** | **Definición de Oráculos** | Establecer validaciones exactas para UI, Red y Estado. | Tupla de 3 Oráculos |
 | **6** | **Generación de Código** | Escribir la suite TDD/E2E sin `sleeps` fijos ni delays flotantes. | Código de Prueba Base |
 | **7** | **Diagnóstico y Triage** | Analizar fallos, flakiness y timing sin relajar oráculos. | Fix Mínimo (`SK-22`) |
-| **8** | **Endurecimiento Senior** | Encapsular en Page Objects y helpers, anotando el código. | Code Refactor (Guard 20) |
+| **8** | **Endurecimiento Senior** | Encapsular en Page Objects y helpers, anotando el código. | Code Refactor |

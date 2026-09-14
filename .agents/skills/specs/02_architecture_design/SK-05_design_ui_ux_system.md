@@ -1,7 +1,7 @@
 ---
 name: SK-05_design_ui_ux_system
 description: "Detecta la plataforma objetivo (Web/Mobile/Desktop) desde el stack real antes de nada, define la Arquitectura de Información (inventario, sitemap, user flows, wireframes) antes de cualquier decisión visual, facilita la ideación visual, ingesta de specs externa (.md), análisis multimodal de imágenes y cristaliza el Design System (retícula, escala tipográfica y medida, tokens, matriz de estados por componente, mapa de ubicación en código), las reglas de Frontend y el estándar root DESIGN.md (Google Labs spec v1.0.0, cuando la plataforma es Web); en la FASE 4 audita heurísticamente pantallas y mockups contra leyes de Gestalt/UX, ergonomía y WCAG 2.2 con hallazgos fundamentados y falsables."
-version: "3.13.1"
+version: "3.13.2"
 category: "specs/02_architecture_design"
 inputs:
   - "docs/00_stack_manifest.md"
@@ -15,7 +15,7 @@ outputs:
   - "DESIGN.md"
 ---
 
-# SK-05: Sistema de Diseño UI/UX y Ergonomía Táctil (v3.13.1)
+# SK-05: Sistema de Diseño UI/UX y Ergonomía Táctil (v3.13.2)
 
 Actúa como un **Lead UI/UX Designer & Frontend Architect** experto en interfaces táctiles, accesibilidad (WCAG 2.2), ergonomía industrial y sistemas de diseño modernos.
 
@@ -52,7 +52,7 @@ Ambos modos conviven por artefacto dentro de la misma sesión: ej. el humano ya 
 ### FASE 1: Discovery & Arquitectura de Información (IA)
 Antes de cualquier decisión visual, establece la estructura sobre la que luego se apoyará el sistema de diseño:
 1. **Detección de Plataforma Objetivo y Lectura Obligatoria de Fuentes (siempre primero):**
-   - Lee `docs/00_stack_manifest.md` para determinar la **superficie objetivo real** declarada (Web, Mobile nativo/híbrido, Desktop) y el mecanismo de estilado/tokens de esa superficie. Si el manifiesto no lo declara o es ambiguo, pregunta explícitamente al humano (Modo B) — nunca asumas "Web" ni ninguna otra por defecto (Guard 8).
+   - Lee `docs/00_stack_manifest.md` para determinar la **superficie objetivo real** declarada (Web, Mobile nativo/híbrido, Desktop) y el mecanismo de estilado/tokens de esa superficie. Si el manifiesto no lo declara o es ambiguo, pregunta explícitamente al humano (Modo B) — nunca asumas "Web" ni ninguna otra por defecto (Non-Goal 8).
    - Lee `docs/01_product_definition/02_prd.md` (personas, historias de usuario, features) y `docs/02_architecture_design/04_technical_design.md` (entidades, capas, navegación/rutas ya decididas) para fundamentar los artefactos siguientes en datos reales del producto — prohibido inventar pantallas, elementos o flujos sin respaldo en estas fuentes.
    - La plataforma detectada determina el vocabulario de los puntos 2-5 de esta fase y de la Fase 3 (ej. "sitemap" es árbol de rutas URL en Web, pero pila de navegación/tabs en Mobile; el wireframe ASCII se adapta a los patrones de layout nativos de esa plataforma).
 2. **Inventario de Contenido:** tabla Markdown con columnas obligatorias `ID | Pantalla/Ruta | Elemento | Tipo de Contenido | Propósito | Fuente de datos/API | Acción (Mantener / Actualizar / Eliminar)`. Cubre cada pantalla/ruta relevante al alcance del ticket o producto en curso — no un inventario especulativo de pantallas aún no decididas.
@@ -81,7 +81,7 @@ Antes de cualquier decisión visual, establece la estructura sobre la que luego 
 ### FASE 3: Cristalización del Design System, Reglas & DESIGN.md (Google Labs Spec)
 Una vez aprobada o normalizada la visión de UI/UX, genera o actualiza automáticamente. **El vocabulario CSS/Web de los puntos siguientes es la referencia por defecto; si la plataforma detectada en Fase 1 punto 1 es Mobile o Desktop no basado en tecnología web, tradúcelo al mecanismo real de esa plataforma (objeto de tema, `MaterialTheme`, `Environment`, StyleSheet, etc.) manteniendo el mismo propósito de cada sección — nunca fuerces sintaxis CSS sobre una plataforma que no la usa.**
 1. **`docs/02_architecture_design/05_ui_ux_design_system.md`:**
-   - **Cada valor no trivial lleva su porqué en una línea:** el ratio de la escala, la ley perceptual/cognitiva aplicada (ej. "chunk de 5–7, Ley de Miller"), o la procedencia (`auditado de index.css:L42`, Guard 7). Un token sin el porqué es indistinguible de uno inventado.
+   - **Cada valor no trivial lleva su porqué en una línea:** el ratio de la escala, la ley perceptual/cognitiva aplicada (ej. "chunk de 5–7, Ley de Miller"), o la procedencia (`auditado de index.css:L42`, Non-Goal 7). Un token sin el porqué es indistinguible de uno inventado.
    - Paleta cromática oficial (tokens HSL para modo oscuro y claro). **Nota de equilibrio (heurística, no gate):** el color de acento/CTA no debería superar ~10% de la superficie visible de un mockup (regla 60-30-10); si lo hace, la jerarquía hacia la acción primaria se diluye.
    - **Retícula y Espaciado:** cuadrícula base (auditada del código real si existe; si se define desde cero, base 8pt con subcuadrícula de 4pt) y columnas por breakpoint (ej. Mobile: 4 cols, Desktop: 12 cols) con márgenes y gutters explícitos.
    - **Escala Tipográfica:** 1 o 2 familias con rol fijo (display/body/mono), escala modular con el ratio matemático explícito (ej. 1.25, 1.333, o φ ≈ 1.618 — una opción entre varias, nunca un mandato) y `line-height` de cada nivel sincronizado al ritmo vertical de la retícula. El nivel de cuerpo declara además su **medida óptima** (longitud de línea) de **45–75 caracteres** (ej. `max-width: 65ch`) — parámetro de legibilidad, no estético.
@@ -91,11 +91,11 @@ Una vez aprobada o normalizada la visión de UI/UX, genera o actualiza automáti
    - **Catálogo Atomic Design:** Clasificación de Átomos, Moléculas y Organismos.
    - **Matriz de Estados por Componente Interactivo:** tabla `Componente/Variante | Default | Hover | Active | Focus-visible | Disabled | Loading | Error` para cada botón/input/modal del catálogo — distinta y más granular que los 4 estados de UI a nivel de pantalla del punto siguiente.
    - **4 estados de UI obligatorios (a nivel de pantalla):** (*Loading*, *Data Ready*, *Empty State*, *Error State*).
-   - **Mapa de Ubicación en Código:** tabla `Categoría (color/tipografía/espaciado/motion/componente) | Mecanismo real | Ruta en el repo` derivada de `docs/00_stack_manifest.md` y de la auditoría del Guard 7 — para que quien lea el documento sepa exactamente dónde modificar cada cosa después, no solo qué valor tiene. Sin esta tabla el documento queda incompleto.
+   - **Mapa de Ubicación en Código:** tabla `Categoría (color/tipografía/espaciado/motion/componente) | Mecanismo real | Ruta en el repo` derivada de `docs/00_stack_manifest.md` y de la auditoría del Non-Goal 7 — para que quien lea el documento sepa exactamente dónde modificar cada cosa después, no solo qué valor tiene. Sin esta tabla el documento queda incompleto.
 2. **`docs/04_governance_and_quality/rules/frontend_rules.md`:**
    - Reglas innegociables para desarrollo Frontend (tokens de estilo centralizados en el mecanismo real de la plataforma — `index.css` en Web, tema/theme provider en Mobile/Desktop —, zero ad-hoc utilities sin token, sanitización con la librería de validación declarada en `docs/00_stack_manifest.md`).
    - **Medida de texto:** todo bloque de texto corrido declara una cota de ancho que mantenga la línea entre `45ch` y `75ch` (ej. `max-width: 65ch`). Verificable; fuera de rango = hallazgo de la FASE 4.
-   - **Manifiesto de Partials, no archivo monolítico (traducción a código del Guard 9):** en plataforma Web, el fichero central de tokens (`index.css`) **no declara reglas propias** — es únicamente un manifiesto de `@import url(...)` en cascada hacia archivos separados por categoría, con la misma agrupación del Índice Fijo de Secciones: `variables/` (un archivo por grupo de tokens — color, tipografía, espaciado, motion), `base/` (reset, tipografía base), `layout/` (primitivos de layout compartidos) y `components/` o `blocks/` (estilos de componente reutilizable a nivel global — distintos de los `*.module.css` colocalizados de un solo componente que ya exige la Capa de Reutilización Cross-Cutting). Una categoría, un archivo, ubicación predecible — ninguna regla CSS suelta vive en el punto de entrada. En Mobile/Desktop el equivalente es fragmentar el tema en un módulo por categoría (ej. `theme/colors.ts`, `theme/typography.ts`) en vez de un único archivo de tema monolítico.
+   - **Manifiesto de Partials, no archivo monolítico (traducción a código del Non-Goal 9):** en plataforma Web, el fichero central de tokens (`index.css`) **no declara reglas propias** — es únicamente un manifiesto de `@import url(...)` en cascada hacia archivos separados por categoría, con la misma agrupación del Índice Fijo de Secciones: `variables/` (un archivo por grupo de tokens — color, tipografía, espaciado, motion), `base/` (reset, tipografía base), `layout/` (primitivos de layout compartidos) y `components/` o `blocks/` (estilos de componente reutilizable a nivel global — distintos de los `*.module.css` colocalizados de un solo componente que ya exige la Capa de Reutilización Cross-Cutting). Una categoría, un archivo, ubicación predecible — ninguna regla CSS suelta vive en el punto de entrada. En Mobile/Desktop el equivalente es fragmentar el tema en un módulo por categoría (ej. `theme/colors.ts`, `theme/typography.ts`) en vez de un único archivo de tema monolítico.
    - **Proyecto nuevo vs. legacy:** en un proyecto sin fichero central todavía, esta estructura se aplica desde el primer commit. **En un proyecto legacy con un fichero central ya monolítico, esta regla describe el estado objetivo, no una exigencia retroactiva inmediata:** `frontend_rules.md` la declara como convención vigente para todo token nuevo que se añada de aquí en adelante, y la migración del fichero existente a partials se registra como una **recomendación explícita de refactor incremental** (ticket dedicado, verificado con el build real tras la división) — nunca ejecutada en silencio como efecto colateral de un ticket de feature no relacionado.
    - **Capa de Reutilización Cross-Cutting (`shared/` o equivalente):** Declarar explícitamente el directorio raíz donde deben vivir los módulos usados por 2+ features (cliente HTTP, Value Objects de dominio compartidos, hooks transversales, primitivos de UI como shells de modal/overlay). Este directorio es el punto de consulta obligatorio que `SK-17` audita antes de que un ticket implemente algo nuevo — sin esta convención declarada explícitamente, cada ticket reinventa su propia versión y la duplicación se vuelve invisible hasta una auditoría manual.
 3. **`DESIGN.md` (Raíz del Repositorio):**
@@ -164,7 +164,7 @@ inputs:
 
 ### Índice Fijo de Secciones (nodulización estándar de la interfaz)
 
-El cuerpo del documento sigue **siempre** este orden de encabezados `##` — nunca uno nuevo por versión/ticket (Guard 9). Cada categoría vive en un único lugar; una actualización posterior edita esa sección in situ:
+El cuerpo del documento sigue **siempre** este orden de encabezados `##` — nunca uno nuevo por versión/ticket (Non-Goal 9). Cada categoría vive en un único lugar; una actualización posterior edita esa sección in situ:
 
 1. **Arquitectura de Información** — resumen del inventario/sitemap/user flows/wireframes de la Fase 1 (el detalle extenso puede vivir en un anexo o en `docs/02_architecture_design/assets/`, referenciado desde aquí).
 2. **Paleta de Color** — escala completa, modo claro/oscuro, notas de contraste.

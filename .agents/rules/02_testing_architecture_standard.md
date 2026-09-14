@@ -47,7 +47,7 @@ Todo agente de IA o desarrollador DEBE ubicar los nuevos archivos de prueba sigu
 │       └── e2e/                         # PRUEBAS E2E / BROWSER (Playwright)
 │           ├── config/                  # Ambientes y VCR Mocks
 │           ├── fixtures/                # Test Data & Synthetic Auth Tokens
-│           ├── pages/                   # Page Object Models (POM - Guard 20)
+│           ├── pages/                   # Page Object Models (POM)
 │           │   └── [Page]Page.ts
 │           └── specs/                   # Test Specs E2E (RBT / MBT - SK-34)
 │               └── [feature].spec.ts
@@ -76,7 +76,7 @@ Todo test generado o mantenido por `.agents` DEBE cumplir con la anatomía de **
 import { describe, it, expect } from 'vitest';
 import { StockMother } from '../fixtures/StockMother';
 
-describe('TK-008: Feature Consumo de Receta con Cascada FEFO', () => {
+describe('TK-NNN: Feature Consumo de Receta con Cascada FEFO', () => {
   it('debe descontar primero del lote con vencimiento más cercano (FEFO estricto)', async () => {
     // 1. ARRANGE (Dado): Configuración de datos deterministas con Object Mother (SK-32)
     const stockCercano = StockMother.createBatch({ expiresAt: '2026-08-18T10:00:00Z', qty: '5.000' });
@@ -87,7 +87,7 @@ describe('TK-008: Feature Consumo de Receta con Cascada FEFO', () => {
     // 2. ACT (Cuando): Invocación de la acción
     const result = await useCase.execute({ recipeId: 'REC-001', servings: 1 });
 
-    // 3. ASSERT (Entonces): Verificación con los 3 Oráculos (Guard 20)
+    // 3. ASSERT (Entonces): Verificación con los 3 Oráculos
     // ORACULO ESTADO: El lote cercano debe haberse consumido primero (FEFO)
     const updatedCercano = await fakeStockRepo.findById(stockCercano.id);
     expect(updatedCercano.quantity.toString()).toBe('0.000');

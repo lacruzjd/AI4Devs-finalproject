@@ -34,7 +34,7 @@ cp -R "$SOURCE_AGENTS_DIR" "$TARGET_DIR/.agents"
 rm -rf "$TARGET_DIR/.agents/scripts/__pycache__" "$TARGET_DIR/.agents/scripts/tests/__pycache__"
 echo "✅ .agents/ copiado."
 
-# TK-065: deja rastro de procedencia — install.sh hace un cp -R sin verificación de
+# Deja rastro de procedencia — install.sh hace un cp -R sin verificación de
 # integridad; este archivo permite que el proyecto destino diferencie más adelante contra
 # el origen real (detectar drift/tampering), en vez de perder toda referencia al commit
 # exacto que se copió. Solo usa git/date/grep (agnóstico, pasa check_agnosticism.py).
@@ -46,7 +46,7 @@ INSTALL_TIMESTAMP="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 cat > "$TARGET_DIR/.agents/INSTALLED_FROM.md" <<EOF
 # Procedencia de esta instalación de momoy (\`.agents/\`)
 
-Generado automáticamente por \`install.sh\` (\`TK-065\`) — no editar a mano.
+Generado automáticamente por \`install.sh\` — no editar a mano.
 
 - **Ruta de origen:** \`$SOURCE_AGENTS_DIR\`
 - **Remote git de origen:** \`$SOURCE_REMOTE\`
