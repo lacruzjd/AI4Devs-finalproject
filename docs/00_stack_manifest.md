@@ -1,9 +1,9 @@
 ---
 document: stack_manifest
-version: 1.19.0
+version: 1.20.0
 status: approved
 approved_by: "Jose Lacruz <lacruzjd@gmail.com>"
-approved_at: "2026-09-09"
+approved_at: "2026-09-14"
 authority: "Fuente Única de Verdad (SSoT) para decisiones tecnológicas de agentes IA"
 ---
 
@@ -78,6 +78,7 @@ authority: "Fuente Única de Verdad (SSoT) para decisiones tecnológicas de agen
 | **E2E Browser** | Playwright | **1.x** | Page Object Model (POM) obligatorio |
 | **Mutation Testing** | Stryker | **8.x** | Score ≥70% **por archivo**, gate diff-scoped en local **y en CI** (`check_mutation_score.sh`, Guard 11). En CI sigue `continue-on-error` **por decisión explícita**, no por omisión — ver nota abajo |
 | **Comando de Tests** | `pnpm test` | — | Ejecuta todos los workspaces |
+| **Ubicación y nombres de tests** | — | — | **Backend:** unitarios de dominio, casos de uso y adaptadores co-localizados en `apps/backend/src/{domain,application,infrastructure}/**` con sufijo `.test.ts`; integración de servicio en `apps/backend/tests/<modulo>/*.test.ts`. **Frontend:** Vitest incluye `src/**/*.test.{ts,tsx}`; componentes y hooks con sufijo `.test.tsx`/`.test.ts`. **Desviación registrada (2026-09-14):** 28 tests de componente viven agrupados en `apps/frontend/src/tests/` en vez de co-localizados junto a su componente, como pide `.agents/rules/02_testing_architecture_standard.md`; es deuda preexistente sin ticket y los tests nuevos van co-localizados. **E2E:** `apps/frontend/e2e/specs/*.spec.ts` (`testDir` de Playwright) con Page Objects en `apps/frontend/e2e/pages/*Page.ts`. Aún no hay baselines de regresión visual. |
 
 > **Nota de verificación — historia.**
 >
@@ -179,6 +180,9 @@ pnpm run build
 # Linter estático
 pnpm run lint
 
+# Verificación de tipos (backend + frontend; `pnpm run lint` también la ejecuta antes de ESLint)
+pnpm -r exec tsc --noEmit
+
 # Detección de duplicación de código (umbral 3%)
 pnpm run duplication
 
@@ -199,6 +203,9 @@ docker compose up -d --build
 
 # Bajar el stack completo local
 docker compose down
+
+# Generar el cliente de Prisma (obligatorio tras instalar y antes de lint, tests o build: no se genera solo al instalar)
+pnpm --filter @restostock/backend exec prisma generate --schema=prisma/schema.prisma
 
 # Migraciones de base de datos
 npx prisma migrate deploy --schema=apps/backend/prisma/schema.prisma
