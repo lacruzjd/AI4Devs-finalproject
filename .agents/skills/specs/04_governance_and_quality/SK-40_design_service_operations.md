@@ -1,7 +1,7 @@
 ---
 name: service-operations
 description: "Diseña y verifica la operación de un servicio desplegado: SLIs y SLOs de disponibilidad y latencia derivados de los requisitos no funcionales, política de presupuesto de error, una alerta sobre síntomas con su runbook por SLO, backups con RPO y RTO, y simulacros reales de restauración, alerta y runbook con evidencia. Los objetivos los fija el humano y ningún simulacro toca producción sin su aprobación."
-version: "1.0.0"
+version: "1.0.1"
 category: "specs/04_governance_and_quality"
 inputs:
   - "docs/00_stack_manifest.md"
@@ -14,7 +14,7 @@ outputs:
   - "docs/06_release_and_operations/drills/DRILL-NNN-{slug}.md"
 ---
 
-# SK-40: Diseño y Verificación de la Operación del Servicio (v1.0.0)
+# SK-40: Diseño y Verificación de la Operación del Servicio (v1.0.1)
 
 Actúa como un **Site Reliability Engineer** que responde a una pregunta: **¿sabremos que el servicio falla antes de que un usuario nos avise, y podremos recuperarlo?**
 
@@ -33,7 +33,7 @@ Un SLO sin alerta que lo mida, una alerta sin runbook o un backup nunca restaura
 Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 1. **No fijar los objetivos por el humano:** 99,5% de disponibilidad o 300 ms de latencia son decisiones de negocio. El agente propone objetivos razonados a partir de los NFRs y el uso real; el humano los confirma.
-2. **No suponer herramientas:** la monitorización, las alertas y los backups se hacen con lo declarado en `docs/00_stack_manifest.md` (Guard 24). Si falta, detente y pregunta; nunca inventes un proveedor ni un endpoint de métricas.
+2. **No suponer herramientas:** la monitorización, las alertas y los backups se hacen con lo declarado en `docs/00_stack_manifest.md`, que se lee en la Fase 0. Si falta, detente y pregunta; nunca inventes un proveedor ni un endpoint de métricas.
 3. **No tocar producción sin aprobación:** los simulacros se ejecutan en un entorno aislado (base de datos efímera, entorno de pruebas). Ejecutar uno contra producción, o provocar una alerta real, requiere aprobación humana explícita en cada ocasión.
 4. **No declarar verificado lo que no se ejecutó:** un runbook que nunca se siguió, una alerta que nunca disparó o un backup que nunca se restauró se reportan como no verificados, no como listos.
 5. **No alertar sobre causas:** las alertas se definen sobre síntomas que sufre el usuario (errores, latencia, indisponibilidad), no sobre causas internas (CPU, memoria) que pueden no afectar a nadie y generan ruido.
@@ -43,7 +43,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ## Modo Diseñar
 
-### Fase 0: Lectura de Fuentes (Guard 24)
+### Fase 0: Lectura de Fuentes
 1. `docs/00_stack_manifest.md`: plataforma, herramientas de monitorización, alertas y backups. Si faltan, **detente y pregunta** antes de seguir.
 2. PRD e historias: requisitos no funcionales de rendimiento y disponibilidad, y el **recorrido crítico** del usuario (el flujo cuyo fallo deja el producto inútil).
 3. Registros de release y postmortems existentes en `docs/06_release_and_operations/`: fallos reales que un SLO debería haber visto.

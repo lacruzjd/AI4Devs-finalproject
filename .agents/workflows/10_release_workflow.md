@@ -1,16 +1,16 @@
 ---
 name: 10_release_workflow
 description: "Workflow de release: lleva un conjunto de tickets cerrados a producción sin riesgo. Fija la versión SemVer, pasa los gates previos, declara la estrategia de liberación, clasifica las migraciones, verifica la configuración de despliegue, planifica y ensaya el rollback cuando corresponde, escribe las notas de versión y solo despliega con aprobación humana, validando después con el workflow 08."
-version: "1.1.0"
+version: "1.1.1"
 category: "workflows/deployment"
 ---
 
-# Workflow 10: Release (v1.1.0)
+# Workflow 10: Release (v1.1.1)
 
 > **DIRECTIVA PARA EL AGENTE:**
 > Actúa como un **Release Manager** con mentalidad SRE. Desplegar es poner el código en producción; liberar es que el usuario lo vea. Tu trabajo es que ambos pasos sean predecibles, verificados y reversibles.
 >
-> **FASE 0 OBLIGATORIA (Guard 24):** lee `docs/00_stack_manifest.md`: plataforma, entornos, mecanismo de despliegue, mecanismo para volver a la versión anterior y herramienta de feature flags si existe. Si algo de esto no está declarado, detente y pregunta.
+> **FASE 0 OBLIGATORIA:** lee `docs/00_stack_manifest.md`: plataforma, entornos, mecanismo de despliegue, mecanismo para volver a la versión anterior y herramienta de feature flags si existe. Si algo de esto no está declarado, detente y pregunta.
 >
 > **Nada llega a producción sin aprobación humana explícita** (Paso 9), y ningún rollback se ejecuta sin ella ([workflow 08](08_smoke_test_deploy_validation.md), Paso 4).
 
@@ -55,7 +55,7 @@ Si el release incluye cambios de esquema o de datos (`includes_migration: si`), 
 ## Paso 5 — Verificación Previa de la Configuración de Despliegue
 
 1. Validar la configuración de despliegue con la herramienta de la plataforma (validación del blueprint, `plan`, dry-run) antes de desplegar.
-2. **Toda variable con forma de URL tiene esquema**, y todo valor que resuelve la plataforma (referencias a otros servicios, hosts internos) se verifica contra su documentación o un despliegue de prueba, nunca se supone. Lección de `PM-001`: una referencia que devolvía hosts sin esquema tumbó el primer despliegue.
+2. **Toda variable con forma de URL tiene esquema**, y todo valor que resuelve la plataforma (referencias a otros servicios, hosts internos) se verifica contra su documentación o un despliegue de prueba, nunca se supone. Es un fallo frecuente: una referencia de la plataforma que devuelve un host sin esquema, usada en una variable que exige URL, impide arrancar el servicio.
 3. Si la configuración de despliegue cambió en este release, `changes_deploy_config: si`.
 
 ## Paso 6 — Plan de Rollback y Ensayo
@@ -67,7 +67,9 @@ Si el release incluye cambios de esquema o de datos (`includes_migration: si`), 
 ## Paso 7 — Notas de Versión
 
 1. Redactar las notas **en lenguaje de usuario**: qué pueden hacer ahora, qué cambió, qué se corrigió. Sin nombres de clases ni de tickets en el texto principal.
-2. Añadir la sección `## [X.Y.Z] - AAAA-MM-DD` al `CHANGELOG.md` del proyecto (formato Keep a Changelog).
+2. Añadir la sección `## [X.Y.Z] - AAAA-MM-DD` al changelog del proyecto.
+
+> **Convención de versiones de momoy:** un archivo `CHANGELOG.md` en la raíz del repositorio con formato Keep a Changelog, y etiquetas git `vX.Y.Z` sobre el commit desplegado. El gate `release` comprueba exactamente esa convención; un proyecto que use otra debe adaptarla al instalar momoy.
 
 ## Paso 8 — Registro del Release y Gate
 

@@ -122,6 +122,7 @@ RELEASE_SECTIONS = {
     "Verificación previa al despliegue": ("verificacion previa",),
     "Plan de rollback": ("plan de rollback",),
 }
+# Convención de versiones de momoy (workflow 10): CHANGELOG.md en la raíz y etiquetas git vX.Y.Z.
 CHANGELOG = "CHANGELOG.md"
 
 # Mantenimiento y retirada (etapa 12, workflow 11 y SK-41).
@@ -1036,7 +1037,7 @@ def check_ticket(root, path, story_ids, findings):
             if story not in story_ids:
                 findings.add("ready", path, "related_story apunta a una historia que no existe", story)
     elif not (norm(related).startswith("n a") or AUDIT_ID.search(related)):
-        # Guard 26: una remediación técnica se traza a su auditoría (AUDIT-XXX) o a un N/A justificado.
+        # Spec antes que código: una remediación técnica se traza a su auditoría (AUDIT-XXX) o a un N/A justificado.
         findings.add("ready", path, "related_story sin historia, auditoría ni 'N/A' justificado", related)
 
     found = headings(text)
@@ -1133,7 +1134,7 @@ def run_checks(root, scope=None, ticket=None, today=None, tags=None):
     if ticket is not None:
         matches = [p for p in tickets if TICKET_FILE.match(os.path.basename(p)).group(1) == ticket]
         if not matches:
-            findings.add("ready", ticket, "el ticket no existe: primero la cascada de spec (Guard 26)")
+            findings.add("ready", ticket, "el ticket no existe: primero la cascada de spec")
             return findings, 0
         for path in matches:
             check_ticket(root, path, story_ids, findings)

@@ -1142,7 +1142,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
         self.assertEqual(findings.items, [])
         self.assertEqual(checked, 1)
-        self.assertIn("el ticket no existe: primero la cascada de spec (Guard 26)", self._kinds(missing))
+        self.assertIn("el ticket no existe: primero la cascada de spec", self._kinds(missing))
 
 
 if __name__ == "__main__":

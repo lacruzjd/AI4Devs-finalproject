@@ -1,18 +1,18 @@
 ---
 name: 08_smoke_test_deploy_validation
 description: "Workflow de validación post-despliegue: comprueba salud, contratos HTTP críticos y cabeceras de seguridad del sistema recién desplegado y emite un veredicto PASS/FAIL. Ante un FAIL propone el rollback a la versión anterior con el mecanismo declarado en el stack manifest y espera la aprobación humana antes de ejecutarlo."
-version: "2.0.0"
+version: "2.0.1"
 category: "workflows/deployment"
 ---
 
-# Workflow 08: Smoke Test & Deploy Validation (v2.0.0)
+# Workflow 08: Smoke Test & Deploy Validation (v2.0.1)
 
 > **DIRECTIVA PARA EL AGENTE:**
 > Actúa como un **Site Reliability Engineer (SRE)** y **DevSecOps Validator**.
 > Este workflow se ejecuta **inmediatamente después** de cada despliegue, normalmente como paso final del [workflow 10](10_release_workflow.md).
 > Su misión es confirmar en pocos minutos que el sistema desplegado es funcional, seguro y cumple el contrato de API del proyecto.
 >
-> **FASE 0 OBLIGATORIA (Guard 24):** lee `docs/00_stack_manifest.md` antes de ejecutar ningún paso. De ahí salen las URLs base, el endpoint de salud, la plataforma y el **mecanismo de despliegue y de vuelta a la versión anterior**. Si alguno no está declarado, detente y pregunta: nunca lo supongas.
+> **FASE 0 OBLIGATORIA:** lee `docs/00_stack_manifest.md` antes de ejecutar ningún paso. De ahí salen las URLs base, el endpoint de salud, la plataforma y el **mecanismo de despliegue y de vuelta a la versión anterior**. Si alguno no está declarado, detente y pregunta: nunca lo supongas.
 >
 > **Ninguna acción sobre producción sin aprobación humana:** este workflow observa y propone. Un rollback, una destrucción de recursos o una reversión de datos solo se ejecutan después de que el humano lo apruebe explícitamente.
 
@@ -82,16 +82,11 @@ Deploy: [fecha y hora con zona] | Versión: vX.Y.Z | Commit: [sha] | Smoke Tests
 
 ## Integración en el Pipeline CI/CD
 
-El script de smoke test es específico del stack del proyecto, así que **se genera con `SK-27` en `docs/04_governance_and_quality/scripts/smoke_test.sh`**, nunca en `.agents/scripts/` (regla de `CONTRIBUTING.md`: `.agents/scripts/` solo contiene tooling agnóstico). Un job de CI posterior al despliegue puede invocarlo con la URL del entorno como secreto:
+El script de smoke test es específico del stack del proyecto, así que **se genera con `SK-27` en `docs/04_governance_and_quality/scripts/smoke_test.sh`**, nunca en `.agents/scripts/` (regla de `CONTRIBUTING.md`: `.agents/scripts/` solo contiene tooling agnóstico). Un job del CI declarado en el stack manifest, posterior al despliegue, lo invoca pasando la URL del entorno desde el gestor de secretos de esa plataforma (nunca escrita en el repositorio):
 
-```yaml
-smoke-test:
-  needs: [deploy]
-  steps:
-    - name: Run Smoke Tests
-      run: bash docs/04_governance_and_quality/scripts/smoke_test.sh
-      env:
-        BACKEND_URL: ${{ secrets.PRODUCTION_BACKEND_URL }}
+```bash
+BACKEND_URL="<url del entorno, leída del gestor de secretos del CI>" \
+  bash docs/04_governance_and_quality/scripts/smoke_test.sh
 ```
 
 El script sondea el endpoint de salud hasta que responda (Paso 1) y termina con código distinto de cero ante cualquier oráculo fallido. El CI solo informa: la decisión de rollback sigue siendo humana.

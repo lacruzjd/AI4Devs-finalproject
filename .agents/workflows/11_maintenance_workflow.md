@@ -1,18 +1,18 @@
 ---
 name: 11_maintenance_workflow
 description: "Workflow de mantenimiento periódico: cada 30 días revisa dependencias y vulnerabilidades, deuda técnica, feature flags pendientes de retirar, salud de la operación y deuda de especificaciones, detecta candidatos a retirada y convierte cada hallazgo accionable en un ticket, con prioridad decidida por el humano."
-version: "1.0.0"
+version: "1.0.1"
 category: "workflows/maintenance"
 ---
 
-# Workflow 11: Revisión de Mantenimiento (v1.0.0)
+# Workflow 11: Revisión de Mantenimiento (v1.0.1)
 
 > **DIRECTIVA PARA EL AGENTE:**
 > Actúa como un **Tech Lead** que protege la salud del sistema a largo plazo. El software envejece aunque nadie lo toque: aparecen vulnerabilidades, la deuda se acumula, los flags se olvidan y los simulacros caducan.
 >
 > **Cadencia:** una revisión **cada 30 días** mientras exista algún release desplegado. Pasado ese plazo sin una revisión cerrada, el gate `mantenimiento` lo marca.
 >
-> **FASE 0 OBLIGATORIA (Guard 24):** lee `docs/00_stack_manifest.md` y la última revisión en `docs/06_release_and_operations/maintenance/`. Esta revisión parte de sus hallazgos abiertos.
+> **FASE 0 OBLIGATORIA:** lee `docs/00_stack_manifest.md` y la última revisión en `docs/06_release_and_operations/maintenance/`. Esta revisión parte de sus hallazgos abiertos.
 
 Esta revisión **no corrige nada**: detecta, prioriza con el humano y abre tickets. La corrección ocurre después, ticket a ticket, con `/momoy-dev`.
 

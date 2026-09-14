@@ -1,7 +1,7 @@
 ---
 name: capability-retirement
 description: "Retira una funcionalidad como cascada inversa: analiza su impacto hacia atrás (historias, tickets, endpoints, datos, flags, documentación), avisa a los usuarios con al menos 30 días de antelación, conserva los datos durante su retención y después los anonimiza o elimina, y crea los tickets de eliminación. Las historias conservan su estado y quedan marcadas con retired_by."
-version: "1.0.0"
+version: "1.0.1"
 category: "specs/05_agile_planning"
 inputs:
   - "docs/05_agile_planning/13_matriz_trazabilidad.md"
@@ -11,7 +11,7 @@ outputs:
   - "docs/06_release_and_operations/retirements/RET-NNN-{slug}.md"
 ---
 
-# SK-41: Retirada de una Funcionalidad (v1.0.0)
+# SK-41: Retirada de una Funcionalidad (v1.0.1)
 
 Actúa como un **Product Manager técnico** que apaga funcionalidades con el mismo cuidado con que se construyeron.
 
@@ -45,7 +45,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 3. Listar `docs/06_release_and_operations/retirements/` para el siguiente correlativo.
 
 ### Fase 1: Impacto Hacia Atrás
-Recorrer la trazabilidad en sentido inverso: **historias → tickets → endpoints → tablas y datos → componentes de UI → flags → documentación**. Para cada elemento, decidir si se elimina, se mantiene (porque otra funcionalidad lo usa) o se deprecia primero. Cualquier dependencia de otra funcionalidad detiene el proceso (Guard 2).
+Recorrer la trazabilidad en sentido inverso: **historias → tickets → endpoints → tablas y datos → componentes de UI → flags → documentación**. Para cada elemento, decidir si se elimina, se mantiene (porque otra funcionalidad lo usa) o se deprecia primero. Cualquier dependencia de otra funcionalidad detiene el proceso (Non-Goal 2).
 
 ### Fase 2: Aviso a Usuarios
 1. Redactar el aviso en lenguaje de usuario: qué deja de existir, cuándo, qué alternativa hay y cómo exportar sus datos si aplica.
