@@ -1,7 +1,7 @@
 ---
 name: traceability-matrix
 description: "Audita la trazabilidad biyectiva End-to-End del sistema (regla de cero orfandad) y autogenera la Matriz de Trazabilidad SDD."
-version: "3.3.1"
+version: "3.3.2"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -13,7 +13,7 @@ outputs:
   - "docs/05_agile_planning/13_matriz_trazabilidad.md"
 ---
 
-# SK-13: Matriz de Trazabilidad End-to-End (v3.3.1)
+# SK-13: Matriz de Trazabilidad End-to-End (v3.3.2)
 
 Actúa como un **Lead Quality & Governance Architect** experto en trazabilidad documental, gestión de requerimientos y auditoría de alineación entre especificaciones de negocio, esquemas de BD, contratos de API y tickets de trabajo.
 
@@ -70,7 +70,7 @@ inputs:
 # Matriz de Trazabilidad End-to-End (Verified Spec-Driven Development - VSDD)
 
 > **Navegación del Framework SDD:**  
-> [← Volver a Índice de Tickets (12_tickets/12_indice_tickets.md)](./12_tickets/12_indice_tickets.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Mapa Jerárquico del Backlog (14_backlog_map.md) →](./14_backlog_map.md)
+> [← Volver a Índice de Tickets (12_tickets/indice_tickets.md)](./12_tickets/indice_tickets.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Mapa Jerárquico del Backlog (14_backlog_map.md) →](./14_backlog_map.md)
 
 ---
 ```

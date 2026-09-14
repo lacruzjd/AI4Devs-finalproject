@@ -1,7 +1,7 @@
 ---
 name: prd-generation
 description: "Genera el Documento de Requisitos de Producto (PRD) agnóstico de alta fidelidad con ejecuciones secuenciales por fases, Naming Strategy, Historias INVEST, BDD Gherkin con códigos HTTP y políticas TDD."
-version: "2.4.0"
+version: "2.5.0"
 category: "01_product_definition"
 inputs:
   - "docs/01_product_definition/01_product_discovery.md"
@@ -24,7 +24,7 @@ Actúa como un Senior Product Manager y Principal Product Architect experto en m
 ### FASE 2: Protocolo de Naming Strategy (Tiempo estimado: 2–5 min)
 * **Dependencias Explícitas:** Términos de Lenguaje Ubicuo y UVP validados en la Fase 1.
 * **Protocolo Operativo:**
-  1. *Nombre Definido:* Si `01_product_discovery.md` ya especifica un nombre definitivo, utilízalo incondicionalmente para titular el PRD y nombrar el archivo de salida (`03_[nombre]_prd.md`).
+  1. *Nombre Definido:* Si `01_product_discovery.md` ya especifica un nombre definitivo, utilízalo incondicionalmente para titular el PRD; el archivo de salida es siempre `docs/01_product_definition/02_prd.md`.
   2. *Nombre Indefinido:* Genera 5 propuestas comerciales alineadas con la UVP y presenta las opciones al humano para su elección/confirmación.
 * **Criterio de Aceptación Verificable:** Confirmación del nombre definitivo del producto.
 * **Lo que NO DEBE cambiar:** La delimitación del MVP ni los objetivos de KPIs de negocio.
@@ -43,7 +43,7 @@ Actúa como un Senior Product Manager y Principal Product Architect experto en m
 
 ---
 
-Tu objetivo es procesar los insumos y generar un PRD agnóstico estructurado bajo la versión 2.3.0 (Aprobado para Desarrollo). Debes ser riguroso, explícito y no asumir nada que no esté estrictamente justificado por el negocio. Sigue exactamente la siguiente estructura estándar de salida en Markdown limpio:
+Tu objetivo es procesar los insumos y generar un PRD agnóstico (Aprobado para Desarrollo). Debes ser riguroso, explícito y no asumir nada que no esté estrictamente justificado por el negocio. Sigue exactamente la siguiente estructura estándar de salida en Markdown limpio:
 
 ---
 
@@ -79,7 +79,7 @@ Detalla de 2 a 3 indicadores clave de rendimiento (KPIs) cuantitativos que refle
 Identifica los perfiles o roles clave que interactuarán con el sistema:
 - **Contexto operativo:** Dónde y cómo interactúa el usuario (ej. alta transaccionalidad, estrés físico, escritorio o dispositivo móvil).
 - **Necesidades específicas:** Frustraciones de su día a día y qué valor obtiene del sistema.
-- **Identificación y Permisos:** Define de forma clara el mecanismo de autenticación del usuario (ej. PIN rápido o login tradicional) y restringe rigurosamente los permisos por rol para proteger la integridad de los datos.
+- **Identificación y Permisos:** Define de forma clara el mecanismo de autenticación del usuario (ej. inicio de sesión con contraseña, clave de API o inicio de sesión único) y restringe rigurosamente los permisos por rol para proteger la integridad de los datos.
 
 ---
 
@@ -95,7 +95,7 @@ Incluye obligatoriamente un diagrama de secuencia en formato **Mermaid (`sequenc
 sequenceDiagram
     autonumber
     actor U as Usuario (Persona)
-    participant UI as Interfaz (UI/Tablet)
+    participant UI as Interfaz o cliente
     participant API as API Server (REST)
     participant DB as Dominio / DB
 
@@ -128,7 +128,7 @@ Traduce el flujo del MVP en historias de usuario independientes y estimables. Ca
 *   **Historia:** "Como [tipo de usuario], quiero [realizar una acción] para [obtener un beneficio]".
 *   **Complejidad:** S / M / L (Estimación de esfuerzo relativo).
 *   **Evaluación INVEST:** Justifica brevemente por qué la historia cumple con los criterios: Independiente, Negociable, Valiosa, Estimable, Pequeña (Small) y Testeable.
-*   **Criterios de Aceptación (BDD - Sintaxis Gherkin):** Proporciona de 2 a 3 escenarios detallados empleando la estructura con respuestas de estado HTTP exactas y referencias a Invariantes:
+*   **Criterios de Aceptación (BDD - Sintaxis Gherkin):** Proporciona 3 escenarios (flujo principal, error y caso borde, como exige `SK-11`) empleando la estructura con respuestas de estado HTTP exactas y referencias a Invariantes:
     *   **Escenario:** [Descripción del caso de uso]
         *   **Given (Dado que)** [Contexto inicial del sistema o estado de datos]
         *   **When (Cuando)** [Acción exacta realizada por el usuario]
@@ -143,7 +143,7 @@ Traduce el flujo del MVP en historias de usuario independientes y estimables. Ca
 - Clasifica las pruebas mínimas requeridas:
   1. **Unitarias:** Pruebas de lógica inmutable de negocio y reglas de dominio puras sin I/O.
   2. **Integración:** Pruebas sobre llamadas HTTP y transacciones utilizando repositorios en memoria (`InMemory`) o DB de prueba para verificar estados y respuestas REST.
-  3. **End-to-End (E2E):** Un escenario completo con automatización de navegador que replique el Happy Path prioritario del usuario.
+  3. **End-to-End (E2E):** Un escenario completo que replique el Happy Path prioritario con la herramienta E2E del stack manifest: automatización de navegador si el producto tiene interfaz gráfica, o un recorrido completo contra la API si no la tiene.
 
 ---
 

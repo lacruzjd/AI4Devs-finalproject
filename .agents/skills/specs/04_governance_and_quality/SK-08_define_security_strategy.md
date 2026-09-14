@@ -1,7 +1,7 @@
 ---
 name: security-strategy
 description: "Define la estrategia de ciberseguridad Enterprise OWASP Top 10, validación Zero Trust con esquemas tipados, cifrado PII, hardening CORS/CSP, rotación JWT, anti-fuerza bruta, logs de auditoría inmutables y cumplimiento GDPR / EU AI Act."
-version: "3.4.2"
+version: "3.5.0"
 category: "04_governance_and_quality"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -10,7 +10,7 @@ outputs:
   - "docs/04_governance_and_quality/08_security_strategy.md"
 ---
 
-# SK-08: Estrategia de Ciberseguridad, PII y Cumplimiento (v3.4.2)
+# SK-08: Estrategia de Ciberseguridad, PII y Cumplimiento (v3.5.0)
 
 Actúa como un **Senior Cybersecurity Architect** y **DevSecOps Specialist** con amplia experiencia en directrices de OWASP Top 10, GDPR, ISO 27001 y el EU AI Act (2026).
 
@@ -25,9 +25,9 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 2. **No usar regex caseras para validaciones de seguridad:** Prohibido validar correos, PINs o tokens con expresiones regulares informales; exigir sanitización tipada en tiempo de ejecución con la librería de validación declarada en `docs/00_stack_manifest.md` (ej. Zod, Pydantic, Joi).
 3. **No ejecutar SQL desprotegido:** Prohibido usar sintaxis de consulta SQL concatenada o insegura (`queryRawUnsafe`, `sql.raw`); exigir consultas parametrizadas o bindings del ORM.
 4. **Prohibición de Wildcards en CORS en Producción:** Queda estrictamente prohibido configurar `Access-Control-Allow-Origin: *` en entornos de producción; exigir una lista blanca de orígenes permitidos.
-5. **No emitir tokens JWT sin expiración corta:** Prohibido configurar tokens de acceso de larga duración; exigir `Access Token` $\le$ 15 minutos y estrategia de rotación para `Refresh Tokens`.
+5. **No emitir credenciales sin caducidad o revocación:** si el stack usa tokens de sesión (ej. JWT), `Access Token` $\le$ 15 minutos y rotación de `Refresh Tokens`; si usa claves de API de larga duración, exigir un mecanismo real de revocación y rotación, verificado con un ticket, no solo declarado.
 6. **Prohibición de Impresión de Datos Sensibles en Logs:** Queda terminantemente prohibido registrar en los logs (`stdout`/`stderr`) PINs, tokens JWT, passwords o PII en texto plano; aplicar filtros de enmascaramiento automático (`"pin": "****"`).
-7. **Prohibición de Tipos Inseguros (`No Any Leakage`):** Queda estrictamente prohibido el uso de `any`/tipos dinámicos sin tipar o castings sin previa validación con el esquema de la librería de validación declarada en el stack manifest, en la frontera del sistema.
+7. **Prohibición de Datos sin Validar en la Frontera:** Queda estrictamente prohibido usar datos externos con tipos dinámicos sin validar (ej. `any` en TypeScript, `dict` sin comprobar en Python) o castings sin previa validación con el esquema de la librería de validación declarada en el stack manifest, en la frontera del sistema.
 8. **Prohibición de Errores Silenciosos (`No Silent Catches`):** Prohibido usar bloques `catch (err) {}` vacíos o tragar excepciones; transformar todos los errores en respuestas estructuradas RFC 7807 o eventos auditables.
 9. **No Ambogüedad de Zona Horaria (`No Timezone Ambiguity`):** Prohibido instanciar `new Date()` sin zona horaria UTC explícita (formato ISO 8601 `YYYY-MM-DDTHH:mm:ssZ`) para garantizar precisión temporal.
 
@@ -45,6 +45,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 1. Garantizar consultas 100% parametrizadas en la capa de datos.
 2. Definir la matriz de cifrado de datos sensibles:
    - Contraseñas / PINs: `Argon2id` o `bcrypt` con sal.
+   - Claves de API y tokens aleatorios generados por el sistema: hash rápido (SHA-256 o HMAC con secreto del servidor). Un KDF lento se paga en cada petición autenticada y limita la capacidad del servicio.
    - Tokens temporales: Hashing unidireccional SHA-256.
    - Datos personales PII: Cifrado bidireccional AES-256-GCM si requiere recuperación.
 

@@ -1,7 +1,7 @@
 ---
 name: user-stories
 description: "Redacta el backlog de Historias de Usuario bajo la estructura de las 4 Preguntas Clave (Como/Cuando/Quiero/Para), Precondiciones, BDD Gherkin (Happy Path, Error Path, QA Edge Case), NFRs y checklist INVEST."
-version: "3.4.1"
+version: "3.5.0"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -11,7 +11,7 @@ outputs:
   - "docs/05_agile_planning/11_user_stories/indice_user_stories.md"
 ---
 
-# SK-11: Historias de Usuario Profesional INVEST y Criterios BDD (v3.4.1)
+# SK-11: Historias de Usuario Profesional INVEST y Criterios BDD (v3.5.0)
 
 Actúa como un **Lead Agile Product Owner** y **Senior QA Automation Specialist** experto en marcos ágiles (Scrum/Kanban), especificación por comportamiento (BDD Gherkin) y análisis de casos borde (Edge Cases).
 
@@ -22,7 +22,7 @@ Tu objetivo es analizar minuciosamente el PRD (`docs/01_product_definition/02_pr
 ## Non-Goals de Ejecución del Agente (Guards)
 
 Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
-1. **No usar descripciones genéricas de usuario:** Prohibido usar "Como usuario...", exigir roles específicos con contexto operativo (ej. "Como Cocinero de Turno", "Como Administrador de Inventario").
+1. **No usar descripciones genéricas de usuario:** Prohibido usar "Como usuario...", exigir roles específicos con contexto operativo (ej. "Como Responsable de Facturación", "Como Integradora de un Equipo Técnico").
 2. **Estructura Obligatoria de 4 Preguntas:** Toda narrativa DEBE incluir la estructura completa:
    - **Como** `[rol específico de usuario]`
    - **Cuando** `[situación o trigger específico en el flujo de trabajo]`
@@ -30,7 +30,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
    - **Para** `[obtener un beneficio o valor medible para el negocio]`
 3. **No omitir sintaxis BDD Gherkin:** Prohibido definir criterios de aceptación en texto informal; exigir strictly `Given` (Dado), `When` (Cuando), `Then` (Entonces).
 4. **Mínimo 3 Escenarios BDD Obligatorios:** Toda Historia de Usuario DEBE incluir obligatoriamente 3 escenarios: Happy Path, Flujo de Error y QA Edge Case.
-5. **Secciones de Precondiciones y NFRs Obligatorias:** Toda ficha debe incluir precondiciones explícitas y requisitos no funcionales de Rendimiento ($<500\text{ms}$) y Ergonomía Táctil ($\ge 48\text{px}$).
+5. **Secciones de Precondiciones y NFRs Obligatorias:** Toda ficha debe incluir precondiciones explícitas y requisitos no funcionales de Rendimiento (el umbral del PRD o, si no declara ninguno, $<300\text{ms}$) y, **solo si la historia tiene interfaz gráfica**, de Accesibilidad (objetivos táctiles $\ge 48\text{px}$ o el mínimo de la plataforma declarada).
 6. **Validación declarada (etapa 2, `SK-37`):** toda historia en `backlog`, `approved` o `in_progress` declara `value_risk` y `validation`. `validation` es un `EXP-NNN` existente —cuya decisión debe ser `seguir` para que la historia esté `approved`— o `exenta — <motivo>`; con `value_risk: alto` la exención no vale. Prohibido inventar el experimento o el motivo: ambos vienen del humano. Verificado por el gate `historia` de `.agents/scripts/check_spec_artifacts.py`.
 7. **Retirada sin reescribir la historia (etapa 12, `SK-41`):** una historia de una funcionalidad retirada conserva su estado y añade `retired_by: RET-NNN` a su frontmatter. Prohibido borrarla o editarla para ocultar que existió.
 
@@ -47,7 +47,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 1. Declarar la sección `Precondiciones`.
 2. Definir los 3 escenarios BDD Gherkin con etiquetado (`@critical`, `@smoke`, `@edge`) y soporte de `Scenario Outline` con tablas `Examples:` para lógica combinatoria.
 3. Exigir contrato **RFC 7807** en las cláusulas `Then` de todos los escenarios de error.
-4. Declarar la sección `Criterios de Aceptación No Funcionales` (Rendimiento $<300\text{ms}$ y Ergonomía Táctil $\ge 48\text{px}$).
+4. Declarar la sección `Criterios de Aceptación No Funcionales` (Rendimiento y, si hay interfaz gráfica, Accesibilidad).
 
 ### Paso 3: Organización Documental por Módulos
 1. Guardar cada historia en `docs/05_agile_planning/11_user_stories/{modulo}/US-XXX.md`.
@@ -86,7 +86,7 @@ inputs:
 ---
 
 ## Precondiciones
-- [Precondición 1: Sesión activa, PIN, permisos...]
+- [Precondición 1: Sesión o credencial activa, permisos...]
 - [Precondición 2: Estado del catálogo o almacén...]
 
 ---
@@ -122,7 +122,7 @@ inputs:
 
 ## Criterios de Aceptación No Funcionales (NFRs)
 *   **Rendimiento:** El procesamiento del caso de uso y respuesta de la API debe ser menor a 300 ms.
-*   **Accesibilidad / Ergonomía Táctil:** El 100% de los elementos interactivos en pantalla debe tener una dimensión mínima de 48px x 48px.
+*   **Accesibilidad (solo con interfaz gráfica):** El 100% de los elementos interactivos en pantalla tiene una dimensión mínima de 48px x 48px o el mínimo de la plataforma declarada.
 
 ---
 

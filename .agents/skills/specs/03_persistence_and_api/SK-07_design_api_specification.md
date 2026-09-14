@@ -1,17 +1,17 @@
 ---
 name: api-specification
 description: "Diseña la especificación OpenAPI 3.1/REST Contract-First, YAML declarativo, esquemas de validación tipada, paginación estándar, rate limiting, versionado v1, idempotencia y envolventes RFC 7807."
-version: "3.3.2"
+version: "3.4.0"
 category: "03_persistence_and_api"
 inputs:
   - "docs/01_product_definition/02_prd.md"
   - "docs/03_persistence_and_api/06_database_schema.md"
 outputs:
   - "docs/03_persistence_and_api/07_api_specification.md"
-  - "docs/03_persistence_and_api/openapi.yaml"
+  - "docs/03_persistence_and_api/openapi.yaml (u openapi.json si el stack no lee YAML)"
 ---
 
-# SK-07: Especificación de API REST y Contratos de Dominio (v3.3.2)
+# SK-07: Especificación de API REST y Contratos de Dominio (v3.4.0)
 
 Actúa como un **Senior API Architect** y **Contract-First Specialist** experto en RESTful APIs, OpenAPI 3.1, esquemas de validación tipada (independiente del lenguaje/librería), resiliencia distribuida y políticas de diseño API Enterprise.
 
@@ -39,7 +39,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 ### Fase 2: Matriz de Cabeceras Globales, Idempotencia & Rate Limiting (5 min)
 1. Especificar el contrato de cabeceras comunes:
    - `Content-Type: application/json`
-   - `Authorization: Bearer <JWT>`
+   - `Authorization: Bearer <token>` (el mecanismo declarado en la estrategia de seguridad: JWT, clave de API...)
    - `X-Request-ID: <UUIDv4>` (Trazabilidad distribuida)
    - `X-Idempotency-Key: <UUIDv4>` (Requerido en transacciones mutativas)
    - `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` (Cabeceras de cuota)
@@ -71,7 +71,7 @@ Para cada endpoint:
 ### Fase 4.B: Diagrama de Comunicación Frontend ↔ Backend (`mermaid sequenceDiagram`)
 Generar un diagrama de secuencia en Mermaid que ilustre el flujo completo de extremo a extremo:
 1. Petición HTTP desde el cliente frontend (Touch UI).
-2. Intercepción por el middleware del framework backend declarado en el stack manifest (JWT Auth & Validación de Esquema Fail-Fast).
+2. Intercepción por el middleware del framework backend declarado en el stack manifest (autenticación y validación de esquema Fail-Fast).
 3. Invocación al Caso de Uso y Transacción Pesimista en Base de Datos.
 4. Mapeo DTO de Respuesta ($201$) o Envolvente RFC 7807 ($400, 401, 422$).
 5. Manejo defensivo de pérdida de conexión y fallback local (`IndexedDB`).
@@ -89,8 +89,8 @@ interface StandardErrorEnvelope {
 }
 ```
 
-### Fase 5: Generación Dual de Especificación YAML (`openapi.yaml`) & Linting (10 min)
-1. Compilar el archivo declarativo físico **`docs/03_persistence_and_api/openapi.yaml`** alineado con el estándar **OpenAPI 3.1.0** para permitir mocking, linting e inspección interactiva.
+### Fase 5: Generación Dual de Especificación (`openapi.yaml` u `openapi.json`) & Linting (10 min)
+1. Compilar el archivo declarativo físico **`docs/03_persistence_and_api/openapi.yaml`** (o `openapi.json` si el stack no dispone de un lector de YAML) alineado con el estándar **OpenAPI 3.1.0** para permitir mocking, linting e inspección interactiva.
 2. Ejecutar la validación estática del contrato con el API Linter declarado en `docs/00_stack_manifest.md` §6 (ej. Spectral). Si el manifest no declara ninguno, proponlo al humano y pregunta antes de instalar nada.
 
 ---

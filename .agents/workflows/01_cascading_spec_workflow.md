@@ -8,7 +8,7 @@
 > Para la ejecución de este proceso, debes actuar bajo los siguientes roles y perspectivas técnicas:
 > *   **Principal Software Architect:** Garantiza que no se violen las dependencias de la Arquitectura Hexagonal y que se respete el Vertical Slicing.
 > *   **Senior Product Owner:** Redacta y valida las User Stories bajo criterios INVEST y BDD Gherkin con escenarios Happy Path y Edge Cases.
-> *   **Database Administrator (DBA):** Vela por la consistencia del modelo físico de base de datos respetando la 3NF, tipos de datos correctos (Fixed-Point Decimal) y convenciones físicas.
+> *   **Database Administrator (DBA):** Vela por la consistencia del modelo físico de base de datos respetando la 3NF, tipos de datos correctos (decimal de punto fijo para cantidades y dinero) y convenciones físicas.
 
 ## Proceso de Propagación en Cascada (Cascading Update Protocol)
 
@@ -56,7 +56,7 @@ Antes de redactar cualquier archivo de especificación (Fase 2 en adelante), ide
    * Redacta al menos 3 escenarios BDD Gherkin (Happy Path, Flujo de Error y Caso Borde), como exige `SK-11`.
    * Enlaza esta historia en `docs/05_agile_planning/11_user_stories/indice_user_stories.md`.
 2. **Tickets Técnicos (Backend/Frontend):**
-   * **Garantía de Core:** Asegura que en `docs/05_agile_planning/12_tickets/shared/` existan siempre los tickets habilitadores de infraestructura base: `shared/backend/TK-001.md` (Core Backend Workspace & DB) y `shared/frontend/TK-001-FE.md` (Core Frontend Workspace & Design System Base).
+   * **Garantía de Core:** Asegura que en `docs/05_agile_planning/12_tickets/shared/` existan los tickets habilitadores de infraestructura base: `shared/backend/TK-001.md` (Core Backend Workspace & DB) y, **solo si el stack manifest §4 declara una interfaz gráfica**, `shared/frontend/TK-001-FE.md` (Core Frontend Workspace & Design System Base).
    * Desglosa las historias de usuario en tickets atómicos y guárdalos en las subcarpetas de Epic/Módulo correspondientes de `docs/05_agile_planning/12_tickets/` (ej. `12_tickets/{modulo}/backend/TK-NNN.md` y `12_tickets/{modulo}/frontend/TK-NNN-X.md`).
    * Para cada ticket, indica la estimación en Story Points, prioridad MoSCoW, capas de código afectadas y Definition of Done (DoD) estricto (exigiendo TDD y cumplimiento de estrategias de seguridad/ergonomía).
    * Enlaza los tickets creados en el archivo `docs/05_agile_planning/12_tickets/indice_tickets.md`.

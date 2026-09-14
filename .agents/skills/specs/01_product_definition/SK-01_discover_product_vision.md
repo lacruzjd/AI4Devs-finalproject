@@ -1,7 +1,7 @@
 ---
 name: product-discovery
 description: "Guía la fase de Descubrimiento de Producto (Product Discovery), investigación de mercado web activa, análisis Buy vs Build, graduación de incertidumbre, evaluación de oportunidades IA, Lean Canvas Mermaid Diagram (9 bloques) y delimitación agnóstica de specs MVP."
-version: "2.8.0"
+version: "2.8.1"
 category: "01_product_definition"
 inputs:
   - product_idea_or_research_md
@@ -23,11 +23,11 @@ Evalúa la naturaleza del parámetro de entrada y ejecuta el modo correspondient
 
 ### MODO A: REFINAMIENTO, NORMALIZACIÓN Y AUDITORÍA ADVERSARIAL (Insumo `00_research_human_notes.md`)
 1. **Preservación Incondicional del Insumo:** El archivo `00_research_human_notes.md` NO se sobreescribe ni se altera; permanece intacto como evidencia primaria del humano.
-2. **Normalización Semántica (DDD):** Lee el insumo usando `view_file`, desambigua la terminología y unifica el Lenguaje Ubicuo en `01_product_discovery.md`.
-3. **Auditoría de Cobertura:** Si identifica vacíos normativos o competitivos, ejecuta búsquedas web puntuales (`search_web`) para complementar sin alterar la visión del humano.
+2. **Normalización Semántica (DDD):** Lee el insumo, desambigua la terminología y unifica el Lenguaje Ubicuo en `01_product_discovery.md`.
+3. **Auditoría de Cobertura:** Si identifica vacíos normativos o competitivos, ejecuta búsquedas web puntuales con la herramienta de búsqueda del asistente para complementar sin alterar la visión del humano.
 
 ### MODO B: INVESTIGACIÓN AUTÓNOMA Y GENERACIÓN DE DESCUBRIMIENTO (Idea Vaga)
-1. **Investigación Web Activa (`search_web`):** Mapea soluciones comerciales (SaaS), alternativas Open Source, métricas de la industria y restricciones normativas.
+1. **Investigación Web Activa:** Mapea soluciones comerciales (SaaS), alternativas Open Source, métricas de la industria y restricciones normativas.
 2. **Evaluación Estratégica "Buy vs. Build":** Justifica el desarrollo propio frente a soluciones existentes y extrae el Core Diferencial (Ventaja Competitiva).
 
 ### MODO C: RECONSTRUCCIÓN RETROACTIVA DESDE CÓDIGO LEGACY (Insumo `codebase_path`, sin `docs/` previo)
@@ -139,7 +139,7 @@ graph TD
 2. **Evaluación Estratégica "Buy vs. Build":** Fundamenta por qué las alternativas comerciales no resuelven el problema y justifica el desarrollo a medida.
 3. **Descripción Breve del Software:** Descripción ejecutiva del software y dolor operativo real que resuelve, sin tecnicismos ni referencias a IA.
 4. **Valor Añadido y Ventajas Competitivas:** Valor añadido aportado y Core Diferencial competitivo.
-5. **Separación de Roles (Estratégico vs. Operativo):** Diferencia las necesidades del perfil auditor/gerencial (rentabilidad y control) frente al perfil operativo de línea (velocidad y sencillez táctil).
+5. **Separación de Roles (Estratégico vs. Operativo):** Diferencia las necesidades del perfil auditor/gerencial (rentabilidad y control) frente al perfil operativo (velocidad y sencillez en su entorno de uso real).
 6. **El Problema Real y Contexto del Usuario:** Ineficiencias de negocio e impacto en los User Personas.
 
 ## 3. Visión del Producto, Descripción y Objetivos Estratégicos
