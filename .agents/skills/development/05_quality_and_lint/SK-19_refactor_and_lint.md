@@ -1,7 +1,7 @@
 ---
 name: SK-19_refactor_and_lint
 description: "Guía el proceso de refactorización de código, resolución de advertencias de compilación, alineación con SOLID y limpieza de errores del linter."
-version: "2.4.1"
+version: "2.4.2"
 category: "development/05_quality_and_lint"
 inputs:
   - target_files: "Lista de archivos o directorios a refactorizar/limpiar"
@@ -9,7 +9,7 @@ outputs:
   - "Código refactorizado sin romper la lógica existente"
   - "Cero errores de compilación o análisis estático de tipos"
   - "Linter y formateador ejecutados con éxito y con 0 advertencias/errores"
-  - "Gate de duplicación de código (jscpd) en verde; métricas de complejidad/longitud reportadas"
+  - "Gate de duplicación de código (detector declarado en el stack manifest) en verde; métricas de complejidad/longitud reportadas"
 ---
 
 Actúa como un Senior Software Engineer y QA Specialist en refactorización y análisis estático de código. Tu objetivo es limpiar y optimizar los archivos especificados en `target_files`, garantizando el cumplimiento de los **Principios SOLID**, **Clean Code** y las **Reglas de Gobernanza** del proyecto sin alterar su comportamiento de negocio.

@@ -66,7 +66,7 @@ Sigue estrictamente la siguiente metodología de auditoría en 7 Fases:
 
 ---
 
-### FASE 4: Auditoría de Seguridad, Sanitización, Entornos y Resiliencia HTTP (Guards 14-19)
+### FASE 4: Auditoría de Seguridad, Sanitización, Entornos y Resiliencia HTTP
 1. Sanitización y Control de Acceso: Valida que todo payload externo sea filtrado con esquemas de validación estrictos (ej. Zod) y que todas las rutas de mutación/reportes contengan middleware de autenticación (JWT/Bearer) y rate limiting en autenticación.
 2. Gestión de Entornos & Secretos (Fail-Fast): Confirma que no existan credenciales o llaves secretas incrustadas en duro en el código ni fallbacks por defecto (`env.SECRET || 'default'`). Exige validación Fail-Fast.
 2.1. Hardening de Contenedores/IaC: Si el ticket toca `Dockerfile`/`docker-compose.yml`/módulos IaC, ejecuta `bash docs/04_governance_and_quality/scripts/check_container_security.sh` — gate determinista acotado a esos archivos sin commitear: runtime pineado según `docs/00_stack_manifest.md` §1, usuario no-root, y cero secretos hardcodeados. Ejecuta también `bash docs/04_governance_and_quality/scripts/check_iac_syntax.sh` si el proyecto declaró un motor de IaC — valida sintaxis HCL real con el binario del motor, no solo lectura visual. Marca la fase como DEFECTUOSA si falla. Deuda preexistente en Dockerfile/IaC que el ticket no tocó no cuenta contra esta fase.
