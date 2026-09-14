@@ -70,7 +70,7 @@ DOC_PATTERNS = [
      "identificador de ticket, historia o requisito de un proyecto concreto: describe la lección, no su ID"),
     (re.compile(r"\bAUDIT-[A-Z]+-\d{3}\b|\bC-DEV-\d{3}-\d+\b"),
      "identificador de auditoría de un proyecto concreto: describe la lección, no su ID"),
-    (re.compile(r"\bGuard \d+\b"),
+    (re.compile(r"\bGuards? \d+\b"),
      "número de guardia: depende del AGENTS.md de cada proyecto; cita la guardia por su nombre"),
     (re.compile(r"apps/(?:backend|frontend)"),
      "layout de monorepo de un proyecto concreto"),
@@ -78,6 +78,16 @@ DOC_PATTERNS = [
 # Convención de momoy (SK-12): todo proyecto tiene tickets habilitadores de core con estos IDs.
 DOC_ALLOWED_MATCHES = {"TK-001", "TK-001-FE"}
 DOC_EXEMPT_FILENAMES = {"CHANGELOG.md"}
+# Toda tecnología sale de docs/00_stack_manifest.md: un comando de gestor de paquetes escrito
+# como instrucción impone un stack. Se admite marcado como ejemplo o junto a la referencia al
+# manifest. Mencionar el binario sin argumentos (una enumeración) no es un comando.
+DOC_COMMAND_PATTERN = re.compile(
+    r"`(?:pnpm|npm|npx|yarn|bun|pip3?|poetry|uv|cargo|mvn|gradle|dotnet|composer|bundle)\s[^`]*`")
+DOC_COMMAND_REASON = ("comando de gestor de paquetes impuesto por momoy: la herramienta y el comando salen de "
+                      "docs/00_stack_manifest.md (§6 y §7); léelo del manifest o márcalo como ejemplo (ej.)")
+DOC_EXAMPLE_MARKERS = re.compile(r"\bej\.|\bpor ejemplo\b|\be\.g\.|equivalente|stack_manifest", re.IGNORECASE)
+# Herramientas de formatos de artefacto propios de momoy, no elecciones del proyecto (SK-05: DESIGN.md).
+DOC_ALLOWED_COMMAND_SUBSTRINGS = ("@google/design.md",)
 DOC_EXTENSIONS = {".md", ".sh", ".py"}
 
 
@@ -106,6 +116,12 @@ def run_doc_checks(agents_dir):
                         for match in (m.group(0) for m in pattern.finditer(line)):
                             if match not in DOC_ALLOWED_MATCHES:
                                 findings.append((rel_path, line_idx, reason, match))
+                    for m in DOC_COMMAND_PATTERN.finditer(line):
+                        if DOC_EXAMPLE_MARKERS.search(line[:m.start()]):
+                            continue
+                        if any(allowed in m.group(0) for allowed in DOC_ALLOWED_COMMAND_SUBSTRINGS):
+                            continue
+                        findings.append((rel_path, line_idx, DOC_COMMAND_REASON, m.group(0)))
     return checked_count, findings
 
 

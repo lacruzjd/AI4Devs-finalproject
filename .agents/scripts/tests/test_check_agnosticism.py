@@ -223,6 +223,51 @@ class CheckProjectAgnosticismInDocsTests(unittest.TestCase):
 
         self.assertEqual([(rel, line) for rel, line, _, _ in findings], [(os.path.join("scripts", "check_something.sh"), 2)])
 
+    def test_plural_guard_numbers_are_detected(self):
+        self._write("skills/SK-10.md", "Bajo los **Guards 22, 23 y 30** de `AGENTS.md`.\n")
+
+        _, findings = run_doc_checks(self.agents_dir)
+
+        self.assertEqual([match for _, _, _, match in findings], ["Guards 22"])
+
+    def test_imposed_package_manager_commands_are_detected(self):
+        self._write("skills/SK-07.md", "Ejecuta `npx spectral lint openapi.yaml` y luego `pip install semgrep`.\n")
+
+        _, findings = run_doc_checks(self.agents_dir)
+
+        self.assertEqual([match for _, _, _, match in findings], ["`npx spectral lint openapi.yaml`", "`pip install semgrep`"])
+        self.assertIn("docs/00_stack_manifest.md", findings[0][2])
+
+    def test_marked_example_commands_are_allowed(self):
+        self._write("skills/SK-29.md",
+                    "Con la herramienta declarada (ej. `pnpm dlx cdxgen`).\n"
+                    "Auditoría de dependencias o equivalente: `yarn npm audit`.\n")
+
+        _, findings = run_doc_checks(self.agents_dir)
+
+        self.assertEqual(findings, [])
+
+    def test_manifest_reference_on_the_line_allows_the_command(self):
+        self._write("skills/SK-10.md", "El comando canónico de `docs/00_stack_manifest.md` §7 (hoy `cargo test`).\n")
+
+        _, findings = run_doc_checks(self.agents_dir)
+
+        self.assertEqual(findings, [])
+
+    def test_momoy_artifact_tooling_is_allowed(self):
+        self._write("skills/SK-05.md", "Valida con `npx -y @google/design.md lint DESIGN.md`.\n")
+
+        _, findings = run_doc_checks(self.agents_dir)
+
+        self.assertEqual(findings, [])
+
+    def test_package_manager_word_without_command_is_not_a_finding(self):
+        self._write("skills/SK-33.md", "Agnóstico del gestor de paquetes (`npm`, `pnpm`, `pip`, `cargo`...).\n")
+
+        _, findings = run_doc_checks(self.agents_dir)
+
+        self.assertEqual(findings, [])
+
     def test_own_module_is_exempt_from_doc_scan(self):
         self._write("scripts/check_agnosticism.py", 'EXAMPLE = "TK-055 Guard 24 apps/backend"\n')
 
