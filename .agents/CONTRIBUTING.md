@@ -83,7 +83,7 @@ momoy se instala en proyectos que no conocen el historial de ningún otro. En sk
 - **No citar guardias por su número** (la palabra *Guard* seguida de una cifra): cada `AGENTS.md` numera las suyas (`SK-27` lo advierte). Se citan por su nombre o se remite a la regla de momoy correspondiente. Para los propios no-goals de una skill se escribe "Non-Goal N".
 - **No usar ejemplos del dominio de un proyecto** ni su layout de carpetas (por ejemplo, las rutas de un monorepo concreto).
 
-Verificado por la segunda pasada de `.agents/scripts/check_agnosticism.py`, **informativa** mientras se limpia la deuda heredada (`--verbose` la lista, `--strict-docs` la vuelve bloqueante).
+Verificado por la segunda pasada de `.agents/scripts/check_agnosticism.py`, **bloqueante** en `validate_agents.sh` (`--strict-docs`); ejecutado a mano sin ese flag es informativa, y `--verbose` lista los hallazgos.
 
 ### Sin emojis decorativos (regla permanente, momoy 2.17.0)
 

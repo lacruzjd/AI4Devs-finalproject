@@ -31,8 +31,9 @@ python3 -m unittest discover -s .agents/scripts/tests
 # Run Link Integrity Checker
 python3 .agents/scripts/check_links.py
 
-# Run Agnosticism Guard: .agents/scripts/ nunca debe acoplarse al stack de un proyecto
-python3 .agents/scripts/check_agnosticism.py
+# Run Agnosticism Guard: .agents/scripts/ nunca debe acoplarse al stack de un proyecto,
+# y la documentación tampoco a un proyecto concreto (--strict-docs: la deuda heredada ya es 0)
+python3 .agents/scripts/check_agnosticism.py --strict-docs
 
 # Run Emoji Policy Guard: sin emojis en títulos; en el cuerpo solo marcadores semánticos (CONTRIBUTING.md)
 python3 .agents/scripts/check_emoji_policy.py

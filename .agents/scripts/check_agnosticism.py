@@ -23,8 +23,8 @@ tampoco puede acoplarse a un proyecto concreto. Hasta ahora nada lo verificaba, 
 proyecto real se acumularon identificadores de su historial (tickets, auditorías) que en otro
 proyecto no significan nada o colisionan con los suyos, y números de guardia que solo existen
 en un AGENTS.md concreto (SK-27 advierte que esa numeración es propia de cada proyecto). La
-pasada es informativa por defecto mientras se limpia la deuda heredada; --strict-docs la
-vuelve bloqueante.
+pasada es informativa por defecto; --strict-docs la vuelve bloqueante y es el modo que usa
+validate_agents.sh desde que la deuda heredada llegó a 0.
 """
 import argparse
 import os
