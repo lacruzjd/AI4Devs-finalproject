@@ -1,7 +1,7 @@
 ---
 name: user-stories
 description: "Redacta el backlog de Historias de Usuario bajo la estructura de las 4 Preguntas Clave (Como/Cuando/Quiero/Para), Precondiciones, BDD Gherkin (Happy Path, Error Path, QA Edge Case), NFRs y checklist INVEST."
-version: "3.3.0"
+version: "3.4.0"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -32,6 +32,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 4. **Mínimo 3 Escenarios BDD Obligatorios:** Toda Historia de Usuario DEBE incluir obligatoriamente 3 escenarios: Happy Path, Flujo de Error y QA Edge Case.
 5. **Secciones de Precondiciones y NFRs Obligatorias:** Toda ficha debe incluir precondiciones explícitas y requisitos no funcionales de Rendimiento ($<500\text{ms}$) y Ergonomía Táctil ($\ge 48\text{px}$).
 6. **Validación declarada (etapa 2, `SK-37`):** toda historia en `backlog`, `approved` o `in_progress` declara `value_risk` y `validation`. `validation` es un `EXP-NNN` existente —cuya decisión debe ser `seguir` para que la historia esté `approved`— o `exenta — <motivo>`; con `value_risk: alto` la exención no vale. Prohibido inventar el experimento o el motivo: ambos vienen del humano. Verificado por el gate `historia` de `.agents/scripts/check_spec_artifacts.py`.
+7. **Retirada sin reescribir la historia (etapa 12, `SK-41`):** una historia de una funcionalidad retirada conserva su estado y añade `retired_by: RET-NNN` a su frontmatter. Prohibido borrarla o editarla para ocultar que existió.
 
 ---
 
