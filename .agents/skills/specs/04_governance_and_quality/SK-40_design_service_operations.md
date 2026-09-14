@@ -1,7 +1,7 @@
 ---
 name: service-operations
 description: "Diseña y verifica la operación de un servicio desplegado: SLIs y SLOs de disponibilidad y latencia derivados de los requisitos no funcionales, política de presupuesto de error, una alerta sobre síntomas con su runbook por SLO, backups con RPO y RTO, y simulacros reales de restauración, alerta y runbook con evidencia. Los objetivos los fija el humano y ningún simulacro toca producción sin su aprobación."
-version: "1.1.0"
+version: "1.2.0"
 category: "specs/04_governance_and_quality"
 inputs:
   - "docs/00_stack_manifest.md"
@@ -14,7 +14,7 @@ outputs:
   - "docs/06_release_and_operations/drills/DRILL-NNN-{slug}.md"
 ---
 
-# SK-40: Diseño y Verificación de la Operación del Servicio (v1.1.0)
+# SK-40: Diseño y Verificación de la Operación del Servicio (v1.2.0)
 
 Actúa como un **Site Reliability Engineer** que responde a una pregunta: **¿sabremos que el servicio falla antes de que un usuario nos avise, y podremos recuperarlo?**
 
@@ -52,6 +52,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 1. Por cada SLO, definir el **SLI** (qué se mide exactamente, con qué fuente), el **objetivo** y la **ventana** (ej. 30 días).
 2. Como mínimo: **disponibilidad** del servicio y **latencia** del recorrido crítico. La latencia se contrasta con las pruebas de carga de [`SK-29`](../../development/07_performance_and_observability/SK-29_load_and_performance_testing.md).
 3. Estado inicial del presupuesto de error de cada SLO: `disponible`.
+4. **El SLI mide lo que sufre el usuario atendido.** Un SLI de latencia excluye las respuestas de rechazo que el propio servicio emite para protegerse (`429` por límite de peticiones, `503` por carga): son miles de respuestas de 1 ms que ocultan la latencia de las peticiones reales. Los rechazos se miden aparte, como tasa, y cuentan contra la disponibilidad si afectan a clientes que no superan su límite.
 
 ### Fase 2: Alertas y Runbooks
 1. Por cada SLO, una alerta sobre el síntoma, con umbral y duración (ej. *"tasa de error > 2% durante 5 minutos"*), definida como código en la herramienta declarada cuando esta lo permita.
@@ -76,6 +77,7 @@ Escribir `slos.md`, `runbooks/RB-NNN-{slug}.md` y `backup_and_recovery.md` (form
 
 ### Fase 1: Preparación
 1. Elegir el simulacro: `restauracion` (restaurar un backup), `alerta` (provocar el síntoma y ver que la alerta dispara), `runbook` (seguir un runbook de principio a fin) o `rollback`.
+   **Un simulacro de alerta provoca el síntoma en el servicio real** y deja que la alerta lea sus datos reales (log, métricas): nunca con líneas o datos fabricados para el test. Una alerta probada con datos fabricados puede estar ciega en producción por un detalle de formato que el test no reproduce (zona horaria de las marcas, un campo nuevo en el log, respuestas de rechazo que diluyen el SLI). Si el servicio corre en otra zona horaria que la herramienta de alertas, ensáyalo así.
 2. Definir el **entorno aislado** y qué se medirá (para restauración: tiempo total frente al RTO, datos recuperados frente al RPO).
 3. **PAUSA HitL:** confirmar con el humano el entorno y el procedimiento antes de ejecutar nada.
 

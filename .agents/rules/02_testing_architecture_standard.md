@@ -100,3 +100,13 @@ La convención concreta la declara el manifest. Esta tabla fija **qué** debe de
 | **Caso de uso** | Co-localizado junto al caso de uso | Nombre del caso de uso + sufijo de test declarado |
 | **Integración de servicio** | Directorio de integración declarado | Nombre de la funcionalidad + sufijo de integración declarado |
 | **E2E** | Directorio E2E declarado, subcarpeta `specs/` | Nombre del flujo + sufijo E2E declarado |
+
+---
+
+## 5. Verificación de Descubrimiento
+
+Un runner que no encuentra un directorio no falla: informa menos tests y sale en verde. Por eso la ubicación declarada no basta, hay que comprobar que el comando canónico la recorre:
+
+1. La fila **Ubicación y nombres de tests** del manifest declara el patrón de archivo (glob) de cada tipo de prueba.
+2. `check_test_discovery.sh` (generado por `SK-27`) compara los archivos que coinciden con esos patrones con los que el runner ejecuta de verdad, y falla ante cualquier diferencia.
+3. Al añadir un archivo de test, el recuento de su pasada debe subir. Si no sube, el test no se está ejecutando.

@@ -1,7 +1,7 @@
 ---
 name: user-stories
 description: "Redacta el backlog de Historias de Usuario bajo la estructura de las 4 Preguntas Clave (Como/Cuando/Quiero/Para), Precondiciones, BDD Gherkin (Happy Path, Error Path, QA Edge Case), NFRs y checklist INVEST."
-version: "3.5.0"
+version: "3.6.0"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -11,7 +11,7 @@ outputs:
   - "docs/05_agile_planning/11_user_stories/indice_user_stories.md"
 ---
 
-# SK-11: Historias de Usuario Profesional INVEST y Criterios BDD (v3.5.0)
+# SK-11: Historias de Usuario Profesional INVEST y Criterios BDD (v3.6.0)
 
 Actúa como un **Lead Agile Product Owner** y **Senior QA Automation Specialist** experto en marcos ágiles (Scrum/Kanban), especificación por comportamiento (BDD Gherkin) y análisis de casos borde (Edge Cases).
 
@@ -33,6 +33,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 5. **Secciones de Precondiciones y NFRs Obligatorias:** Toda ficha debe incluir precondiciones explícitas y requisitos no funcionales de Rendimiento (el umbral del PRD o, si no declara ninguno, $<300\text{ms}$) y, **solo si la historia tiene interfaz gráfica**, de Accesibilidad (objetivos táctiles $\ge 48\text{px}$ o el mínimo de la plataforma declarada).
 6. **Validación declarada (etapa 2, `SK-37`):** toda historia en `backlog`, `approved` o `in_progress` declara `value_risk` y `validation`. `validation` es un `EXP-NNN` existente —cuya decisión debe ser `seguir` para que la historia esté `approved`— o `exenta — <motivo>`; con `value_risk: alto` la exención no vale. Prohibido inventar el experimento o el motivo: ambos vienen del humano. Verificado por el gate `historia` de `.agents/scripts/check_spec_artifacts.py`.
 7. **Retirada sin reescribir la historia (etapa 12, `SK-41`):** una historia de una funcionalidad retirada conserva su estado y añade `retired_by: RET-NNN` a su frontmatter. Prohibido borrarla o editarla para ocultar que existió.
+8. **Invariantes citadas:** toda historia cita en sus escenarios o precondiciones los `INV-NN` del glosario que hace cumplir. Una invariante que ninguna historia ni ticket cita es una regla de negocio que nadie implementará (gate `trazabilidad`).
 
 ---
 

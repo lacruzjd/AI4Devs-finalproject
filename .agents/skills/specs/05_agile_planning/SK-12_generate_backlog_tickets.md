@@ -1,7 +1,7 @@
 ---
 name: backlog-tickets
 description: "Desglosa las Historias de Usuario en tickets técnicos atómicos de backend y frontend (máximo 5 SP), Definition of Done (DoD), Matriz Multidimensional de Priorización Cualitativa e instrucciones de ejecución autónoma para agentes IA."
-version: "3.3.0"
+version: "3.4.0"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -15,7 +15,7 @@ outputs:
   - "docs/05_agile_planning/12_tickets/indice_tickets.md"
 ---
 
-# SK-12: Desglose de Tickets Técnicos, Priorización Cualitativa e Instrucciones para IA (v3.3.0)
+# SK-12: Desglose de Tickets Técnicos, Priorización Cualitativa e Instrucciones para IA (v3.4.0)
 
 Actúa como un **Principal Software Architect** y **Technical Lead** experto en descomposición de tareas ágiles, evaluación de prioridades de negocio, arquitectura hexagonal en slices verticales y preparación de tickets listos para ejecución autónoma por agentes de IA codificadores.
 
@@ -32,6 +32,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 4. **No omitir el Guard de Precisión Decimal:** Todo ticket que trate con saldos, pesos o cantidades debe exigir la librería de precisión de punto fijo declarada en `docs/00_stack_manifest.md` (nunca `Float`/`Double` nativo).
 5. **Cabecera Frontmatter YAML y Navegación GFM Obligatorias:** Todo ticket DEBE comenzar con bloque Frontmatter YAML y barra de navegación lineal.
 6. **Bloque de Autonomía IA Obligatorio:** Todo ticket DEBE incluir la sección final `Instrucciones de Ejecución Autónoma para Agente IA` indicando archivos a editar, comandos TDD y comandos de verificación declarados en `AGENTS.md`.
+7. **Invariantes citadas:** todo ticket cita los `INV-NN` del glosario que implementa. Antes de dar el desglose por terminado, comprueba que cada invariante del glosario queda cubierta por al menos un ticket o una historia: una invariante sin ticket (ej. una política de retención o de revocación de claves) no se implementa nunca.
 
 ---
 

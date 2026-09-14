@@ -58,6 +58,7 @@ Antes de dar por terminado el desarrollo:
 1. Ejecuta la skill [SK-19 Refactorización y Lints](../skills/development/05_quality_and_lint/SK-19_refactor_and_lint.md).
 2. Valida la compilación de tipos y el análisis estático ejecutando los comandos CLI autorizados en `AGENTS.md`.
 3. **Quality Gate:** Se exige estricto **0 errores y 0 advertencias**. Si hay lints, deben ser resueltos antes de avanzar.
+4. **Descubrimiento de tests:** ejecuta `bash docs/04_governance_and_quality/scripts/check_test_discovery.sh` (generado por `SK-27`). Si el ticket añadió archivos de test, el recuento de su pasada debe haber subido: una suite en verde que no ejecutó los tests nuevos no prueba nada.
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: product-discovery
 description: "Guía la fase de Descubrimiento de Producto (Product Discovery), investigación de mercado web activa, análisis Buy vs Build, graduación de incertidumbre, evaluación de oportunidades IA, Lean Canvas Mermaid Diagram (9 bloques) y delimitación agnóstica de specs MVP."
-version: "2.8.1"
+version: "2.9.0"
 category: "01_product_definition"
 inputs:
   - product_idea_or_research_md
@@ -165,4 +165,4 @@ Formula 5 preguntas incómodas sobre reglas de negocio complejas, escenarios lí
 ---
 
 Guarda el archivo en: `docs/01_product_definition/01_product_discovery.md` (o `[RUTA_DE_SALIDA]`).
-Extrae y registra términos e invariantes en: `docs/01_product_definition/01_glosario_y_reglas_negocio.md`.
+Extrae y registra términos e invariantes en: `docs/01_product_definition/01_glosario_y_reglas_negocio.md`. **Cada invariante lleva un identificador `INV-NN`** (ej. `**INV-01 — Título válido:** ...`): las historias y tickets que la implementan lo citan, y el gate `trazabilidad` marca toda invariante que ninguna historia ni ticket cite. Sin identificador, una invariante no se puede trazar.
