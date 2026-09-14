@@ -1,7 +1,7 @@
 ---
 name: SK-28_manage_database_seeding
 description: "Guía procedimental agnóstica para crear, auditar y ejecutar estrategias de sembrado de datos (seeding) bajo los 5 pilares profesionales de ingeniería."
-version: "1.0.1"
+version: "1.0.2"
 category: "development/04_persistence_and_db"
 inputs:
   - seeding_requirements: "Descripción de las entidades, catálogo maestro o fixtures a sembrar"
@@ -28,7 +28,7 @@ Sigue secuencialmente este flujo procedimental:
 
 ## FASE 2: Diseño del Script de Sembrado Agnóstico e Idempotente
 1. **Garantizar Idempotencia Obligatoria:**
-   - En ORMs (Prisma, TypeORM, Drizzle): Utiliza `upsert({ where, update, create })` en `prisma/seed.ts`.
+   - En ORMs (ej. Prisma, TypeORM, Drizzle): utiliza la operación idempotente del ORM declarado (ej. `upsert({ where, update, create })`) en el script de seed que declara el proyecto.
    - En SQL Nativo: Utiliza `INSERT INTO ... ON CONFLICT (...) DO UPDATE`.
    - En Repositorios InMemory/NoSQL: Comprueba la existencia por identificador único antes de sembrar.
 2. **Sanitización PII y Hashing Seguro:**

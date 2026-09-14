@@ -1,7 +1,7 @@
 ---
 name: SK-29_load_and_performance_testing
 description: "Diseña, genera y ejecuta pruebas no-funcionales de carga y rendimiento de forma agnóstica a la pila tecnológica. La regresión visual vive en SK-21 (development/06_visual_qa), no aquí — evita duplicación entre skills con responsabilidades distintas."
-version: "1.2.2"
+version: "1.2.3"
 category: "development/07_performance_and_observability"
 inputs:
   - api_spec_path: "Ruta opcional a la especificación de API (OpenAPI, GraphQL, gRPC)"
@@ -34,7 +34,7 @@ Actúa como un Principal Performance & Infrastructure QA Engineer. Tu objetivo e
 ---
 
 ## FASE 2: Generación de Scripts de Carga (k6 / Artillery)
-1. **Formato k6 (Recomendado):** Generar scripts deterministas en TypeScript/JavaScript dentro de `tests/performance/` o `e2e/performance/`.
+1. **Herramienta y ubicación declaradas:** genera scripts deterministas con la herramienta de carga que declare `docs/00_stack_manifest.md` §5 y en la ubicación que declare. Si no declara ninguna, propón una (ej. k6 o Artillery) y pregunta antes de instalarla. La estructura de abajo es un ejemplo en k6.
 2. **Estructura Estándar:**
    ```javascript
    import http from 'k6/http';

@@ -1,7 +1,7 @@
 ---
 name: api-specification
 description: "Diseña la especificación OpenAPI 3.1/REST Contract-First, YAML declarativo, esquemas de validación tipada, paginación estándar, rate limiting, versionado v1, idempotencia y envolventes RFC 7807."
-version: "3.3.1"
+version: "3.3.2"
 category: "03_persistence_and_api"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -11,7 +11,7 @@ outputs:
   - "docs/03_persistence_and_api/openapi.yaml"
 ---
 
-# SK-07: Especificación de API REST y Contratos de Dominio (v3.3.1)
+# SK-07: Especificación de API REST y Contratos de Dominio (v3.3.2)
 
 Actúa como un **Senior API Architect** y **Contract-First Specialist** experto en RESTful APIs, OpenAPI 3.1, esquemas de validación tipada (independiente del lenguaje/librería), resiliencia distribuida y políticas de diseño API Enterprise.
 
@@ -91,7 +91,7 @@ interface StandardErrorEnvelope {
 
 ### Fase 5: Generación Dual de Especificación YAML (`openapi.yaml`) & Linting (10 min)
 1. Compilar el archivo declarativo físico **`docs/03_persistence_and_api/openapi.yaml`** alineado con el estándar **OpenAPI 3.1.0** para permitir mocking, linting e inspección interactiva.
-2. Ejecutar la validación estática del contrato mediante: `npx spectral lint docs/03_persistence_and_api/openapi.yaml`.
+2. Ejecutar la validación estática del contrato con el API Linter declarado en `docs/00_stack_manifest.md` §6 (ej. Spectral). Si el manifest no declara ninguno, proponlo al humano y pregunta antes de instalar nada.
 
 ---
 

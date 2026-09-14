@@ -1,7 +1,7 @@
 ---
 name: SK-23_audit_dependency_security
 description: "Guía de seguridad para prevenir alucinaciones de paquetes (Slopsquatting), auditar dependencias vulnerables (paquete y, si aplica, imagen de contenedor), re-verificar tras upgrades mayores, y bloquear instalaciones de terceros no autorizadas."
-version: "1.2.2"
+version: "1.2.3"
 category: "development/05_quality_and_lint"
 inputs:
   - package_name: "Nombre del paquete o librería a validar"
@@ -30,7 +30,7 @@ Sigue estrictamente esta directiva de seguridad innegociable:
    - Rechazar cualquier paquete con vulnerabilidades clasificadas como `High` o `Critical`.
    - Rechazar paquetes sin firmas digitales o con bajas métricas de mantenimiento en el registro oficial.
 3. **Riesgo Residual Documentado — cuando NO existe fix dentro del major aprobado:** si la vulnerabilidad `High`/`Critical` solo tiene parche en una versión MAJOR distinta a la aprobada en `docs/00_stack_manifest.md` (bump que requiere aprobación humana en `docs/00_stack_manifest.md`, no una decisión unilateral del agente), no la ignores en silencio ni la dejes bloqueando el pipeline indefinidamente vía `continue-on-error`: documéntala explícitamente en `docs/04_governance_and_quality/scripts/check_dependency_audit.sh` (generado por `SK-27`) con su GHSA/CVE, el vector real de explotación, y por qué es inalcanzable en el despliegue de producción del proyecto (ej. una vulnerabilidad exclusiva del dev-server de una herramienta de build nunca ejecutado en el `Dockerfile`). Esto mantiene el gate bloqueante ante vulnerabilidades NUEVAS sin caer en ceguera de alertas por deuda ya evaluada.
-4. **Re-verificación obligatoria tras un upgrade de versión MAYOR:** si el paquete bajo auditoría es un bump de versión MAYOR de una dependencia ya aprobada (no un paquete nuevo), no basta con que el `pnpm audit`/equivalente a nivel de paquete pase limpio — un upgrade mayor cambia el árbol transitivo de formas invisibles para los tests funcionales. Antes de dar el ticket de upgrade por terminado: (a) re-corre el escaneo de dependencias, (b) si el proyecto empaqueta contenedores, reconstruye la imagen real y vuelve a escanearla con `trivy image` (o equivalente) — no esperes a que el próximo disparo periódico/automático de CI lo descubra. El agente que ejecuta el upgrade es responsable de verificar su propio impacto de seguridad, no solo su corrección funcional.
+4. **Re-verificación obligatoria tras un upgrade de versión MAYOR:** si el paquete bajo auditoría es un bump de versión MAYOR de una dependencia ya aprobada (no un paquete nuevo), no basta con que el comando canónico de auditoría de dependencias a nivel de paquete pase limpio — un upgrade mayor cambia el árbol transitivo de formas invisibles para los tests funcionales. Antes de dar el ticket de upgrade por terminado: (a) re-corre el escaneo de dependencias, (b) si el proyecto empaqueta contenedores, reconstruye la imagen real y vuelve a escanearla con el escáner de contenedores declarado (ej. `trivy image`) — no esperes a que el próximo disparo periódico/automático de CI lo descubra. El agente que ejecuta el upgrade es responsable de verificar su propio impacto de seguridad, no solo su corrección funcional.
 
 ---
 

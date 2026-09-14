@@ -29,7 +29,7 @@ flowchart TD
     subgraph STAGE1 ["ETAPA 1: ESPECIFICACION (01_cascading_spec_workflow.md)"]
         UserIdea["Idea de Negocio / Nuevo Requerimiento"] --> SK_PRD["SK-01 y SK-02: PRD y Alcance"]
         SK_PRD --> SK_Arch["SK-03 a SK-06: Arquitectura C4 y Carpetas"]
-        SK_Arch --> SK_DB_API["SK-10 y SK-11: Prisma Schema y OpenAPI"]
+        SK_Arch --> SK_DB_API["SK-06 y SK-07: Esquema de Datos y Contrato de API"]
         SK_DB_API --> SK_Backlog["SK-12 a SK-14: User Stories y Tickets TK-XXX"]
     end
 
