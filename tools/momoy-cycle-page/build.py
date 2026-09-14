@@ -11,7 +11,7 @@ import sys
 
 OUT = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path(__file__).parent / "dist" / "ciclo-momoy.html"
 
-VERSION = "2.26.0"
+VERSION = "2.29.0"
 MEASURED = "14 sep 2026"
 
 PHASES = {
@@ -25,7 +25,7 @@ CRITERIA = [
     ("gate", "Gate", "Algo verifica el resultado: un script si la propiedad es mecánica, revisión adversarial si es juicio."),
     ("hitl", "Pausa humana", "Las decisiones de la etapa las confirma una persona."),
     ("cmd", "Comando", "Se puede lanzar con un comando /momoy-*."),
-    ("real", "Probado en real", "Se ejecutó sobre un proyecto de verdad, no solo se escribió."),
+    ("real", "Probado en real", "Se ejecutó sobre un proyecto de verdad, no solo se escribió. Datos o evidencia inventados no cuentan."),
 ]
 MARK = {2: ("●", "cumple"), 1: ("◐", "parcial"), 0: ("○", "no")}
 LEVELS = {"strong": "Fuerte", "near": "Casi", "partial": "Parcial", "missing": "Ausente"}
@@ -49,34 +49,35 @@ def S(proc, art, gate, hitl, cmd, real):
 STAGES = [
     dict(n=1, short="Problema", title="Problema y oportunidad", phase="discover",
          q="¿Qué problema existe, para quién y cuánto duele?",
-         now=S(2, 2, 2, 2, 2, 1), before=S(2, 2, 1, 2, 2, 2),
-         today="<code>SK-01</code> y <code>SK-02</code> exigen los KPIs en una tabla de 6 columnas (fuente de datos, línea base, umbral, ventana, fecha de revisión) y el gate <code>kpi</code> lo verifica.",
-         todo=["Estrenar la plantilla nueva en un artefacto real: los KPIs de RestoStock siguen en prosa, así que el gate está probado pero la tabla todavía no.",
+         now=S(2, 2, 2, 2, 2, 2), before=S(2, 2, 1, 2, 2, 2),
+         today="<code>SK-01</code> y <code>SK-02</code> exigen los KPIs en una tabla de 6 columnas (fuente de datos, línea base, umbral, ventana, fecha de revisión) y el gate <code>kpi</code> lo verifica. Desde 2.29.0 cada invariante del glosario lleva un identificador <code>INV-NN</code> atómico. Probado en real en el simulacro: la tabla de KPIs de Listo pasó el gate, que además falló como debía con una fecha rota.",
+         todo=["Nada pendiente para ser fuerte.",
+               "Refuerzo: los KPIs de RestoStock siguen en prosa; pasarlos a tabla.",
                "Matriz obligatoria de los cuatro riesgos (valor, usabilidad, factibilidad, viabilidad) por capacidad."],
          cmds="/momoy-greenfield · /momoy-brownfield · /momoy-spec"),
     dict(n=2, short="Validación", title="Validación de la idea", phase="discover",
          q="¿Hay evidencia de que la idea funciona antes de especificarla?",
-         now=S(2, 2, 2, 2, 2, 0), before=S(1, 0, 0, 0, 0, 0),
+         now=S(2, 2, 2, 2, 2, 1), before=S(1, 0, 0, 0, 0, 0),
          today="<code>SK-37</code> diseña el experimento más barato con el criterio de éxito fijado antes y registra la evidencia real anonimizada; el humano decide. El gate <code>experimento</code> lo verifica, toda historia abierta declara <code>value_risk</code> y <code>validation</code>, y el workflow 01 se detiene ante una capacidad de riesgo alto sin experimento.",
-         todo=["Probarlo en real: diseñar, ejecutar con usuarios reales y concluir un primer experimento con evidencia en el repo. Ningún gate puede sustituir ese paso."],
+         todo=["Probarlo en real con personas: el simulacro ejecutó de verdad el diseño (criterio fijado en un commit anterior a la evidencia) y el bloqueo de historias sin validación, pero las cinco entrevistas eran inventadas. Ningún gate distingue evidencia real de fabricada: ese paso depende de la honestidad de quien aporta las notas."],
          cmds="/momoy-experiment · /momoy-spec (fase 1.5)"),
     dict(n=3, short="Requisitos", title="Especificación de requisitos", phase="discover",
          q="¿Qué debe hacer el sistema, sin decir cómo?",
          now=S(2, 2, 2, 2, 2, 2), before=S(2, 2, 1, 2, 2, 2),
-         today="<code>SK-02</code>, <code>SK-11</code> y Guard 28. El gate <code>historia</code> verifica frontmatter, estado cerrado, al menos 3 escenarios Given/When/Then, precondiciones y NFRs; en RestoStock encontró 114 hallazgos reales. Desde 2.22.0 exige también que cada historia abierta declare su riesgo de valor y su validación.",
-         todo=["Refuerzo: enlazar cada requisito no funcional medible con el SLI que lo vigilará en producción (etapa 9)."],
+         today="<code>SK-02</code>, <code>SK-11</code> y Guard 28. El gate <code>historia</code> verifica frontmatter, estado cerrado, al menos 3 escenarios Given/When/Then, precondiciones y NFRs; en RestoStock encontró 114 hallazgos reales. Desde 2.22.0 exige también que cada historia abierta declare su riesgo de valor y su validación, y desde 2.29.0 que cite las invariantes que hace cumplir.",
+         todo=["Refuerzo: enlazar cada requisito no funcional medible con el SLI que lo vigilará en producción. En el simulacro el NFR de 300 ms solo se midió por iniciativa propia, y bajo carga no se cumplía."],
          cmds="/momoy-spec · /momoy-audit-spec"),
     dict(n=4, short="Diseño", title="Diseño y arquitectura", phase="deliver",
          q="¿Cómo se construye a alto nivel, y por qué así?",
          now=S(2, 2, 2, 2, 2, 2), before=S(2, 2, 1, 2, 2, 2),
-         today="<code>SK-03</code> a <code>SK-08</code> y <code>SK-36</code>. Gates de drift de esquema, contrato y migraciones, más el gate <code>trazabilidad</code> sobre ADRs aceptados. <code>/momoy-adr</code> registra decisiones con tres opciones y elección humana.",
+         today="<code>SK-03</code> a <code>SK-08</code> y <code>SK-36</code>. Gates de drift de esquema, contrato y migraciones, más el gate <code>trazabilidad</code> sobre ADRs aceptados. <code>/momoy-adr</code> registra decisiones con tres opciones y elección humana; un ADR aceptado puede esperar a sus tickets 30 días. Desde 2.27.0 toda tecnología se lee del stack manifest y momoy no impone ninguna.",
          todo=["Refuerzo: modelado de amenazas (STRIDE) obligatorio cuando la capacidad toca datos personales o autenticación.",
                "Refuerzo: diseñar para operar, declarando qué métricas y logs emite cada componente."],
          cmds="/momoy-spec · /momoy-adr"),
     dict(n=5, short="Planificación", title="Planificación", phase="deliver",
          q="¿En qué piezas pequeñas se divide y en qué orden?",
          now=S(2, 2, 2, 2, 2, 2), before=S(2, 2, 1, 2, 2, 2),
-         today="<code>SK-12</code> a <code>SK-14</code>. El gate <code>ready</code> es la Definition of Ready y bloquea <code>/momoy-dev</code> si el ticket no está listo; el workflow 01 ahora sí actualiza la matriz de trazabilidad.",
+         today="<code>SK-12</code> a <code>SK-14</code>. El gate <code>ready</code> es la Definition of Ready y bloquea <code>/momoy-dev</code> si el ticket no está listo; el workflow 01 ahora sí actualiza la matriz de trazabilidad. Desde 2.29.0 el gate <code>trazabilidad</code> marca toda invariante que ninguna historia ni ticket cita: aplicado a posteriori sobre el simulacro, habría detectado en la planificación la retención que después encontró la auditoría.",
          todo=["Refuerzo: todo ticket que introduce un feature flag nace con su ticket gemelo de retirada."],
          cmds="/momoy-spec · /momoy-dev (Definition of Ready)"),
     dict(n=6, short="Construcción", title="Construcción", phase="deliver",
@@ -88,38 +89,40 @@ STAGES = [
     dict(n=7, short="Verificación", title="Verificación", phase="deliver",
          q="¿Hay evidencia de que funciona y de que los tests detectan fallos?",
          now=S(2, 2, 2, 2, 2, 2), before=S(2, 2, 2, 2, 2, 2),
-         today="<code>SK-09</code>, <code>SK-20</code>, <code>SK-21</code>, <code>SK-24</code>, <code>SK-25</code>, <code>SK-29</code>, <code>SK-32</code>, <code>SK-34</code>; workflows 04, 05, 06 y 09; mutation score ≥ 70%. <code>SK-25</code> ya está cableada en las auditorías 04 y 06.",
-         todo=["Refuerzo: pruebas de operación como pruebas de primera clase (una alerta dispara, un backup se restaura)."],
+         today="<code>SK-09</code>, <code>SK-20</code>, <code>SK-21</code>, <code>SK-24</code>, <code>SK-25</code>, <code>SK-29</code>, <code>SK-32</code>, <code>SK-34</code>; workflows 04, 05, 06 y 09; mutation score ≥ 70%. <code>SK-25</code> ya está cableada en las auditorías 04 y 06. Desde 2.29.0 <code>SK-27</code> genera <code>check_test_discovery.sh</code>: en el simulacro, el comando de tests declarado omitía todos los unitarios y la suite salía en verde.",
+         todo=["Refuerzo: exigir la medición de los NFRs de rendimiento antes del release; el simulacro encontró la saturación a ~52 peticiones por segundo porque se midió, no porque algo lo pidiera."],
          cmds="/momoy-audit-dev · /momoy-tdd · /momoy-qa · /momoy-verify-live"),
     dict(n=8, short="Release", title="Release y despliegue", phase="deliver",
          q="¿Cómo llega a producción sin riesgo, y cómo se deshace?",
-         now=S(2, 2, 2, 2, 2, 1), before=S(1, 1, 1, 1, 1, 1),
-         today="Workflow 10 y <code>/momoy-release</code>: versión SemVer, gates previos, una estrategia por release justificada, migraciones expand-contract, verificación previa de la configuración de despliegue, rollback ensayado si hay migración o cambio de despliegue, notas de versión y go/no-go humano. Gate <code>release</code>. El workflow 08 ya no destruye infraestructura: ante un fallo propone volver a la versión anterior y espera la aprobación humana.",
-         todo=["Probarlo en real: ejecutar el workflow 10 en un release de verdad, con ensayo de rollback. RestoStock está desplegado en Render, pero su entrega no tiene versión SemVer ni sección de CHANGELOG, y la etiqueta v1.0-final-JDLM apunta a un commit anterior a las correcciones del despliegue."],
+         now=S(2, 2, 2, 2, 2, 2), before=S(1, 1, 1, 1, 1, 1),
+         today="Workflow 10 y <code>/momoy-release</code>: versión SemVer, gates previos, una estrategia por release justificada, migraciones expand-contract, verificación previa de la configuración de despliegue, rollback ensayado si hay migración o cambio de despliegue, notas de versión y go/no-go humano. Gate <code>release</code>. El workflow 08 ya no destruye infraestructura: ante un fallo propone volver a la versión anterior y espera la aprobación humana. Desde 2.29.0 el gate exige que el manifest declare despliegue, vuelta atrás, monitorización y backups. Probado en real en el simulacro: v1.0.0 de Listo con rollback ensayado en sus dos ramas, go/no-go con riesgos escritos, etiqueta, CHANGELOG y smoke 5/5; y un no-go real para v1.1.0.",
+         todo=["Nada pendiente para ser fuerte.",
+               "Refuerzo: RestoStock sigue sin registro de release; su etiqueta v1.0-final-JDLM apunta a un commit anterior a las correcciones del despliegue."],
          cmds="/momoy-release · /momoy-smoke · /momoy-deps"),
     dict(n=9, short="Operación", title="Operación y observabilidad", phase="operate",
          q="¿Sabemos que funciona antes de que un usuario nos avise?",
-         now=S(2, 2, 2, 2, 2, 0), before=S(0, 0, 0, 0, 0, 0),
-         today="<code>SK-40</code> y <code>/momoy-operate</code>: SLOs de disponibilidad y latencia, una alerta sobre síntomas con su runbook por SLO, backups con RPO y RTO, política de presupuesto de error y simulacros con evidencia. El gate <code>operacion</code> trata como inexistente un SLO sin alerta, una alerta sin runbook ensayado o un backup nunca restaurado; con el presupuesto agotado, <code>release</code> rechaza funcionalidades.",
-         todo=["Probarlo en real: diseñar la operación de un servicio desplegado y ejecutar un simulacro de restauración con evidencia. RestoStock no declara herramientas de observabilidad y su despliegue en Render no tiene registro de release, así que el gate todavía no puede verlo."],
+         now=S(2, 2, 2, 2, 2, 2), before=S(0, 0, 0, 0, 0, 0),
+         today="<code>SK-40</code> y <code>/momoy-operate</code>: SLOs de disponibilidad y latencia, una alerta sobre síntomas con su runbook por SLO, backups con RPO y RTO, política de presupuesto de error y simulacros con evidencia. El gate <code>operacion</code> trata como inexistente un SLO sin alerta, una alerta sin runbook ensayado o un backup nunca restaurado; con el presupuesto agotado, <code>release</code> rechaza funcionalidades. Probado en real en el simulacro: restauración de backup tras corromper la base de datos (RTO de 2,5 s) y dos alertas ensayadas con el servicio real. Los ensayos destaparon dos alertas ciegas (marcas de tiempo en otra zona horaria y rechazos 429 que diluían el p95) y un runbook cuya mitigación no existía; SK-40 1.2.0 recoge las lecciones.",
+         todo=["Nada pendiente para ser fuerte.",
+               "Refuerzo: en el servicio del simulacro, RB-002 sigue sin ensayo exitoso: un límite dentro del proceso no protege a las demás cuentas (ADR-004 propuesto)."],
          cmds="/momoy-operate"),
     dict(n=10, short="Incidentes", title="Incidentes y postmortems", phase="operate",
          q="Cuando algo falla, ¿qué aprende el sistema para que no se repita?",
          now=S(2, 2, 2, 2, 2, 2), before=S(1, 1, 0, 2, 1, 0),
-         today="<code>SK-38</code> y <code>/momoy-postmortem</code>: postmortem sin culpa con línea de tiempo con fuentes, causas del sistema, «por qué ningún gate lo detectó» y acciones trazadas. Gate <code>postmortem</code> con plazo de 5 días para severidad crítica o alta. Probado en real con PM-001, los fallos del primer despliegue en Render: destapó un defecto latente todavía abierto en el código (TK-145).",
-         todo=["Nada pendiente para ser fuerte.", "Refuerzo: medir el impacto contra el SLO cuando exista la etapa 9."],
+         today="<code>SK-38</code> y <code>/momoy-postmortem</code>: postmortem sin culpa con línea de tiempo con fuentes, causas del sistema, «por qué ningún gate lo detectó» y acciones trazadas. Gate <code>postmortem</code> con plazo de 5 días para severidad crítica o alta. Probado en real con PM-001, los fallos del primer despliegue en Render: destapó un defecto latente todavía abierto en el código (TK-145). Segunda ejecución en el simulacro: un incidente por carga real, detectado en 17 s, con impacto medido contra el SLO.",
+         todo=["Nada pendiente para ser fuerte.", "Refuerzo: pedir que se re-ensaye el runbook tras implementar las acciones; en el simulacro, la acción de PM-001 falló en su re-ensayo y solo se supo porque su ticket lo exigía."],
          cmds="/momoy-incident · /momoy-postmortem"),
     dict(n=11, short="Resultados", title="Medición de resultados", phase="operate",
          q="¿Se cumplió lo que prometimos en la etapa 1?",
-         now=S(2, 2, 2, 2, 2, 0), before=S(0, 0, 0, 0, 0, 0),
+         now=S(2, 2, 2, 2, 2, 1), before=S(0, 0, 0, 0, 0, 0),
          today="<code>SK-39</code> y <code>/momoy-outcomes</code>: veredicto por KPI con datos reales contra el umbral declarado y recomendación decidida por el humano. El gate <code>resultado</code> cierra el ciclo: un KPI con la fecha de revisión vencida y sin informe es un hallazgo.",
-         todo=["Probarlo en real: medir con datos de uso real. En RestoStock los tres KPIs darían «no medible»: están en prosa y no hay operación real que medir."],
+         todo=["Probarlo con datos de uso real. El simulacro ejecutó de verdad el cierre del ciclo (el gate exigió el informe al vencer la revisión) y las consultas sobre la fuente declarada, pero los datos eran inventados. Destapó dos definiciones de KPI ambiguas que ningún gate puede ver."],
          cmds="/momoy-outcomes"),
     dict(n=12, short="Mantenimiento", title="Mantenimiento y retirada", phase="operate",
          q="¿Cómo envejece bien, y cómo se apaga lo que ya no sirve?",
          now=S(2, 2, 2, 2, 2, 2), before=S(1, 1, 1, 1, 1, 1),
-         today="Workflow 11 y <code>/momoy-maintain</code>: revisión cada 30 días de dependencias, deuda, flags, operación y especificaciones, con cada hallazgo convertido en ticket. <code>SK-41</code> y <code>/momoy-retire</code>: retirada como cascada inversa, con aviso de 30 días y datos conservados durante su retención. Gates <code>mantenimiento</code> y <code>retirada</code>. Probado en real con MNT-001 sobre RestoStock: auditoría de dependencias contra el registro real, un parser de peticiones vulnerable alcanzable en producción (TK-146) y un gate de dependencias que pasaba en verde sin auditar (TK-147).",
-         todo=["Nada pendiente para ser fuerte.", "Refuerzo: ejecutar una retirada real con SK-41 cuando haya una funcionalidad candidata; en MNT-001 no había datos de uso para identificar ninguna."],
+         today="Workflow 11 y <code>/momoy-maintain</code>: revisión cada 30 días de dependencias, deuda, flags, operación y especificaciones, con cada hallazgo convertido en ticket. <code>SK-41</code> y <code>/momoy-retire</code>: retirada como cascada inversa, con aviso de 30 días y datos conservados durante su retención. Gates <code>mantenimiento</code> y <code>retirada</code>. Probado en real con MNT-001 sobre RestoStock: auditoría de dependencias contra el registro real, un parser de peticiones vulnerable alcanzable en producción (TK-146) y un gate de dependencias que pasaba en verde sin auditar (TK-147). En 2.28.0 se corrigió un falso positivo del gate: exigía la primera revisión el mismo día del despliegue en vez de a los 30 días.",
+         todo=["Nada pendiente para ser fuerte.", "Refuerzo: ejecutar una retirada real con SK-41 cuando haya una funcionalidad candidata; ni MNT-001 de RestoStock ni la del simulacro encontraron ninguna."],
          cmds="/momoy-maintain · /momoy-retire · /momoy-deps · /momoy-characterize"),
 ]
 for s in STAGES:
@@ -140,14 +143,20 @@ EVOLUTION = [
     ("2.25.0", "Ola 3: operación", "SK-40 y /momoy-operate con gate operacion: SLOs, alertas con runbook ensayado, backups con simulacro de restauración y presupuesto de error que congela funcionalidades. Ya no queda ninguna etapa ausente.", "22", "122"),
     ("2.26.0", "Etapa 12: mantenimiento y retirada", "Workflow 11 y SK-41 con sus comandos y gates. Las doce etapas tienen ya procedimiento, artefacto, gate, pausa humana y comando.", "24", "131"),
     ("2.26.0", "Primera revisión real: MNT-001", "El workflow 11 se ejecuta sobre RestoStock y la etapa 12 pasa a fuerte. Hallazgos reales: qs vulnerable alcanzable en producción y un gate de dependencias hueco.", "24", "131"),
+    ("2.26.3", "Agnóstico de proyecto", "La documentación de momoy acumulaba 169 referencias al historial de RestoStock (tickets, números de guardia, layout). Limpias a 0, y un check bloqueante impide que vuelvan.", "24", "140"),
+    ("2.27.0", "Tecnologías desde el manifest", "SK-10 dejaba de imponer Node 24, pnpm, OpenTofu y Postgres; rules/02, un layout de monorepo. Toda tecnología se lee ahora del stack manifest, y el check detecta comandos de gestor de paquetes impuestos.", "24", "146"),
+    ("2.27.0", "Simulacro de las 12 etapas", "Un proyecto nuevo, Listo, de la idea al mantenimiento con código, CI, despliegue, backups, alertas e incidente reales. Las etapas 1, 8 y 9 pasan a fuerte; 2 y 11 no, porque sus datos fueron inventados.", "24", "146"),
+    ("2.28.0", "Defectos del simulacro", "Cinco defectos de gates (falso positivo de mantenimiento, ADR pendiente, alcance de --changed, frescura de reglas hueca, duraciones) y los restos de RestoStock en las plantillas.", "24", "158"),
+    ("2.29.0", "Controles que faltaban", "Invariantes que ninguna historia cita, mecanismos de operación sin declarar, descubrimiento de tests y SLIs que excluyen rechazos.", "24", "164"),
 ]
 
 WAVES = [
     ("Ola 0", "Verificar lo que ya existe", "Etapas 1, 3, 4 y 5", "done", "Hecha en 2.20.0: gates kpi, historia, ready y trazabilidad."),
     ("Ola 1", "Cerrar el ciclo", "Etapas 11 y 10", "done", "Hecha en 2.23.0: postmortem probado en real con PM-001; la medición de resultados espera datos de uso real."),
-    ("Ola 2", "Liberar con seguridad", "Etapa 8", "partial", "Hecha en 2.24.0, salvo ejecutarla en un release real con ensayo de rollback."),
-    ("Ola 3", "Operar", "Etapa 9", "partial", "Hecha en 2.25.0, salvo un simulacro de restauración real con evidencia."),
+    ("Ola 2", "Liberar con seguridad", "Etapa 8", "done", "Hecha en 2.24.0 y probada en real en el simulacro: release con rollback ensayado."),
+    ("Ola 3", "Operar", "Etapa 9", "done", "Hecha en 2.25.0 y probada en real en el simulacro: restauración y alertas ensayadas con el servicio."),
     ("Ola 4", "Completar los bordes", "Etapas 2 y 12", "partial", "Etapa 12 probada en real con MNT-001; la etapa 2 espera un experimento con usuarios reales."),
+    ("Ola 5", "Aprender del simulacro", "Todas", "done", "Hecha en 2.28.0 y 2.29.0: siete defectos corregidos y cuatro controles nuevos."),
 ]
 
 GLOSSARY = [
@@ -512,7 +521,7 @@ code.cmd {{ font-size: 0.8rem; word-break: break-word; color: var(--c); backgrou
     <div class="verdict">
       <p class="eyebrow">Estado actual</p>
       <h2 id="verdict-title">{counts['strong']} de 12 etapas ya son fuertes</h2>
-      <p class="lede">Propósito final: que momoy sea fuerte en las doce. Las doce etapas tienen ya procedimiento, artefacto, gate, pausa humana y comando. Siete son fuertes; a las otras cinco solo les falta ejecutarse en un proyecto real.</p>
+      <p class="lede">Propósito final: que momoy sea fuerte en las doce. Las doce etapas tienen ya procedimiento, artefacto, gate, pausa humana y comando. Diez son fuertes; a las otras dos solo les falta lo que ningún simulacro puede dar: personas reales en un experimento y datos de uso reales.</p>
       <div class="tally" role="list">
         <div role="listitem"><b>{counts['strong']}</b><span>fuertes</span></div>
         <div role="listitem"><b>{counts['near']}</b><span>casi</span></div>
@@ -581,7 +590,7 @@ code.cmd {{ font-size: 0.8rem; word-break: break-word; color: var(--c); backgrou
     </section>
   </div>
 
-  <p class="method">Método: cada condición marcada como cumplida se respalda en un archivo de .agents/ {VERSION} o en una ejecución real sobre el proyecto consumidor (RestoStock). «Probado en real» exige ejecución, no solo escritura; por eso la etapa 1 queda en «casi» aunque su gate funcione: la plantilla nueva de KPIs aún no produjo un artefacto real. La primera versión de esta página usaba un criterio más laxo (tener procedimiento) y contaba 6 etapas fuertes.</p>
+  <p class="method">Método: cada condición marcada como cumplida se respalda en un archivo de .agents/ {VERSION} o en una ejecución real: sobre el proyecto consumidor (RestoStock) o sobre el simulacro de las 12 etapas (Listo, un proyecto nuevo con código, CI, despliegue local, backups y alertas reales). «Probado en real» exige ejecución, no solo escritura, y no admite datos inventados: por eso las etapas 2 y 11 quedan en «casi» aunque el simulacro recorriera sus procedimientos, porque las entrevistas y los datos de uso fueron simulados. La primera versión de esta página usaba un criterio más laxo (tener procedimiento) y contaba 6 etapas fuertes.</p>
 </div>
 """
 
