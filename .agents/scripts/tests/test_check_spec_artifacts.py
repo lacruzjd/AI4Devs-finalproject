@@ -400,6 +400,28 @@ status: accepted
 """
 
 
+GLOSSARY_PATH = "docs/01_product_definition/01_glosario_y_reglas_negocio.md"
+GLOSSARY = """# Glosario
+
+## Invariantes de Negocio
+1. **INV-01 — Sin saldos negativos:** ninguna extracción deja el stock por debajo de cero.
+2. **INV-02 — Retención:** los movimientos se conservan 180 días.
+"""
+
+MANIFEST_PATH = "docs/00_stack_manifest.md"
+MANIFEST = """# Stack Manifest
+
+## 6. DevSecOps e Infraestructura
+
+| Componente | Tecnología | Versión | Notas |
+|---|---|---|---|
+| Despliegue | Blueprint de la plataforma | — | Un servicio web |
+| Vuelta a la versión anterior | Redesplegar el commit anterior | — | Sin tocar datos |
+| Monitorización y alertas | Monitor de la plataforma | — | Alertas por correo |
+| Backups | Copia diaria gestionada | — | 7 días |
+"""
+
+
 class CheckSpecArtifactsTests(unittest.TestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp()
@@ -424,6 +446,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
             self._write(f"{OPS}/drills/{drill_id}-ensayo.md", drill(drill_id, kind, target))
             self._write(f"{OPS}/drills/evidence/{drill_id}/salida.txt", "tiempo total: 35 min\n")
         self._write("CHANGELOG.md", "# Changelog\n\n## [1.0.0] - 2026-09-09\n- Primera versión.\n")
+        self._write(MANIFEST_PATH, MANIFEST)
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -599,6 +622,36 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
         self.assertEqual(self._kinds(within, "trazabilidad"), [])
         self.assertEqual(self._kinds(overdue, "trazabilidad"), ["ADR aceptado pendiente de cascada hace más de 30 días"])
+
+    def test_every_glossary_invariant_must_be_cited_by_a_story_or_ticket(self):
+        self._write(GLOSSARY_PATH, GLOSSARY + "3. **INV-03 — Caducidad:** no se extrae stock vencido.\n")
+        story = STORY.replace("## Precondiciones", "## Precondiciones\n- Cumple INV-01.")
+        self.assertIn("INV-01", story)
+        self._write("docs/05_agile_planning/11_user_stories/stock/US-001.md", story)
+        ticket = TICKET.replace("## Alcance de Modificación", "Implementa INV-02.\n\n## Alcance de Modificación")
+        self.assertIn("INV-02", ticket)
+        self._write("docs/05_agile_planning/12_tickets/stock/backend/TK-001.md", ticket)
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual([(k, d) for g, p, k, d in findings.items if g == "trazabilidad"],
+                         [("invariante que ninguna historia ni ticket cita", "INV-03")])
+
+    def test_glossary_invariants_without_ids_cannot_be_traced(self):
+        self._write(GLOSSARY_PATH, "# Glosario\n\n## Invariantes de Negocio\n\n### Invariante 1: Sin saldos negativos\n")
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("invariantes sin identificador INV-NN: no se pueden trazar", self._kinds(findings, "trazabilidad"))
+
+    def test_invariants_are_checked_when_the_glossary_changes(self):
+        self._write(GLOSSARY_PATH, GLOSSARY)
+
+        untouched, _ = run_checks(self.root, scope={"docs/05_agile_planning/11_user_stories/stock/US-001.md"})
+        changed, _ = run_checks(self.root, scope={GLOSSARY_PATH})
+
+        self.assertEqual(self._kinds(untouched, "trazabilidad"), [])
+        self.assertEqual(len(self._kinds(changed, "trazabilidad")), 2)
 
     def test_proposed_adr_is_not_checked(self):
         self._write("docs/02_architecture_design/adr/ADR-001-decision.md",
@@ -950,6 +1003,32 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
         self.assertEqual(checked, 1)
         self.assertEqual(self._kinds(findings), ["estrategia 'completo' sin justificación"])
+
+    def test_release_requires_declared_operations_mechanisms_in_the_manifest(self):
+        self._write(MANIFEST_PATH, MANIFEST.replace("| Backups | Copia diaria gestionada | — | 7 días |\n", "")
+                    .replace("| Vuelta a la versión anterior | Redesplegar el commit anterior |", "| Vuelta a la versión anterior | Pendiente de decidir |"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(sorted(d for g, p, k, d in findings.items if g == "release" and p == MANIFEST_PATH),
+                         ["backups", "vuelta a la versión anterior"])
+        self.assertIn("mecanismo de operación pendiente de decidir en el stack manifest", self._kinds(findings, "release"))
+        self.assertIn("mecanismo de operación sin declarar en el stack manifest", self._kinds(findings, "release"))
+
+    def test_release_without_stack_manifest_is_detected(self):
+        os.remove(os.path.join(self.root, MANIFEST_PATH))
+
+        findings, _ = run_checks(self.root, scope={RELEASE_PATH})
+
+        self.assertIn("release registrado sin docs/00_stack_manifest.md", self._kinds(findings, "release"))
+
+    def test_manifest_mechanisms_are_not_required_without_releases(self):
+        os.remove(os.path.join(self.root, RELEASE_PATH))
+        self._write(MANIFEST_PATH, "# Stack Manifest\n")
+
+        findings, _ = run_checks(self.root)
+
+        self.assertNotIn("mecanismo de operación sin declarar en el stack manifest", self._kinds(findings))
 
     # operación (etapa 9)
     def test_deployed_service_without_slos_or_backup_is_detected(self):

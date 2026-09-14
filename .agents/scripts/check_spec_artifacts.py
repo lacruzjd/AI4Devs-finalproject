@@ -169,6 +169,16 @@ STORIES_DIR = "docs/05_agile_planning/11_user_stories"
 TICKETS_DIR = "docs/05_agile_planning/12_tickets"
 MATRIX = "docs/05_agile_planning/13_matriz_trazabilidad.md"
 ADR_DIR = "docs/02_architecture_design/adr"
+GLOSSARY = "docs/01_product_definition/01_glosario_y_reglas_negocio.md"
+INVARIANT_ID = re.compile(r"\bINV-\d+\b")
+STACK_MANIFEST = "docs/00_stack_manifest.md"
+# Mecanismos de operación que usan release, smoke y operación (SK-04): nombre legible y palabras de la fila.
+OPERATIONS_MECHANISMS = (
+    ("despliegue", ("despliegue", "deploy")),
+    ("vuelta a la versión anterior", ("rollback", "version anterior", "vuelta atras")),
+    ("monitorización y alertas", ("monitoriz", "alerta", "observabilidad")),
+    ("backups", ("backup", "copia de seguridad", "respaldo")),
+)
 ADR_PENDING_DAYS = 30
 
 FRONTMATTER = re.compile(r"^---\n(.*?)\n---\n", re.S)
@@ -1135,6 +1145,36 @@ def check_adr(root, path, story_ids, ticket_ids, findings, today=None):
             findings.add("trazabilidad", path, "ADR aceptado apunta a un artefacto que no existe", ref)
 
 
+def check_invariants(root, story_and_ticket_paths, findings):
+    """Toda invariante INV-NN del glosario la cita alguna historia o ticket (SK-01, SK-11, SK-12)."""
+    text = read(os.path.join(root, GLOSSARY))
+    declared = sorted(set(INVARIANT_ID.findall(text)), key=lambda i: int(i.split("-")[1]))
+    if not declared:
+        if any("invariante" in norm(h) for h in headings(text)) or "invariante" in norm(text):
+            findings.add("trazabilidad", GLOSSARY, "invariantes sin identificador INV-NN: no se pueden trazar")
+        return
+    cited = set()
+    for path in story_and_ticket_paths:
+        cited.update(INVARIANT_ID.findall(read(os.path.join(root, path))))
+    for invariant in declared:
+        if invariant not in cited:
+            findings.add("trazabilidad", GLOSSARY, "invariante que ninguna historia ni ticket cita", invariant)
+
+
+def check_operations_mechanisms(root, findings):
+    """Con releases registrados, el manifest declara cómo se despliega, se vuelve atrás, se vigila y se respalda."""
+    if not os.path.isfile(os.path.join(root, STACK_MANIFEST)):
+        findings.add("release", STACK_MANIFEST, "release registrado sin docs/00_stack_manifest.md")
+        return
+    rows = [table_cells(row) for table in markdown_tables(read(os.path.join(root, STACK_MANIFEST))) for row in table_rows(table)]
+    for name, words in OPERATIONS_MECHANISMS:
+        matching = [cells for cells in rows if cells and any(w in norm(cells[0]) for w in words)]
+        if not matching:
+            findings.add("release", STACK_MANIFEST, "mecanismo de operación sin declarar en el stack manifest", name)
+        elif all("pendiente de decidir" in norm(" ".join(cells[1:])) for cells in matching):
+            findings.add("release", STACK_MANIFEST, "mecanismo de operación pendiente de decidir en el stack manifest", name)
+
+
 # ------------------------------------------------------------------ runner
 
 def git_tags(root):
@@ -1266,6 +1306,12 @@ def run_checks(root, scope=None, ticket=None, today=None, tags=None):
         if in_scope(path):
             check_adr(root, path, story_ids, ticket_ids, findings, today)
             checked += 1
+    if os.path.isfile(os.path.join(root, GLOSSARY)) and in_scope(GLOSSARY):
+        check_invariants(root, stories + tickets, findings)
+        checked += 1
+    release_paths = list_top_level(root, RELEASES_DIR, RELEASE_FILE)
+    if release_paths and (scope is None or STACK_MANIFEST in scope or any(p in scope for p in release_paths)):
+        check_operations_mechanisms(root, findings)
     if in_scope(MATRIX):
         for target in broken:
             findings.add("trazabilidad", MATRIX, "enlace roto en la matriz", target)
