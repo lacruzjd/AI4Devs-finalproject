@@ -12,7 +12,7 @@ import sys
 OUT = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path(__file__).parent / "dist" / "ciclo-momoy.html"
 
 VERSION = "2.26.0"
-MEASURED = "13 sep 2026"
+MEASURED = "14 sep 2026"
 
 PHASES = {
     "discover": ("Descubrir", "¿Estamos construyendo lo correcto?"),
@@ -117,9 +117,9 @@ STAGES = [
          cmds="/momoy-outcomes"),
     dict(n=12, short="Mantenimiento", title="Mantenimiento y retirada", phase="operate",
          q="¿Cómo envejece bien, y cómo se apaga lo que ya no sirve?",
-         now=S(2, 2, 2, 2, 2, 1), before=S(1, 1, 1, 1, 1, 1),
-         today="Workflow 11 y <code>/momoy-maintain</code>: revisión cada 30 días de dependencias, deuda, flags, operación y especificaciones, con cada hallazgo convertido en ticket. <code>SK-41</code> y <code>/momoy-retire</code>: retirada como cascada inversa, con aviso de 30 días y datos conservados durante su retención. Gates <code>mantenimiento</code> y <code>retirada</code>.",
-         todo=["Probarlo en real: cerrar una primera revisión de mantenimiento sobre un servicio desplegado. En RestoStock ya se hicieron auditorías de dependencias reales, pero nunca la revisión completa ni una retirada."],
+         now=S(2, 2, 2, 2, 2, 2), before=S(1, 1, 1, 1, 1, 1),
+         today="Workflow 11 y <code>/momoy-maintain</code>: revisión cada 30 días de dependencias, deuda, flags, operación y especificaciones, con cada hallazgo convertido en ticket. <code>SK-41</code> y <code>/momoy-retire</code>: retirada como cascada inversa, con aviso de 30 días y datos conservados durante su retención. Gates <code>mantenimiento</code> y <code>retirada</code>. Probado en real con MNT-001 sobre RestoStock: auditoría de dependencias contra el registro real, un parser de peticiones vulnerable alcanzable en producción (TK-146) y un gate de dependencias que pasaba en verde sin auditar (TK-147).",
+         todo=["Nada pendiente para ser fuerte.", "Refuerzo: ejecutar una retirada real con SK-41 cuando haya una funcionalidad candidata; en MNT-001 no había datos de uso para identificar ninguna."],
          cmds="/momoy-maintain · /momoy-retire · /momoy-deps · /momoy-characterize"),
 ]
 for s in STAGES:
@@ -139,6 +139,7 @@ EVOLUTION = [
     ("2.24.0", "Ola 2: release", "Workflow 10 y /momoy-release con gate release; el workflow 08 deja de destruir infraestructura sin aprobación y de incluir contenido de un proyecto concreto.", "21", "114"),
     ("2.25.0", "Ola 3: operación", "SK-40 y /momoy-operate con gate operacion: SLOs, alertas con runbook ensayado, backups con simulacro de restauración y presupuesto de error que congela funcionalidades. Ya no queda ninguna etapa ausente.", "22", "122"),
     ("2.26.0", "Etapa 12: mantenimiento y retirada", "Workflow 11 y SK-41 con sus comandos y gates. Las doce etapas tienen ya procedimiento, artefacto, gate, pausa humana y comando.", "24", "131"),
+    ("2.26.0", "Primera revisión real: MNT-001", "El workflow 11 se ejecuta sobre RestoStock y la etapa 12 pasa a fuerte. Hallazgos reales: qs vulnerable alcanzable en producción y un gate de dependencias hueco.", "24", "131"),
 ]
 
 WAVES = [
@@ -146,7 +147,7 @@ WAVES = [
     ("Ola 1", "Cerrar el ciclo", "Etapas 11 y 10", "done", "Hecha en 2.23.0: postmortem probado en real con PM-001; la medición de resultados espera datos de uso real."),
     ("Ola 2", "Liberar con seguridad", "Etapa 8", "partial", "Hecha en 2.24.0, salvo ejecutarla en un release real con ensayo de rollback."),
     ("Ola 3", "Operar", "Etapa 9", "partial", "Hecha en 2.25.0, salvo un simulacro de restauración real con evidencia."),
-    ("Ola 4", "Completar los bordes", "Etapas 2 y 12", "partial", "Hecha en 2.22.0 y 2.26.0, salvo un experimento, una revisión de mantenimiento y una retirada reales."),
+    ("Ola 4", "Completar los bordes", "Etapas 2 y 12", "partial", "Etapa 12 probada en real con MNT-001; la etapa 2 espera un experimento con usuarios reales."),
 ]
 
 GLOSSARY = [
@@ -511,7 +512,7 @@ code.cmd {{ font-size: 0.8rem; word-break: break-word; color: var(--c); backgrou
     <div class="verdict">
       <p class="eyebrow">Estado actual</p>
       <h2 id="verdict-title">{counts['strong']} de 12 etapas ya son fuertes</h2>
-      <p class="lede">Propósito final: que momoy sea fuerte en las doce. Las doce etapas tienen ya procedimiento, artefacto, gate, pausa humana y comando. Seis son fuertes; a las otras seis solo les falta ejecutarse en un proyecto real.</p>
+      <p class="lede">Propósito final: que momoy sea fuerte en las doce. Las doce etapas tienen ya procedimiento, artefacto, gate, pausa humana y comando. Siete son fuertes; a las otras cinco solo les falta ejecutarse en un proyecto real.</p>
       <div class="tally" role="list">
         <div role="listitem"><b>{counts['strong']}</b><span>fuertes</span></div>
         <div role="listitem"><b>{counts['near']}</b><span>casi</span></div>
