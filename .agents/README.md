@@ -1,7 +1,7 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.29.0"
+version: "2.29.1"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
@@ -28,6 +28,8 @@ Este directorio contiene las meta-directivas, reglas de gobernanza y habilidades
 
 ## 0. Instalación en un Proyecto Nuevo
 
+**Requisitos:** `git`, `bash` y `python3` (los scripts no usan sintaxis posterior a la 3.9; verificados con 3.13). Nada más: momoy son archivos markdown y scripts de la librería estándar de Python, sin paquetes que instalar ni build.
+
 Desde un repositorio que ya tenga `.agents/` (como este), instala una copia en otro proyecto:
 ```bash
 bash .agents/scripts/install.sh /ruta/al/proyecto/destino
@@ -35,6 +37,17 @@ bash .agents/scripts/install.sh /ruta/al/proyecto/destino
 Copia `.agents/` completo y genera `AGENTS.md` (stub de arranque, no el contrato final), `CLAUDE.md`, `GEMINI.md` y las copias de los comandos en `.claude/skills/` (vía `sync_claude_skills.sh`) en el destino — sin sobrescribir nada si el destino ya tiene un `.agents/` o entrypoints propios. El stub de `AGENTS.md` indica al agente qué workflow de bootstrap invocar (`00_greenfield_bootstrap_workflow.md` o `00_brownfield_adoption_workflow.md`); ese workflow, vía `SK-35`, reemplaza el stub por el contrato operativo real. También genera `.agents/INSTALLED_FROM.md` con la ruta/remote/commit de origen y la versión copiada, para poder diferenciar esta instalación contra el origen más adelante si se sospecha de drift.
 
 Si no tienes acceso a un repo con `.agents/` ya instalado, copia manualmente la carpeta `.agents/` completa al proyecto destino y crea a mano los 3 archivos de entrypoint con el contenido que genera `install.sh` — no hay dependencia de build ni paquete que instalar, son archivos markdown planos.
+
+Comprueba la instalación con `bash .agents/scripts/validate_agents.sh`: ejecuta los tests de las herramientas de auditoría y verifica enlaces, agnosticismo, política de emojis y el estándar Agent Skills.
+
+### Actualizar momoy en un proyecto que ya lo tiene
+
+`install.sh` **se niega a sobrescribir** un `.agents/` existente, para no tirar por encima una versión que quizá el proyecto adaptó. Para actualizar:
+
+1. Compara tu copia con el origen: `.agents/INSTALLED_FROM.md` guarda la ruta, el remote, el commit y la versión desde la que se instaló.
+2. Renombra o borra el `.agents/` actual y vuelve a ejecutar `install.sh`. Tus archivos de `docs/` y tu `AGENTS.md` real no se tocan: `install.sh` respeta los entrypoints que ya existen.
+3. Regenera las copias de Claude Code: `bash .agents/scripts/sync_claude_skills.sh`. Solo sobrescribe las copias que llevan su marca de generadas; una que hayas escrito a mano no se toca.
+4. Revisa el diff de `.agents/` antes de darlo por bueno: la regla innegociable de aprobación previa cubre también al propio momoy.
 
 ### Primeros Pasos (Quickstart)
 
@@ -65,7 +78,7 @@ flowchart TD
         W0X["03..11: Auditoría, TDD, QA, Observabilidad, Smoke, Verificación en vivo, Release, Mantenimiento"]
     end
 
-    subgraph CAPA2 ["2. CAPA DE HABILIDADES PROCEDIMENTALES (36 Skills)"]
+    subgraph CAPA2 ["2. CAPA DE HABILIDADES PROCEDIMENTALES (41 Skills)"]
         S_Spec["Skills de Specs (SK-01 a SK-15, SK-35 a SK-37, SK-39 a SK-41)"]
         S_Dev["Skills de Dev (SK-16 a SK-34, SK-38)"]
     end
@@ -135,14 +148,14 @@ Las propiedades mecánicas de lo que generan las skills de especificación se ve
 | `experimento` | Validación | Cada `EXP-NNN` con criterio fijado antes del resultado; si concluyó, muestra, evidencia anonimizada en el repo y decisión coherente con la muestra |
 | `historia` | Requisitos | Frontmatter de `SK-11`, estado válido, al menos 3 escenarios Given/When/Then, precondiciones y NFRs; si la historia está abierta, `value_risk` y `validation` declarados |
 | `ready` | Planificación | Definition of Ready de `SK-12`: estado, puntos 1/2/3/5, tipo backend o frontend, historia existente y secciones obligatorias |
-| `trazabilidad` | Requisitos, diseño y planificación | Cada historia y ticket enlazado desde la matriz, enlaces que resuelven y ADRs aceptados que nombran artefactos existentes |
-| `release` | Release | Cada `vX.Y.Z` con tickets cerrados, notas de versión, plan de rollback, estrategia justificada, migraciones clasificadas, flags con ticket de retirada, ensayo de rollback si hay migración o cambio de despliegue y, si se desplegó, etiqueta git y sección de `CHANGELOG.md` coincidentes |
+| `trazabilidad` | Requisitos, diseño y planificación | Cada historia y ticket enlazado desde la matriz, enlaces que resuelven, ADRs aceptados que nombran artefactos existentes (con 30 días de margen desde su fecha para las decisiones aún sin cascada) y cada invariante `INV-NN` del glosario citada por alguna historia o ticket |
+| `release` | Release | Cada `vX.Y.Z` con tickets cerrados, notas de versión, plan de rollback, estrategia justificada, migraciones clasificadas, flags con ticket de retirada, ensayo de rollback si hay migración o cambio de despliegue y, si se desplegó, etiqueta git y sección de `CHANGELOG.md` coincidentes. Con algún release registrado, exige además que `docs/00_stack_manifest.md` declare despliegue, vuelta a la versión anterior, monitorización y backups |
 | `operacion` | Operación | Con un release desplegado: SLOs de disponibilidad y latencia, cada uno con alerta y runbook ensayado con éxito; backup con RPO/RTO y simulacro de restauración exitoso de menos de 90 días que cumple el RTO. Además, con un presupuesto de error agotado, `release` rechaza funcionalidades |
 | `mantenimiento` | Mantenimiento | Cada `MNT-NNN` cerrado traza sus hallazgos a tickets o `sin acción — motivo`; con algo desplegado, pasar 30 días sin una revisión cerrada es un hallazgo |
 | `retirada` | Mantenimiento | Cada `RET-NNN` completado tiene aviso de al menos 30 días, tickets de eliminación cerrados e historias con `retired_by`; vencida la retención, exige registrar la anonimización o eliminación de los datos |
 | `postmortem` | Incidentes | Cada `PM-NNN` con línea de tiempo con horas, análisis de por qué ningún gate lo detectó y, si está cerrado, acciones trazadas a tickets; uno crítico o alto sin cerrar a los 5 días de resolverse es un hallazgo |
 
-Sin argumentos genera un informe del repositorio que **no bloquea** (la deuda documental previa es información). `--changed` revisa solo lo modificado y `--ticket TK-XXX` la Definition of Ready de un ticket; ambos **bloquean** y los invocan `/momoy-spec` (workflow 01) y `/momoy-dev` (workflow 02). Estados válidos de historias y tickets: `backlog`, `approved`, `in_progress`, `done`, `cancelled`.
+Sin argumentos genera un informe del repositorio que **no bloquea** (la deuda documental previa es información); `--verbose` lista cada hallazgo y `--strict` lo convierte en bloqueante. `--changed` revisa solo lo modificado y `--ticket TK-XXX` la Definition of Ready de un ticket; ambos **bloquean** y los invocan `/momoy-spec` (workflow 01) y `/momoy-dev` (workflow 02). `--today AAAA-MM-DD` evalúa los plazos (revisión de KPIs, cadencia de mantenimiento, plazo de un postmortem) como si hoy fuera esa fecha, para simulacros y auditorías retroactivas. Estados válidos de historias y tickets: `backlog`, `approved`, `in_progress`, `done`, `cancelled`.
 
 ### Cómo se invocan según la herramienta
 
@@ -166,7 +179,7 @@ Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestruc
 
 *   **Alcance y Producto:** `docs/01_product_definition/` (PRDs, Reglas de Negocio, experimentos de validación y resultados medidos).
 *   **Arquitectura y Diseño:** `docs/02_architecture_design/` (Capas, Mappers, ADRs y Estructura).
-*   **Persistencia y APIs:** `docs/03_persistence_and_api/` (Esquemas de Base de Datos y OpenAPI 3.0).
+*   **Persistencia y APIs:** `docs/03_persistence_and_api/` (Esquemas de Base de Datos y contrato OpenAPI 3.1.0, en YAML o JSON según el stack).
 *   **Gobernanza y Calidad:** `docs/04_governance_and_quality/` (Estrategias de prueba, seguridad, CI/CD e informes).
 *   **Gestión Ágil:** `docs/05_agile_planning/` (User Stories INVEST y Tickets Técnicos).
 *   **Release y Operación:** `docs/06_release_and_operations/` (releases, SLOs, runbooks, backups, simulacros, postmortems, revisiones de mantenimiento y retiradas).
@@ -175,7 +188,7 @@ Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestruc
 
 ## 4. Catálogo de Skills por Fase y Rol Técnico
 
-Las 35 habilidades son runbooks especializados organizados por fases y roles técnicos que la IA carga bajo demanda:
+Las 41 habilidades (`SK-01` a `SK-41`) son runbooks especializados organizados por fases y roles técnicos que la IA carga bajo demanda:
 
 ### Fase Documental (Product Owner & Architect Roles)
 *   **01_product_definition:** [SK-01 Descubrimiento de Producto](skills/specs/01_product_definition/SK-01_discover_product_vision.md), [SK-02 Generación del PRD](skills/specs/01_product_definition/SK-02_generate_prd.md), [SK-37 Experimento de Validación](skills/specs/01_product_definition/SK-37_design_validation_experiment.md) y [SK-39 Medición de Resultados](skills/specs/01_product_definition/SK-39_measure_product_outcomes.md).
