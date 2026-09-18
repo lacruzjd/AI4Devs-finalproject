@@ -48,7 +48,7 @@ Desdoblar el nivel de urgencia `critical` en `expired` y `today` en `urgency.ts`
 ### Escenario 2 (Error)
 *   **Given** un remanente vencido
 *   **When** se fuerza la acción de consumir
-*   **Then** la interfaz muestra el mensaje `REMANENTE_EXPIRED` devuelto por el backend
+*   **Then** la interfaz muestra el mensaje de la `RemanenteExpiredException` devuelta por el backend
 
 ### DoD Estricto:
 1. **TDD Compliance:** el test se escribe y se ve fallar antes de la implementación, con el runner declarado en `docs/00_stack_manifest.md`.
