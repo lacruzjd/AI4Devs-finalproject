@@ -74,6 +74,7 @@ Presentar al humano el recuento por clasificación, cada `gap` con el trabajo qu
 | `TK-NNN` o `US-NNN` | El trabajo ya está especificado | El ticket o la historia existen en el repositorio |
 | `pendiente de cascada — <motivo>` | El gap necesita comportamiento nuevo | Se hará, pero primero hay que especificarlo con `/momoy-spec` |
 | `pendiente de ADR — <motivo>` | El conflicto aún no se decidió | La decisión se tomará con `/momoy-adr`, no editando el estándar |
+| `pendiente de verificación — <motivo>` | No se pudo comprobar aquí | Falta ejecutarlo donde sí se puede (ej. `/momoy-verify-live` con dispositivos reales) |
 | `sin acción — <motivo>` | No se hará | Con el motivo escrito, para que la próxima revisión no lo vuelva a proponer |
 
 Distinguir "no se hará" de "falta decidirlo" es el punto: un pendiente sin nombre propio acaba archivado como si se hubiera descartado.
@@ -114,6 +115,7 @@ reviewed_on: AAAA-MM-DD
 | R-03 | [...] | gap | [dónde se buscó] | pendiente de cascada — [motivo] |
 | R-04 | [...] | conflicto | `DESIGN.md` §N | ADR-XXX |
 | R-05 | [...] | fuera_de_alcance | PRD Non-Goal N | sin acción — [motivo] |
+| R-06 | [...] | no_verificable | [qué haría falta] | pendiente de verificación — [motivo] |
 
 ## Conclusión
 [Qué aportó realmente el informe y qué no. Si procede, qué convendría pedir la próxima vez para que una revisión externa rinda más.]

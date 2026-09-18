@@ -181,6 +181,11 @@ EXTERNAL_SECTIONS = {
     "Conclusión": ("conclusion",),
 }
 ADR_ID = re.compile(r"ADR-\d+")
+# Seguimiento de una recomendación (SK-42): ticket o historia existentes, o una espera con su motivo.
+# La clave es la clasificación ya normalizada (norm convierte "no_verificable" en "no verificable").
+PENDING_FOLLOW_UPS = {"gap": "pendiente de cascada", "conflicto": "pendiente de ADR",
+                      "no verificable": "pendiente de verificacion"}
+MIN_FOLLOW_UP_MOTIVE = 10
 GLOSSARY = "docs/01_product_definition/01_glosario_y_reglas_negocio.md"
 INVARIANT_ID = re.compile(r"\bINV-\d+\b")
 STACK_MANIFEST = "docs/00_stack_manifest.md"
@@ -1138,7 +1143,34 @@ def check_matrix_membership(path, artifact_id, linked, matrix_text, findings):
         findings.add("trazabilidad", path, "no aparece en la matriz de trazabilidad")
 
 
-def check_external(root, path, ticket_ids, adr_ids, findings):
+def follow_up_problem(follow_up, classification, ticket_ids, story_ids, adr_ids):
+    """Devuelve (motivo del hallazgo, detalle) si el seguimiento no usa el vocabulario cerrado de SK-42."""
+    text = norm(follow_up)
+    for phrase in (PENDING_FOLLOW_UPS[classification], "sin accion"):
+        if text.startswith(norm(phrase)):
+            motive = text[len(norm(phrase)):].strip()
+            return None if len(motive) >= MIN_FOLLOW_UP_MOTIVE else ("seguimiento pendiente sin motivo", follow_up[:60])
+    if classification == "conflicto":
+        referenced = ADR_ID.findall(follow_up)
+        missing = [adr for adr in referenced if adr not in adr_ids]
+        if missing:
+            return "conflicto que cita un ADR inexistente", missing[0]
+        if referenced:
+            return None
+    else:
+        tickets, stories = TICKET_ID.findall(follow_up), STORY_ID.findall(follow_up)
+        missing_ticket = [t for t in tickets if t not in ticket_ids]
+        missing_story = [u for u in stories if u not in story_ids]
+        if missing_ticket:
+            return "gap trazado a un ticket que no existe", missing_ticket[0]
+        if missing_story:
+            return "gap trazado a una historia que no existe", missing_story[0]
+        if tickets or stories:
+            return None
+    return "seguimiento fuera del vocabulario", follow_up[:60] or "(vacío)"
+
+
+def check_external(root, path, ticket_ids, story_ids, adr_ids, findings):
     """Cada recomendación de un informe externo está clasificada con evidencia, y al cerrarlo
     los gaps apuntan a un ticket y los conflictos al ADR que los decide (SK-42)."""
     text = read(os.path.join(root, path))
@@ -1189,21 +1221,10 @@ def check_external(root, path, ticket_ids, adr_ids, findings):
             findings.add("externo", path, "recomendación sin evidencia", rec)
         if status != "closed":
             continue
-        follow_up = values.get("seguimiento", "").strip()
-        if classification == "gap":
-            for kind, detail in untraced_items([follow_up], ticket_ids):
-                if kind == "missing":
-                    findings.add("externo", path, "gap trazado a un ticket que no existe", f"{rec}: {detail}")
-                else:
-                    findings.add("externo", path, "gap sin ticket existente ni 'sin acción — motivo'", rec)
-        elif classification == "conflicto":
-            referenced = ADR_ID.findall(follow_up)
-            if referenced:
-                for adr in referenced:
-                    if adr not in adr_ids:
-                        findings.add("externo", path, "conflicto que cita un ADR inexistente", f"{rec}: {adr}")
-            elif untraced_items([follow_up], ticket_ids):
-                findings.add("externo", path, "conflicto sin ADR que lo decida ni 'sin acción — motivo'", rec)
+        if classification in PENDING_FOLLOW_UPS:
+            problem = follow_up_problem(values.get("seguimiento", "").strip(), classification, ticket_ids, story_ids, adr_ids)
+            if problem:
+                findings.add("externo", path, problem[0], f"{rec}: {problem[1]}")
 
 
 def check_adr(root, path, story_ids, ticket_ids, findings, today=None):
@@ -1390,7 +1411,7 @@ def run_checks(root, scope=None, ticket=None, today=None, tags=None):
                if re.match(r"^(ADR-\d+)", os.path.basename(p))}
     for path in list_top_level(root, EXTERNAL_DIR, EXTERNAL_FILE):
         if in_scope(path):
-            check_external(root, path, ticket_ids, adr_ids, findings)
+            check_external(root, path, ticket_ids, story_ids, adr_ids, findings)
             checked += 1
     if os.path.isfile(os.path.join(root, GLOSSARY)) and in_scope(GLOSSARY):
         check_invariants(root, stories + tickets, findings)

@@ -1084,8 +1084,36 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         findings, _ = run_checks(self.root)
 
         details = [d for g, _, k, d in findings.items if g == "externo"]
-        self.assertIn("R-02", details)
+        self.assertIn("R-02: pendiente", details)
         self.assertIn("R-05: TK-777", details)
+
+    def test_gap_pending_a_spec_cascade_is_accepted_with_a_motive(self):
+        pending = EXTERNAL.replace("| TK-003 |", "| pendiente de cascada — necesita una historia nueva |")
+        self._write(EXT_PATH, pending)
+        naked = EXTERNAL.replace("| TK-003 |", "| pendiente de cascada |")
+
+        ok, _ = run_checks(self.root)
+        self._write(EXT_PATH, naked)
+        without_motive, _ = run_checks(self.root)
+
+        self.assertEqual(self._kinds(ok, "externo"), [])
+        self.assertIn("seguimiento pendiente sin motivo", self._kinds(without_motive, "externo"))
+
+    def test_gap_traced_to_an_existing_story_is_accepted(self):
+        self._write(EXT_PATH, EXTERNAL.replace("| TK-003 |", "| US-001 |"))
+        ok, _ = run_checks(self.root)
+        self._write(EXT_PATH, EXTERNAL.replace("| TK-003 |", "| US-404 |"))
+        missing, _ = run_checks(self.root)
+
+        self.assertEqual(self._kinds(ok, "externo"), [])
+        self.assertIn("gap trazado a una historia que no existe", self._kinds(missing, "externo"))
+
+    def test_conflict_pending_an_adr_is_accepted_with_a_motive(self):
+        self._write(EXT_PATH, EXTERNAL.replace("| ADR-001 |", "| pendiente de ADR — el humano decidirá el mínimo táctil |"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(self._kinds(findings, "externo"), [])
 
     def test_conflict_must_cite_an_existing_adr_or_be_justified(self):
         missing_adr = EXTERNAL.replace("| R-03 | Áreas táctiles de 44 px | conflicto | `docs/00_stack_manifest.md` | ADR-001 |",
@@ -1095,6 +1123,25 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         findings, _ = run_checks(self.root)
 
         self.assertIn("conflicto que cita un ADR inexistente", self._kinds(findings, "externo"))
+
+    def test_unverifiable_recommendation_declares_how_it_would_be_verified(self):
+        last_row = "| R-04 | Modo oscuro | fuera_de_alcance | PRD Non-Goal 2 | sin acción — no aporta al MVP |"
+        row = "\n| R-06 | Responsive en tablet | no_verificable | Sin @media de ancho | {} |"
+        self.assertIn(last_row, EXTERNAL)
+        self._write(EXT_PATH, EXTERNAL.replace(last_row, last_row + row.format("pendiente de verificación — probar en dispositivos reales")))
+        ok, _ = run_checks(self.root)
+        self._write(EXT_PATH, EXTERNAL.replace(last_row, last_row + row.format("ya veremos")))
+        vague, _ = run_checks(self.root)
+
+        self.assertEqual(self._kinds(ok, "externo"), [])
+        self.assertIn("seguimiento fuera del vocabulario", self._kinds(vague, "externo"))
+
+    def test_follow_up_outside_the_vocabulary_is_detected(self):
+        self._write(EXT_PATH, EXTERNAL.replace("| TK-003 |", "| lo vemos más adelante |"))
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("seguimiento fuera del vocabulario", self._kinds(findings, "externo"))
 
     def test_external_review_format_is_checked(self):
         bad = (EXTERNAL.replace("id: EXT-001", "id: EXT-009").replace("status: closed", "status: revisado")
