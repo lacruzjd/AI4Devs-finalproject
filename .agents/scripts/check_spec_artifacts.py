@@ -169,6 +169,18 @@ STORIES_DIR = "docs/05_agile_planning/11_user_stories"
 TICKETS_DIR = "docs/05_agile_planning/12_tickets"
 MATRIX = "docs/05_agile_planning/13_matriz_trazabilidad.md"
 ADR_DIR = "docs/02_architecture_design/adr"
+EXTERNAL_DIR = "docs/04_governance_and_quality/external_reviews"
+EXTERNAL_FILE = re.compile(r"^(EXT-\d+).*\.md$")
+EXTERNAL_STATUS = ("draft", "closed")
+# Clasificación de una recomendación externa (SK-42): exactamente una por recomendación.
+CLASSIFICATIONS = ("implementado", "gap", "conflicto", "fuera_de_alcance", "no_verificable")
+RECOMMENDATION_COLUMNS = ("id", "recomendacion", "clasificacion", "evidencia", "seguimiento")
+EXTERNAL_SECTIONS = {
+    "Origen y alcance": ("origen",),
+    "Recomendaciones": ("recomendaciones",),
+    "Conclusión": ("conclusion",),
+}
+ADR_ID = re.compile(r"ADR-\d+")
 GLOSSARY = "docs/01_product_definition/01_glosario_y_reglas_negocio.md"
 INVARIANT_ID = re.compile(r"\bINV-\d+\b")
 STACK_MANIFEST = "docs/00_stack_manifest.md"
@@ -1126,6 +1138,74 @@ def check_matrix_membership(path, artifact_id, linked, matrix_text, findings):
         findings.add("trazabilidad", path, "no aparece en la matriz de trazabilidad")
 
 
+def check_external(root, path, ticket_ids, adr_ids, findings):
+    """Cada recomendación de un informe externo está clasificada con evidencia, y al cerrarlo
+    los gaps apuntan a un ticket y los conflictos al ADR que los decide (SK-42)."""
+    text = read(os.path.join(root, path))
+    fm = frontmatter(text)
+    if fm is None:
+        findings.add("externo", path, "sin frontmatter")
+        return
+    if fm.get("document") != "external_review":
+        findings.add("externo", path, "document distinto de 'external_review'", fm.get("document", "(ausente)"))
+    file_id = EXTERNAL_FILE.match(os.path.basename(path))
+    if fm.get("id") != (file_id.group(1) if file_id else None):
+        findings.add("externo", path, "id ausente o distinto del nombre de archivo", fm.get("id", "(ausente)"))
+    if not SEMVER.match(fm.get("version", "")):
+        findings.add("externo", path, "version ausente o no es X.Y.Z", fm.get("version", "(ausente)"))
+    status = fm.get("status")
+    if status not in EXTERNAL_STATUS:
+        findings.add("externo", path, "status fuera del vocabulario", status or "(ausente)")
+    if not fm.get("source", "").strip():
+        findings.add("externo", path, "sin source: de dónde viene el informe")
+    received, reviewed = fm.get("received_on", ""), fm.get("reviewed_on", "")
+    for field, value in (("received_on", received), ("reviewed_on", reviewed)):
+        if not ISO_DATE.match(value):
+            findings.add("externo", path, f"{field} ausente o no es AAAA-MM-DD", value or "(ausente)")
+    if ISO_DATE.match(received) and ISO_DATE.match(reviewed) and reviewed < received:
+        findings.add("externo", path, "revisado antes de recibido", f"{reviewed} < {received}")
+
+    found = headings(text)
+    for label, options in EXTERNAL_SECTIONS.items():
+        if not has_section(found, options):
+            findings.add("externo", path, f"sin sección '{label}'")
+
+    tables = [t for t in markdown_tables(text) if set(RECOMMENDATION_COLUMNS) <= {norm(c) for c in table_cells(t[0])}]
+    if not tables:
+        findings.add("externo", path, "sin tabla de recomendaciones",
+                     "columnas requeridas: ID | Recomendación | Clasificación | Evidencia | Seguimiento")
+        return
+    rows = [dict(zip([norm(c) for c in table_cells(table[0])], table_cells(row)))
+            for table in tables for row in table_rows(table)]
+    if not rows:
+        findings.add("externo", path, "tabla de recomendaciones vacía")
+    for values in rows:
+        rec = values.get("id", "?") or "?"
+        classification = norm(values.get("clasificacion", ""))
+        if classification not in {norm(c) for c in CLASSIFICATIONS}:
+            findings.add("externo", path, "clasificación fuera del vocabulario", f"{rec}: {values.get('clasificacion') or '(ausente)'}")
+        evidence = values.get("evidencia", "").strip().strip("—-")
+        if not evidence:
+            findings.add("externo", path, "recomendación sin evidencia", rec)
+        if status != "closed":
+            continue
+        follow_up = values.get("seguimiento", "").strip()
+        if classification == "gap":
+            for kind, detail in untraced_items([follow_up], ticket_ids):
+                if kind == "missing":
+                    findings.add("externo", path, "gap trazado a un ticket que no existe", f"{rec}: {detail}")
+                else:
+                    findings.add("externo", path, "gap sin ticket existente ni 'sin acción — motivo'", rec)
+        elif classification == "conflicto":
+            referenced = ADR_ID.findall(follow_up)
+            if referenced:
+                for adr in referenced:
+                    if adr not in adr_ids:
+                        findings.add("externo", path, "conflicto que cita un ADR inexistente", f"{rec}: {adr}")
+            elif untraced_items([follow_up], ticket_ids):
+                findings.add("externo", path, "conflicto sin ADR que lo decida ni 'sin acción — motivo'", rec)
+
+
 def check_adr(root, path, story_ids, ticket_ids, findings, today=None):
     text = read(os.path.join(root, path))
     fm = frontmatter(text) or {}
@@ -1306,6 +1386,12 @@ def run_checks(root, scope=None, ticket=None, today=None, tags=None):
         if in_scope(path):
             check_adr(root, path, story_ids, ticket_ids, findings, today)
             checked += 1
+    adr_ids = {re.match(r"^(ADR-\d+)", os.path.basename(p)).group(1) for p in adrs
+               if re.match(r"^(ADR-\d+)", os.path.basename(p))}
+    for path in list_top_level(root, EXTERNAL_DIR, EXTERNAL_FILE):
+        if in_scope(path):
+            check_external(root, path, ticket_ids, adr_ids, findings)
+            checked += 1
     if os.path.isfile(os.path.join(root, GLOSSARY)) and in_scope(GLOSSARY):
         check_invariants(root, stories + tickets, findings)
         checked += 1
@@ -1355,7 +1441,7 @@ def main():
     else:
         by_gate = Counter(gate for gate, *_ in findings.items)
         by_kind = Counter((gate, kind) for gate, _, kind, _ in findings.items)
-        for gate in ("kpi", "resultado", "experimento", "historia", "ready", "trazabilidad", "release", "operacion", "mantenimiento", "retirada", "postmortem"):
+        for gate in ("kpi", "resultado", "experimento", "historia", "ready", "trazabilidad", "release", "operacion", "mantenimiento", "retirada", "postmortem", "externo"):
             print(f"\n[{gate}] {by_gate.get(gate, 0)} hallazgos")
             for (g, kind), count in sorted(by_kind.items(), key=lambda kv: -kv[1]):
                 if g == gate:

@@ -422,6 +422,36 @@ MANIFEST = """# Stack Manifest
 """
 
 
+EXT_PATH = "docs/04_governance_and_quality/external_reviews/EXT-001-ux.md"
+EXTERNAL = """---
+document: external_review
+id: EXT-001
+version: 1.0.0
+status: closed
+source: "Auditoría UX/UI recibida en PDF"
+received_on: 2026-09-15
+reviewed_on: 2026-09-18
+---
+
+# EXT-001: Auditoría UX/UI
+
+## Origen y alcance
+Revisión preliminar externa; no menciona las recetas ni el registro de temperatura.
+
+## Recomendaciones
+
+| ID | Recomendación | Clasificación | Evidencia | Seguimiento |
+|---|---|---|---|---|
+| R-01 | Búsqueda visible en inventario | implementado | `docs/05_agile_planning/13_matriz_trazabilidad.md` | — |
+| R-02 | Mostrar el feed de alertas | gap | No se monta en ninguna ruta | TK-003 |
+| R-03 | Áreas táctiles de 44 px | conflicto | `docs/00_stack_manifest.md` | ADR-001 |
+| R-04 | Modo oscuro | fuera_de_alcance | PRD Non-Goal 2 | sin acción — no aporta al MVP |
+
+## Conclusión
+Aportó dos gaps reales.
+"""
+
+
 class CheckSpecArtifactsTests(unittest.TestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp()
@@ -447,6 +477,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
             self._write(f"{OPS}/drills/evidence/{drill_id}/salida.txt", "tiempo total: 35 min\n")
         self._write("CHANGELOG.md", "# Changelog\n\n## [1.0.0] - 2026-09-09\n- Primera versión.\n")
         self._write(MANIFEST_PATH, MANIFEST)
+        self._write(EXT_PATH, EXTERNAL)
 
     def tearDown(self):
         shutil.rmtree(self.root, ignore_errors=True)
@@ -464,7 +495,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         findings, checked = run_checks(self.root)
 
         self.assertEqual(findings.items, [])
-        self.assertEqual(checked, 19)
+        self.assertEqual(checked, 20)
 
     # kpi
     def test_prose_kpis_without_table_are_detected(self):
@@ -1029,6 +1060,69 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         findings, _ = run_checks(self.root)
 
         self.assertNotIn("mecanismo de operación sin declarar en el stack manifest", self._kinds(findings))
+
+    # ingesta externa (SK-42)
+    def test_recommendation_without_valid_classification_or_evidence_is_detected(self):
+        broken = (EXTERNAL.replace("| R-01 | Búsqueda visible en inventario | implementado | `docs/05_agile_planning/13_matriz_trazabilidad.md` | — |",
+                                   "| R-01 | Búsqueda visible en inventario | ya estaba | `docs/05_agile_planning/13_matriz_trazabilidad.md` | — |")
+                  .replace("| R-04 | Modo oscuro | fuera_de_alcance | PRD Non-Goal 2 | sin acción — no aporta al MVP |",
+                           "| R-04 | Modo oscuro | fuera_de_alcance |  | sin acción — no aporta al MVP |"))
+        self._write(EXT_PATH, broken)
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "externo")
+        self.assertIn("clasificación fuera del vocabulario", kinds)
+        self.assertIn("recomendación sin evidencia", kinds)
+
+    def test_gap_must_be_traced_to_a_ticket_or_justified(self):
+        untraced = EXTERNAL.replace("| R-02 | Mostrar el feed de alertas | gap | No se monta en ninguna ruta | TK-003 |",
+                                    "| R-02 | Mostrar el feed de alertas | gap | No se monta en ninguna ruta | pendiente |\n"
+                                    "| R-05 | Separar vencido de caduca hoy | gap | Ambos son 'critical' | TK-777 |")
+        self._write(EXT_PATH, untraced)
+
+        findings, _ = run_checks(self.root)
+
+        details = [d for g, _, k, d in findings.items if g == "externo"]
+        self.assertIn("R-02", details)
+        self.assertIn("R-05: TK-777", details)
+
+    def test_conflict_must_cite_an_existing_adr_or_be_justified(self):
+        missing_adr = EXTERNAL.replace("| R-03 | Áreas táctiles de 44 px | conflicto | `docs/00_stack_manifest.md` | ADR-001 |",
+                                       "| R-03 | Áreas táctiles de 44 px | conflicto | `docs/00_stack_manifest.md` | ADR-404 |")
+        self._write(EXT_PATH, missing_adr)
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("conflicto que cita un ADR inexistente", self._kinds(findings, "externo"))
+
+    def test_external_review_format_is_checked(self):
+        bad = (EXTERNAL.replace("id: EXT-001", "id: EXT-009").replace("status: closed", "status: revisado")
+               .replace("received_on: 2026-09-15", "received_on: 2026-09-20").replace("## Origen y alcance", "## Contexto"))
+        self._write(EXT_PATH, bad)
+
+        findings, _ = run_checks(self.root)
+
+        kinds = self._kinds(findings, "externo")
+        for expected in ("id ausente o distinto del nombre de archivo", "status fuera del vocabulario",
+                         "revisado antes de recibido", "sin sección 'Origen y alcance'"):
+            self.assertIn(expected, kinds)
+
+    def test_draft_external_review_does_not_require_traced_gaps(self):
+        draft = EXTERNAL.replace("status: closed", "status: draft").replace("| TK-003 |", "| pendiente |")
+        self._write(EXT_PATH, draft)
+
+        findings, _ = run_checks(self.root)
+
+        self.assertEqual(self._kinds(findings, "externo"), [])
+
+    def test_changed_scope_checks_only_the_external_review(self):
+        self._write(EXT_PATH, EXTERNAL.replace("| TK-003 |", "| TK-777 |"))
+
+        findings, checked = run_checks(self.root, scope={EXT_PATH})
+
+        self.assertEqual(checked, 1)
+        self.assertEqual(self._kinds(findings), ["gap trazado a un ticket que no existe"])
 
     # operación (etapa 9)
     def test_deployed_service_without_slos_or_backup_is_detected(self):
