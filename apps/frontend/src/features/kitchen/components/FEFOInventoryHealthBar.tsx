@@ -14,6 +14,7 @@ const SEGMENTS = [
   { key: 'safe', cls: 'safe', word: 'vigente' },
   { key: 'warning', cls: 'warning', word: 'próximo' },
   { key: 'critical', cls: 'critical', word: 'crítico' },
+  { key: 'expired', cls: 'expired', word: 'vencido' },
 ] as const;
 
 export const FEFOInventoryHealthBar: React.FC<FEFOInventoryHealthBarProps> = ({ remanentes, embedded = false }) => {
@@ -21,9 +22,9 @@ export const FEFOInventoryHealthBar: React.FC<FEFOInventoryHealthBarProps> = ({ 
   if (buckets.total === 0) return null;
 
   const pct = bucketPercentages(buckets);
-  const counts = { safe: buckets.safe, warning: buckets.warning, critical: buckets.critical };
-  const pcts = { safe: pct.safePct, warning: pct.warningPct, critical: pct.criticalPct };
-  const ariaLabel = `Salud FEFO: ${pct.safePct}% vigente (${buckets.safe}), ${pct.warningPct}% próximo (${buckets.warning}), ${pct.criticalPct}% crítico (${buckets.critical}).`;
+  const counts = { safe: buckets.safe, warning: buckets.warning, critical: buckets.critical, expired: buckets.expired };
+  const pcts = { safe: pct.safePct, warning: pct.warningPct, critical: pct.criticalPct, expired: pct.expiredPct };
+  const ariaLabel = `Salud FEFO: ${pct.safePct}% vigente (${buckets.safe}), ${pct.warningPct}% próximo (${buckets.warning}), ${pct.criticalPct}% crítico (${buckets.critical}), ${pct.expiredPct}% vencido (${buckets.expired}).`;
 
   const bar = (
     <>

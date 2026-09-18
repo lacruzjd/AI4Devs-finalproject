@@ -75,12 +75,17 @@ interface RemanenteActionButtonsProps {
   item: RemanenteFEFOItem;
   isDiscrete: boolean;
   isCritical: boolean;
+  isExpired: boolean;
   onRequestConsume: (item: RemanenteFEFOItem, qty: number) => void;
   onDiscard: (item: RemanenteFEFOItem) => void;
 }
 
-const RemanenteActionButtons: React.FC<RemanenteActionButtonsProps> = ({ item, isDiscrete, isCritical, onRequestConsume, onDiscard }) => (
+const RemanenteActionButtons: React.FC<RemanenteActionButtonsProps> = ({ item, isDiscrete, isCritical, isExpired, onRequestConsume, onDiscard }) => (
   <div className="flex-gap-sm flex-wrap">
+    {/* US-040 / TK-155-FE: un remanente vencido no se consume (INV-5) — solo se descarta.
+        La interfaz no ofrece la acción y el backend la rechaza igualmente (TK-155). */}
+    {isExpired ? null : (
+      <>
     <button
       type="button"
       className={`btn-touch btn-secondary ${styles['remanente-qty-btn']}`}
@@ -113,6 +118,9 @@ const RemanenteActionButtons: React.FC<RemanenteActionButtonsProps> = ({ item, i
       {isDiscrete ? '-5' : '-1.0'}
     </RowButton>
 
+      </>
+    )}
+
     <button
       type="button"
       className={`btn-touch btn-danger btn-icon ${styles['icon-badge-sm']}`}
@@ -134,6 +142,7 @@ interface RemanenteListItemProps {
 
 const RemanenteListItem: React.FC<RemanenteListItemProps> = ({ item, index, onRequestConsume, onDiscard }) => {
   const isCritical = item.hoursRemaining < 24;
+  const isExpired = urgencyFromHours(item.hoursRemaining).level === 'expired';
   const isDiscrete = DISCRETE_UNITS.includes(item.unitOfMeasure.toUpperCase());
 
   return (
@@ -142,7 +151,7 @@ const RemanenteListItem: React.FC<RemanenteListItemProps> = ({ item, index, onRe
     >
       <RemanenteInfoBlock item={item} index={index} isCritical={isCritical} />
       <RemanenteQuantityDisplay item={item} />
-      <RemanenteActionButtons item={item} isDiscrete={isDiscrete} isCritical={isCritical} onRequestConsume={onRequestConsume} onDiscard={onDiscard} />
+      <RemanenteActionButtons item={item} isDiscrete={isDiscrete} isCritical={isCritical} isExpired={isExpired} onRequestConsume={onRequestConsume} onDiscard={onDiscard} />
     </div>
   );
 };

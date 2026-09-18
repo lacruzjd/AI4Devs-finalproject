@@ -20,6 +20,8 @@ const STATUS_BUCKETS: { key: UrgencyLevel; label: string }[] = [
   { key: 'safe', label: 'Vigentes' },
   { key: 'warning', label: 'Vencimiento Próximo' },
   { key: 'critical', label: 'Críticos Hoy' },
+  // US-040 / TK-155-FE: los vencidos van aparte — solo se descartan (INV-5).
+  { key: 'expired', label: 'Vencidos' },
 ];
 
 /** Panel Estado: 3 cubetas de severidad alineadas con los 3 segmentos de la health bar (TK-087-FE). */
