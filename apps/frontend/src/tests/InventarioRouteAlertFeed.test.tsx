@@ -63,6 +63,20 @@ describe('TK-149-FE: el feed de alertas FEFO está montado en la ruta', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('US-039/TK-154-FE: sin nada urgente, el resumen es una línea y no empuja la lista', async () => {
+    vi.spyOn(KitchenService, 'fetchActiveRemanentes').mockResolvedValue([
+      remanente({ id: 'rem-vigente', insumoName: 'Harina', hoursRemaining: 200, isCriticalAlert: false }),
+    ]);
+
+    renderRoute();
+
+    await waitFor(() => expect(screen.getByText('Nada urgente ahora mismo')).toBeInTheDocument());
+    // El bloque grande de estado vacío del feed no se monta en el panel compacto.
+    expect(screen.queryByText('Todos los insumos en cocina cumplen las directivas FEFO óptimas.')).toBeNull();
+    // Y la lista sigue estando, debajo.
+    expect(screen.getByRole('main')).toBeInTheDocument();
+  });
+
   it('si la carga falla, muestra el error con su acción de reintento', async () => {
     vi.spyOn(KitchenService, 'fetchActiveRemanentes').mockRejectedValue(new Error('Red caída'));
 

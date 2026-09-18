@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshCw, ArrowRightLeft, ShieldCheck, Utensils, ClipboardCheck, Thermometer } from 'lucide-react';
+import { RefreshCw, ArrowRightLeft, ShieldCheck, Utensils, ClipboardCheck, Thermometer, CheckCircle2 } from 'lucide-react';
 import { ActionButton } from '../../shared/components/ActionButton.js';
 import { bucketRemanentes, urgencyFromHours, type UrgencyLevel } from '../../shared/components/urgency.js';
 import { KitchenService, RemanenteFEFOItem } from '../../features/kitchen/services/kitchen.service.js';
@@ -154,10 +154,25 @@ interface UrgentAlertsProps {
   onDiscard: (item: RemanenteFEFOItem) => void;
 }
 
-/** Resumen accionable de lo urgente, sobre la lista completa (TK-149-FE). */
-const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ remanentes, isLoading, error, onRetry, onConsume, onDiscard }) => (
+/**
+ * Resumen accionable de lo urgente, sobre la lista completa (TK-149-FE).
+ * US-039 / TK-154-FE: sin nada urgente se reduce a una línea — el panel informa, pero no
+ * empuja el tablero fuera de la pantalla en una cocina que va al día.
+ */
+const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ remanentes, isLoading, error, onRetry, onConsume, onDiscard }) => {
+  const alerts = toAlertItems(remanentes);
+
+  if (!isLoading && !error && alerts.length === 0) {
+    return (
+      <p className={styles['sin-urgencias']}>
+        <CheckCircle2 size={18} aria-hidden="true" /> Nada urgente ahora mismo
+      </p>
+    );
+  }
+
+  return (
   <AlertFeed
-    alerts={toAlertItems(remanentes)}
+    alerts={alerts}
     isLoading={isLoading}
     error={error}
     onRetry={onRetry}
@@ -168,7 +183,8 @@ const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ remanentes, isLoading, erro
       else onConsume(target);
     }}
   />
-);
+  );
+};
 
 function toAlertItems(remanentes: RemanenteFEFOItem[]): AlertItem[] {
   return remanentes

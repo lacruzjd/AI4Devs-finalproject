@@ -47,3 +47,17 @@
     border-left: 1px dashed var(--border-hairline);
   }
 }
+
+/* US-039 / TK-154-FE: resumen de urgencias cuando no hay ninguna — una línea discreta,
+   no un bloque vacío que desplace el tablero fuera de la pantalla. */
+.sin-urgencias {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--color-success);
+  background-color: color-mix(in srgb, var(--color-success) 8%, transparent);
+  color: var(--color-success-text);
+  font-size: var(--fs-sm);
+}
