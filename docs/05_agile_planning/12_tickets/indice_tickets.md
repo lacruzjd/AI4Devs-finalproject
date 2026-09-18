@@ -265,6 +265,7 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 | **TK-146** | N/A (Técnico) | Forzar `qs` >= 6.16.0 en el Parser de Peticiones de Producción (MNT-001) | `security` | 1 | Should Have | [security/backend/TK-146.md](security/backend/TK-146.md) |
 | **TK-147** | N/A (Técnico) | El Gate de Dependencias Debe Fallar si la Auditoría No Se Ejecuta (MNT-001) | `shared` | 1 | Should Have | [shared/backend/TK-147.md](shared/backend/TK-147.md) |
 | **TK-148** | N/A (Técnico) | Índice Único de Deuda Técnica (MNT-001) | `shared` | 3 | Should Have | [shared/backend/TK-148.md](shared/backend/TK-148.md) |
+| **TK-149-FE** | N/A (Técnico) | Montar el Feed de Alertas FEFO en la Interfaz (EXT-001) | `kitchen` | 2 | Should Have | [kitchen/frontend/TK-149-FE.md](kitchen/frontend/TK-149-FE.md) |
 | **TK-118** | [US-005](../11_user_stories/kitchen/US-005.md) | Id Determinista + Motivo de Descarte Validado en DiscardRemanenteUseCase | `kitchen` | 2 | Should Have | [kitchen/backend/TK-118.md](kitchen/backend/TK-118.md) |
 | **TK-074-FE** | [US-016](../11_user_stories/stock/US-016.md) | Frontend Storage Locations UI | `stock` | 3 | Should Have | [stock/frontend/TK-074-FE.md](stock/frontend/TK-074-FE.md) |
 | **TK-096-FE** | [US-025](../11_user_stories/stock/US-025.md) | Selector de Sub-Sector de Bodega y Desglose de Stock (Frontend) | `stock` | 5 | Should Have | [stock/frontend/TK-096-FE.md](stock/frontend/TK-096-FE.md) |
@@ -335,6 +336,7 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 *   **[TK-146: Forzar `qs` >= 6.16.0 en el Parser de Peticiones de Producción](security/backend/TK-146.md)** (Backend) — ⏳ Approved. Remediación técnica de la revisión de mantenimiento `MNT-001`.
 *   **[TK-147: El Gate de Dependencias Debe Fallar si la Auditoría No Se Ejecuta](shared/backend/TK-147.md)** (Backend) — ⏳ Approved. Gate hueco detectado en `MNT-001`.
 *   **[TK-148: Índice Único de Deuda Técnica](shared/backend/TK-148.md)** (Backend) — ⏳ Approved. Deuda dispersa detectada en `MNT-001`.
+*   **[TK-149-FE: Montar el Feed de Alertas FEFO en la Interfaz](kitchen/frontend/TK-149-FE.md)** (Frontend) — ⏳ Approved. Funcionalidad construida en `TK-007` que ninguna ruta monta; detectada en la revisión externa `EXT-001`.
 *   **[TK-118: Id Determinista + Motivo de Descarte Validado](kitchen/backend/TK-118.md)** (Backend) — mismo patrón de `AUDIT-DEV-006` F-3 en un caso que `TK-099`/`TK-101` no cubrieron; motivo de descarte pasa a enum fijo validado en backend.
 *   **[TK-077: Backend Admin PIN Recovery via Email Token & Magic Link](auth/backend/TK-077.md)** (Backend)
 *   **[TK-092: Resolución Fail-Safe de Rol de Usuario (AUDIT-SEC-001 F-1/F-2)](shared/backend/TK-092.md)** (Backend) — cierra la escalada de privilegios Crítica: usuarios creados por API dejan de autenticar como ADMIN.
