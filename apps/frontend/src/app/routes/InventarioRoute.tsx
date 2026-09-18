@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { RefreshCw, ArrowRightLeft, ShieldCheck, Utensils, ClipboardCheck, Thermometer } from 'lucide-react';
 import { ActionButton } from '../../shared/components/ActionButton.js';
-import { bucketRemanentes, type UrgencyLevel } from '../../shared/components/urgency.js';
+import { bucketRemanentes, urgencyFromHours, type UrgencyLevel } from '../../shared/components/urgency.js';
 import { KitchenService, RemanenteFEFOItem } from '../../features/kitchen/services/kitchen.service.js';
 import { ActiveRemanentesList } from '../../features/kitchen/components/ActiveRemanentesList.js';
 import { ConsumeReasonModal, ConsumeTarget } from '../../features/kitchen/components/ConsumeReasonModal.js';
@@ -10,6 +10,8 @@ import { DiscardModal } from '../../features/kitchen/components/DiscardModal.js'
 import { RecipeSelectorModal } from '../../features/kitchen/components/RecipeSelectorModal.js';
 import { ShiftReconciliationWizard } from '../../features/kitchen/components/ShiftReconciliationWizard.js';
 import { FEFOInventoryHealthBar } from '../../features/kitchen/components/FEFOInventoryHealthBar.js';
+import { AlertFeed } from '../../features/kitchen/components/AlertFeed.js';
+import type { AlertItem } from '../../features/kitchen/components/SemaphoricCard.js';
 import { OpenPreparationsPanel } from '../../features/kitchen/components/OpenPreparationsPanel.js';
 import { LocationFilterTabs, LocationFilter } from '../../features/kitchen/components/LocationFilterTabs.js';
 import { TemperatureLogModal } from '../../features/kitchen/components/TemperatureLogModal.js';
@@ -97,13 +99,17 @@ const AccionesEstadoGrid: React.FC<AccionesEstadoGridProps> = ({ remanentes, onE
 function useInventarioData() {
   const [remanentes, setRemanentes] = useState<RemanenteFEFOItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  // TK-149-FE: el error deja de morir en la consola — el feed lo muestra con reintento.
+  const [error, setError] = useState<string | null>(null);
 
   const loadRemanentes = useCallback(async () => {
     setIsLoading(true);
     try {
       setRemanentes(await KitchenService.fetchActiveRemanentes());
+      setError(null);
     } catch (err) {
       console.error('[InventarioRoute] Error cargando remanentes activos:', err);
+      setError(err instanceof Error ? err.message : 'No se pudieron cargar los remanentes activos.');
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +119,70 @@ function useInventarioData() {
     loadRemanentes();
   }, [loadRemanentes]);
 
-  return { remanentes, isLoading, loadRemanentes };
+  return { remanentes, isLoading, error, loadRemanentes };
+}
+
+/**
+ * TK-149-FE: el feed resume lo que necesita atención ahora — solo los remanentes que no
+ * están vigentes, con la misma escala FEFO que el resto de la pantalla (`urgency.ts`), y
+ * acotado al área seleccionada para que resuma exactamente lo que se está mirando.
+ * La lista completa sigue debajo; esto es el resumen accionable, no un segundo listado.
+ */
+const MAX_ALERTS = 4;
+
+/**
+ * US-026 / TK-112-FE: cuenta y filtra por `storageLocationId` (id real del área), no por el
+ * literal `location` — desde TK-102-FE `location` guarda el nombre del área, y las pestañas
+ * antiguas siempre mostraban 0 (confirmado contra la base real).
+ */
+function filterByLocation(remanentes: RemanenteFEFOItem[], activeLocation: LocationFilter) {
+  const counts: Record<string, number> = { ALL: remanentes.length };
+  for (const r of remanentes) {
+    if (!r.storageLocationId) continue;
+    counts[r.storageLocationId] = (counts[r.storageLocationId] ?? 0) + 1;
+  }
+  const filtered = activeLocation === 'ALL' ? remanentes : remanentes.filter((r) => r.storageLocationId === activeLocation);
+  return { counts, filtered };
+}
+
+interface UrgentAlertsProps {
+  remanentes: RemanenteFEFOItem[];
+  isLoading: boolean;
+  error: string | null;
+  onRetry: () => void;
+  onConsume: (item: RemanenteFEFOItem) => void;
+  onDiscard: (item: RemanenteFEFOItem) => void;
+}
+
+/** Resumen accionable de lo urgente, sobre la lista completa (TK-149-FE). */
+const UrgentAlerts: React.FC<UrgentAlertsProps> = ({ remanentes, isLoading, error, onRetry, onConsume, onDiscard }) => (
+  <AlertFeed
+    alerts={toAlertItems(remanentes)}
+    isLoading={isLoading}
+    error={error}
+    onRetry={onRetry}
+    onAction={(id, action) => {
+      const target = remanentes.find((r) => r.id === id);
+      if (!target) return;
+      if (action === 'discard') onDiscard(target);
+      else onConsume(target);
+    }}
+  />
+);
+
+function toAlertItems(remanentes: RemanenteFEFOItem[]): AlertItem[] {
+  return remanentes
+    .filter((r) => urgencyFromHours(r.hoursRemaining).level !== 'safe')
+    .sort((a, b) => a.hoursRemaining - b.hoursRemaining)
+    .slice(0, MAX_ALERTS)
+    .map((r) => ({
+      id: r.id,
+      ingredientName: r.insumoName,
+      lotNumber: r.id.slice(-6).toUpperCase(),
+      hoursRemaining: Math.round(r.hoursRemaining),
+      quantity: r.currentQuantity,
+      unit: r.unitOfMeasure,
+    }));
 }
 
 function useKitchenOpModals() {
@@ -168,19 +237,11 @@ const KitchenBoardTitle: React.FC = () => (
 /** Ruta Inventario (`/`, US-023): el Tablero FEFO de cocina, antes cuerpo de `App.tsx`. */
 export const InventarioRoute: React.FC = () => {
   const { currentUser } = useAppShell();
-  const { remanentes, isLoading, loadRemanentes } = useInventarioData();
+  const { remanentes, isLoading, error, loadRemanentes } = useInventarioData();
   const modals = useKitchenOpModals();
   const [activeLocation, setActiveLocation] = useState<LocationFilter>('ALL');
 
-  // US-026 / TK-112-FE: por storageLocationId (id real del área), no por el literal
-  // `location` — desde TK-102-FE, `location` guarda el nombre del área, no un literal
-  // fijo (confirmado contra la base real: las pestañas antiguas siempre mostraban 0).
-  const counts: Record<string, number> = { ALL: remanentes.length };
-  for (const r of remanentes) {
-    if (!r.storageLocationId) continue;
-    counts[r.storageLocationId] = (counts[r.storageLocationId] ?? 0) + 1;
-  }
-  const filtered = activeLocation === 'ALL' ? remanentes : remanentes.filter((r) => r.storageLocationId === activeLocation);
+  const { counts, filtered } = filterByLocation(remanentes, activeLocation);
 
   return (
     <>
@@ -194,6 +255,14 @@ export const InventarioRoute: React.FC = () => {
         onExtract={() => modals.setIsExtractionOpen(true)}
         onPrepareRecipe={() => modals.setIsRecipeOpen(true)}
         onRecordTemperature={() => modals.setIsTemperatureLogOpen(true)}
+      />
+      <UrgentAlerts
+        remanentes={filtered}
+        isLoading={isLoading}
+        error={error}
+        onRetry={loadRemanentes}
+        onConsume={(item) => modals.setConsumeTarget({ remanente: item, quantity: 1 })}
+        onDiscard={(item) => modals.setDiscardTarget(item)}
       />
       {/* US-027/US-028: preparaciones de receta abiertas — el panel se auto-oculta si no hay ninguna. */}
       <OpenPreparationsPanel reloadKey={remanentes.length} onReconciled={loadRemanentes} />

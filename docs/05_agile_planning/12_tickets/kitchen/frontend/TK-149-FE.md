@@ -4,7 +4,7 @@ id: TK-149-FE
 related_story: N/A (Técnico) — remediación de `TK-007`, detectada en la revisión externa `EXT-001`
 points: 2
 type: frontend
-status: approved
+status: done
 inputs:
   - docs/04_governance_and_quality/external_reviews/EXT-001-auditoria-ux-ui.md
   - docs/02_architecture_design/04_technical_design.md

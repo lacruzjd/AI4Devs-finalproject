@@ -28,15 +28,15 @@ describe('TK-007: AlertFeed & Semaphoric Cards', () => {
     render(<SemaphoricCard alert={mockAlerts[0]} />);
 
     expect(screen.getByText('Crema de Leche')).toBeInTheDocument();
-    expect(screen.getByText('CRÍTICO (< 6h)')).toBeInTheDocument();
+    expect(screen.getByText('Hoy')).toBeInTheDocument();
     expect(screen.getByText(/Vence en 3h/)).toBeInTheDocument();
   });
 
-  it('renders warning yellow alert for items expiring in less than 24 hours', () => {
+  it('renders alert for items expiring within the day (escala compartida: "Hoy")', () => {
     render(<SemaphoricCard alert={mockAlerts[1]} />);
 
     expect(screen.getByText('Queso Mozzarella')).toBeInTheDocument();
-    expect(screen.getByText('ADVERTENCIA (< 24h)')).toBeInTheDocument();
+    expect(screen.getByText('Hoy')).toBeInTheDocument();
     expect(screen.getByText(/Vence en 18h/)).toBeInTheDocument();
   });
 
@@ -48,6 +48,15 @@ describe('TK-007: AlertFeed & Semaphoric Cards', () => {
     fireEvent.click(consumeBtn);
 
     expect(handleAction).toHaveBeenCalledWith('ALT-001', 'consume');
+  });
+
+  it('US-040/TK-149-FE: un remanente vencido no ofrece Consumir, solo Descartar', () => {
+    const expired = { id: 'ALT-EXP', ingredientName: 'Salsa Vencida', lotNumber: 'L-9', hoursRemaining: -4, quantity: '0.500', unit: 'KG' };
+    render(<AlertFeed alerts={[expired]} isLoading={false} onAction={vi.fn()} />);
+
+    expect(screen.getByText('Vencido')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Consumir Salsa Vencida')).toBeNull();
+    expect(screen.getByLabelText('Descartar Salsa Vencida')).toBeInTheDocument();
   });
 
   it('renders Empty State when no active alerts are provided', () => {

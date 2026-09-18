@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { InventarioRoute } from '../app/routes/InventarioRoute.js';
 import { AppShellCtx } from '../app/session.js';
 
@@ -65,14 +65,17 @@ describe('TK-112-FE: LocationFilterTabs / InventarioRoute — filtro por área d
   it('al hacer clic en la pestaña de un área, filtra la lista a solo esa área', async () => {
     renderBoard();
 
-    await waitFor(() => expect(screen.getByText('Salsa')).toBeInTheDocument());
-    expect(screen.getByText('Masa')).toBeInTheDocument();
+    // TK-149-FE: el resumen de alertas repite los nombres a propósito, así que el filtro
+    // se comprueba sobre la lista completa (<main>), no sobre toda la pantalla.
+    const board = () => within(screen.getByRole('main'));
+    await waitFor(() => expect(board().getByText('Salsa')).toBeInTheDocument());
+    expect(board().getByText('Masa')).toBeInTheDocument();
 
     fireEvent.click(await screen.findByRole('button', { name: /Refrigerador Principal Cocina/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Salsa')).toBeInTheDocument();
-      expect(screen.queryByText('Masa')).not.toBeInTheDocument();
+      expect(board().getByText('Salsa')).toBeInTheDocument();
+      expect(board().queryByText('Masa')).not.toBeInTheDocument();
     });
   });
 });
