@@ -109,6 +109,9 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 | **TK-146** | `security` | **Medio** | **Media** | 1 SP | `MNT-001`: `qs` 6.15.3 con dos avisos moderados llega a producción por `express`/`body-parser`. Override a `^6.16.0`. | ⏳ Approved |
 | **TK-147** | `shared` | **Alto** | **Media** | 1 SP | `MNT-001`: `check_dependency_audit.sh` pasa en verde si `pnpm audit` no se ejecuta. Fallar ante una auditoría no ejecutada. | ⏳ Approved |
 | **TK-148** | `shared` | **Medio** | **Baja** | 3 SP | `MNT-001`: sin índice de deuda técnica; deuda repartida en 17 tickets y más de 20 auditorías. Crearlo con `SK-31`. | ⏳ Approved |
+| **TK-150** | `shared` | **Medio** | **Baja** | 2 SP | `AUDIT-DEV-016` F-1/F-2: el prefijo `NN_` significa cinco cosas distintas en `.agents/` y lo que ha derivado es justo lo que `CONTRIBUTING.md` no cubre (no hay sección de rules, examples ni scripts). Escribir el estándar antes de renombrar nada. | ⏳ Approved |
+| **TK-151** | `shared` | **Medio** | **Baja** | 5 SP | `AUDIT-DEV-016` F-3/F-4/F-5/F-6: 2 workflows sin sufijo `_workflow`, `examples/` numerado global en vez de local (se rompe al añadir uno), `.example.md` ausente en la raíz, familia `check_*` con dos lenguajes. `check_naming.py` en rojo primero, renombrados después, mismo commit. | ⏳ Approved |
+| **TK-152** | `shared` | **Bajo** | **Baja** | 5 SP | `AUDIT-DEV-016` F-7: `skills/` mezcla 25 comandos `momoy-*` con 2 contenedores de procedimientos `SK-NN`; `check_skill_standard.py` ya los exceptúa como `LEGACY_CONTAINERS`. Mover a `.agents/procedures/` cuesta 244 ocurrencias. 📋 Backlog — **pendiente de decisión humana**. | 📋 Backlog |
 | **TK-074** | `stock` | **Medio** | **Media** | 3 SP | Depende de `TK-003`. Cierra deuda del CRUD de sectores (`StorageLocation`): `requireRole('ADMIN')` por ruta, RFC 7807, flag `hasStock`. | 🟢 P2 - Media |
 | **TK-074-FE** | `stock` | **Medio** | **Media** | 3 SP | Depende de `TK-074`. Destino de cocina dinámico en extracción + bloqueo de toggle/borrado de sector con existencias. ✅ Done (el destino dinámico se cerró en `TK-102-FE`; este ticket quedó mal marcado como parcial hasta corregirlo). | 🟢 P2 - Media |
 | **TK-096** | `stock` | **Muy Alto** | **Media** | 8 SP | Depende de `TK-060`, `TK-072`, `TK-074`. Stock multi-sector de bodega (`WarehouseStock` 1:N con FK a `StorageLocation`), sector obligatorio en alta/reabastecimiento, origen elegido en extracción, migración de datos. ✅ Done. | 🟢 P2 - Media |
@@ -265,7 +268,18 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 | **TK-146** | N/A (Técnico) | Forzar `qs` >= 6.16.0 en el Parser de Peticiones de Producción (MNT-001) | `security` | 1 | Should Have | [security/backend/TK-146.md](security/backend/TK-146.md) |
 | **TK-147** | N/A (Técnico) | El Gate de Dependencias Debe Fallar si la Auditoría No Se Ejecuta (MNT-001) | `shared` | 1 | Should Have | [shared/backend/TK-147.md](shared/backend/TK-147.md) |
 | **TK-148** | N/A (Técnico) | Índice Único de Deuda Técnica (MNT-001) | `shared` | 3 | Should Have | [shared/backend/TK-148.md](shared/backend/TK-148.md) |
+| **TK-150** | N/A (Técnico) | Estándar de Nomenclatura de momoy Escrito en `CONTRIBUTING.md` (AUDIT-DEV-016) | `shared` | 2 | Should Have | [shared/backend/TK-150.md](shared/backend/TK-150.md) |
+| **TK-151** | N/A (Técnico) | `check_naming.py` en Rojo, Luego los Renombrados que lo Ponen en Verde (AUDIT-DEV-016) | `shared` | 5 | Should Have | [shared/backend/TK-151.md](shared/backend/TK-151.md) |
+| **TK-152** | N/A (Técnico) | Separar Comandos de Procedimientos — `.agents/procedures/` (AUDIT-DEV-016) | `shared` | 5 | Could Have | [shared/backend/TK-152.md](shared/backend/TK-152.md) |
 | **TK-149-FE** | N/A (Técnico) | Montar el Feed de Alertas FEFO en la Interfaz (EXT-001) | `kitchen` | 2 | Should Have | [kitchen/frontend/TK-149-FE.md](kitchen/frontend/TK-149-FE.md) |
+| **TK-153** | US-038 | Abrir el Historial de Movimientos a Quien Lee el Stock (EXT-001) | `stock` | 2 | Should Have | [stock/backend/TK-153.md](stock/backend/TK-153.md) |
+| **TK-153-FE** | US-038 | Movimientos como Sección de Primer Nivel (EXT-001) | `stock` | 2 | Should Have | [stock/frontend/TK-153-FE.md](stock/frontend/TK-153-FE.md) |
+| **TK-154-FE** | US-039 | Panel de Estado y Acciones Rápidas sobre el Inventario (EXT-001) | `kitchen` | 3 | Should Have | [kitchen/frontend/TK-154-FE.md](kitchen/frontend/TK-154-FE.md) |
+| **TK-155** | US-040 | Rechazar el Consumo de un Remanente Vencido (EXT-001) | `kitchen` | 2 | Should Have | [kitchen/backend/TK-155.md](kitchen/backend/TK-155.md) |
+| **TK-155-FE** | US-040 | Separar Vencidos de Caduca Hoy en la Vista de Remanentes (EXT-001) | `kitchen` | 2 | Should Have | [kitchen/frontend/TK-155-FE.md](kitchen/frontend/TK-155-FE.md) |
+| **TK-156-FE** | US-041 | Ordenar el Catálogo por Nombre o Cantidad (EXT-001) | `catalog` | 2 | Should Have | [catalog/frontend/TK-156-FE.md](catalog/frontend/TK-156-FE.md) |
+| **TK-157-FE** | US-042 | Ficha de Insumo con sus Movimientos Recientes (EXT-001) | `catalog` | 3 | Should Have | [catalog/frontend/TK-157-FE.md](catalog/frontend/TK-157-FE.md) |
+| **TK-158-FE** | US-043 | Errores de Validación Junto a su Campo (EXT-001) | `shared` | 2 | Should Have | [shared/frontend/TK-158-FE.md](shared/frontend/TK-158-FE.md) |
 | **TK-118** | [US-005](../11_user_stories/kitchen/US-005.md) | Id Determinista + Motivo de Descarte Validado en DiscardRemanenteUseCase | `kitchen` | 2 | Should Have | [kitchen/backend/TK-118.md](kitchen/backend/TK-118.md) |
 | **TK-074-FE** | [US-016](../11_user_stories/stock/US-016.md) | Frontend Storage Locations UI | `stock` | 3 | Should Have | [stock/frontend/TK-074-FE.md](stock/frontend/TK-074-FE.md) |
 | **TK-096-FE** | [US-025](../11_user_stories/stock/US-025.md) | Selector de Sub-Sector de Bodega y Desglose de Stock (Frontend) | `stock` | 5 | Should Have | [stock/frontend/TK-096-FE.md](stock/frontend/TK-096-FE.md) |
@@ -320,6 +334,9 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 ### 🛠️ Shared / Transversal
 *   **[TK-001: Configuración del Core del Backend y Base de Datos](shared/backend/TK-001.md)**
 *   **[TK-001-FE: Configuración del Workspace Frontend y Design System Base](shared/frontend/TK-001-FE.md)**
+*   **[TK-150: Estándar de Nomenclatura de momoy Escrito en `CONTRIBUTING.md`](shared/backend/TK-150.md)** (Backend) — ⏳ Approved. `AUDIT-DEV-016` F-1/F-2: todo lo que `CONTRIBUTING.md` documenta se respeta; todo lo que ha derivado es justo lo que no cubre. Publica el principio (el número es un ID, no una posición) y las tres secciones ausentes.
+*   **[TK-151: `check_naming.py` en Rojo, Luego los Renombrados que lo Ponen en Verde](shared/backend/TK-151.md)** (Backend) — ⏳ Approved. `AUDIT-DEV-016` F-3/F-4/F-5/F-6. Gate y renombrados en el mismo commit porque `validate_agents.sh` está wireado en `ci.yml`. Ningún `SK-NN` se toca (386 ocurrencias en 74 ficheros).
+*   **[TK-152: Separar Comandos de Procedimientos (`.agents/procedures/`)](shared/backend/TK-152.md)** (Backend) — 📋 Backlog, **pendiente de decisión humana**. `AUDIT-DEV-016` F-7: coste 244 ocurrencias en 53 ficheros, beneficio de coherencia, no de corrección.
 
 ### 🔐 Autenticación y Seguridad (`security/` / `auth/`)
 *   **[TK-002: Autenticación por PIN](auth/backend/TK-002.md)** (Backend)
@@ -337,6 +354,14 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 *   **[TK-147: El Gate de Dependencias Debe Fallar si la Auditoría No Se Ejecuta](shared/backend/TK-147.md)** (Backend) — ⏳ Approved. Gate hueco detectado en `MNT-001`.
 *   **[TK-148: Índice Único de Deuda Técnica](shared/backend/TK-148.md)** (Backend) — ⏳ Approved. Deuda dispersa detectada en `MNT-001`.
 *   **[TK-149-FE: Montar el Feed de Alertas FEFO en la Interfaz](kitchen/frontend/TK-149-FE.md)** (Frontend) — ⏳ Approved. Funcionalidad construida en `TK-007` que ninguna ruta monta; detectada en la revisión externa `EXT-001`.
+*   **[TK-153: Abrir el Historial de Movimientos a Quien Lee el Stock](stock/backend/TK-153.md)** (Backend) — ⏳ Approved. Épica de usabilidad `EXT-001`, historia `US-038`.
+*   **[TK-153-FE: Movimientos como Sección de Primer Nivel](stock/frontend/TK-153-FE.md)** (Frontend) — ⏳ Approved. Épica de usabilidad `EXT-001`, historia `US-038`.
+*   **[TK-154-FE: Panel de Estado y Acciones Rápidas sobre el Inventario](kitchen/frontend/TK-154-FE.md)** (Frontend) — ⏳ Approved. Épica de usabilidad `EXT-001`, historia `US-039`.
+*   **[TK-155: Rechazar el Consumo de un Remanente Vencido](kitchen/backend/TK-155.md)** (Backend) — ⏳ Approved. Épica de usabilidad `EXT-001`, historia `US-040`.
+*   **[TK-155-FE: Separar Vencidos de Caduca Hoy en la Vista de Remanentes](kitchen/frontend/TK-155-FE.md)** (Frontend) — ⏳ Approved. Épica de usabilidad `EXT-001`, historia `US-040`.
+*   **[TK-156-FE: Ordenar el Catálogo por Nombre o Cantidad](catalog/frontend/TK-156-FE.md)** (Frontend) — ⏳ Approved. Épica de usabilidad `EXT-001`, historia `US-041`.
+*   **[TK-157-FE: Ficha de Insumo con sus Movimientos Recientes](catalog/frontend/TK-157-FE.md)** (Frontend) — ⏳ Approved. Épica de usabilidad `EXT-001`, historia `US-042`.
+*   **[TK-158-FE: Errores de Validación Junto a su Campo](shared/frontend/TK-158-FE.md)** (Frontend) — ⏳ Approved. Épica de usabilidad `EXT-001`, historia `US-043`.
 *   **[TK-118: Id Determinista + Motivo de Descarte Validado](kitchen/backend/TK-118.md)** (Backend) — mismo patrón de `AUDIT-DEV-006` F-3 en un caso que `TK-099`/`TK-101` no cubrieron; motivo de descarte pasa a enum fijo validado en backend.
 *   **[TK-077: Backend Admin PIN Recovery via Email Token & Magic Link](auth/backend/TK-077.md)** (Backend)
 *   **[TK-092: Resolución Fail-Safe de Rol de Usuario (AUDIT-SEC-001 F-1/F-2)](shared/backend/TK-092.md)** (Backend) — cierra la escalada de privilegios Crítica: usuarios creados por API dejan de autenticar como ADMIN.

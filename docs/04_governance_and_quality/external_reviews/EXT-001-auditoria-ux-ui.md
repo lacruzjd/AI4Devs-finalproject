@@ -1,7 +1,7 @@
 ---
 document: external_review
 id: EXT-001
-version: 1.1.0
+version: 1.2.0
 status: closed
 source: "Auditoría UX/UI de RestoStock recibida en PDF, encargada como revisión preliminar externa"
 received_on: 2026-09-18
@@ -22,20 +22,20 @@ Informe externo de 23 secciones sobre la interfaz: arquitectura de información,
 
 | ID | Recomendación | Clasificación | Evidencia | Seguimiento |
 |---|---|---|---|---|
-| R-01 | Diseñarlo como apoyo a decisiones, no como CRUD | gap | La raíz es `InventarioRoute`; hay panel FEFO, no un resumen accionable | pendiente de cascada — requiere una historia nueva; el humano decidirá con `/momoy-spec` |
-| R-02 | Navegación por tareas: Movimientos y Alertas de primer nivel | gap | `apps/frontend/src/app/AppNav.tsx`: 5 entradas; movimientos vive en `/ajustes` tras el permiso `roles:manage` | pendiente de cascada — requiere una historia nueva: decide quién ve el historial de movimientos |
+| R-01 | Diseñarlo como apoyo a decisiones, no como CRUD | gap | La raíz es `InventarioRoute`; hay panel FEFO, no un resumen accionable | US-039 |
+| R-02 | Navegación por tareas: Movimientos y Alertas de primer nivel | gap | `apps/frontend/src/app/AppNav.tsx`: 5 entradas; movimientos vive en `/ajustes` tras el permiso `roles:manage` | US-038 (decidido en ADR-007) |
 | R-03 | Navegación simplificada en móvil | no_verificable | Solo hay `@media` de tema y de movimiento reducido; hace falta probar en dispositivos | pendiente de verificación — `/momoy-verify-live` en tablet y móvil |
-| R-04 | Dashboard como pantalla de entrada con alertas prioritarias | gap | Misma evidencia que R-01 | pendiente de cascada — requiere una historia nueva; el humano decidirá con `/momoy-spec` |
+| R-04 | Dashboard como pantalla de entrada con alertas prioritarias | gap | Misma evidencia que R-01 | US-039 |
 | R-05 | Acciones rápidas (añadir, registrar entrada y salida) | implementado | `apps/frontend/src/app/routes/InventarioRoute.tsx` con `ActionButton`, `WarehouseExtractionModal` y `ConsumeReasonModal` | — |
 | R-06 | FEFO visible, no solo lógica interna | implementado | `FEFOInventoryHealthBar.tsx`, `UrgencyChip.tsx` y `bucketRemanentes` en la raíz | — |
-| R-07 | Separar "caducado" de "caduca hoy" en la vista FEFO | gap | `apps/frontend/src/shared/components/urgency.ts`: ambos son `critical`; la raíz agrupa en 3 cubetas | pendiente de cascada — requiere una historia nueva: afecta a la inocuidad (INV-5), descartar no es consumir |
+| R-07 | Separar "caducado" de "caduca hoy" en la vista FEFO | gap | `apps/frontend/src/shared/components/urgency.ts`: ambos son `critical`; la raíz agrupa en 3 cubetas | US-040 |
 | R-08 | Mostrar el feed de alertas FEFO | gap | `features/kitchen/components/AlertFeed.tsx` solo se importa desde `tests/AlertFeed.test.tsx`: ninguna ruta lo monta | TK-149-FE |
 | R-09 | Búsqueda visible y filtros rápidos por estado | implementado | `features/stock/components/CatalogToolbar.tsx` y `features/kitchen/components/LocationFilterTabs.tsx` | — |
-| R-10 | Ordenación por nombre, cantidad o caducidad | gap | `CatalogToolbar.tsx` filtra y busca, no ordena | pendiente de cascada — requiere una historia nueva; mejora menor de usabilidad |
+| R-10 | Ordenación por nombre, cantidad o caducidad | gap | `CatalogToolbar.tsx` filtra y busca, no ordena | US-041 |
 | R-11 | Vista de lista y de tarjetas | implementado | `features/stock/components/InsumoCatalogGrid.tsx` e `InsumoCatalogPanel.tsx` | — |
 | R-12 | Búsqueda no escondida en un menú | implementado | `CatalogToolbar.tsx` la muestra en la propia pantalla | — |
-| R-13 | Ficha de producto con historial de movimientos | gap | Hay modales de crear, editar y reponer insumo; no existe una ficha con su historial | pendiente de cascada — requiere una historia nueva; el humano decidirá con `/momoy-spec` |
-| R-14 | Errores junto al campo correspondiente | gap | `CreateInsumoModal.tsx` usa un único `ErrorBanner` arriba | pendiente de cascada — requiere una historia nueva; mejora menor de formularios |
+| R-13 | Ficha de producto con historial de movimientos | gap | Hay modales de crear, editar y reponer insumo; no existe una ficha con su historial | US-042 |
+| R-14 | Errores junto al campo correspondiente | gap | `CreateInsumoModal.tsx` usa un único `ErrorBanner` arriba | US-043 |
 | R-15 | Etiquetas específicas ("Registrar entrada", "Registrar salida") | implementado | `shared/components/rowActionPresets.tsx` y los modales de extracción y consumo | — |
 | R-16 | Áreas táctiles de 44 × 44 px | conflicto | `DESIGN.md` exige 48 × 48 px, y `SK-11` lo recoge como NFR de accesibilidad | sin acción — el estándar del proyecto (48 px) es más estricto; rebajarlo exigiría un ADR propio |
 | R-17 | Colores semánticos acompañados de texto | implementado | `src/styles/variables/colors.css` (tokens `success`/`warning`/`danger`/`info` con variante de texto) y `UrgencyChip.tsx`, que rotula "Vencido", "Hoy" o "Mañana" | — |
@@ -49,6 +49,8 @@ Informe externo de 23 secciones sobre la interfaz: arquitectura de información,
 | R-25 | Modo oscuro (prioridad baja) | fuera_de_alcance | Ya existe: `app/ThemeToggle.tsx` y `@media (prefers-color-scheme: dark)` | sin acción — la mejora propuesta ya está entregada |
 | R-26 | Guion para presentar el proyecto final | fuera_de_alcance | No es una recomendación de producto | sin acción — material de presentación, ajeno al backlog |
 
+> **Nota de versión (1.2.0):** los siete gaps pendientes de cascada ya tienen historia (`US-038` a `US-043`) y ocho tickets aprobados, tras la cascada del workflow 01 del 2026-09-18.
+>
 > **Nota de versión (1.1.0):** el seguimiento de los gaps se reescribió con el vocabulario cerrado que SK-42 1.1.0 incorporó tras esta misma ejecución: `pendiente de cascada — motivo` distingue lo que falta especificar de lo que se descartó.
 
 ## Conclusión
