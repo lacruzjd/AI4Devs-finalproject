@@ -1,7 +1,7 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.29.1"
+version: "2.30.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
@@ -67,7 +67,7 @@ El marco opera bajo una arquitectura desacoplada: una capa de entrada (comandos)
 
 ```mermaid
 flowchart TD
-    subgraph CAPA0 ["0. CAPA DE ENTRADA (24 comandos /momoy-*, estándar Agent Skills)"]
+    subgraph CAPA0 ["0. CAPA DE ENTRADA (25 comandos /momoy-*, estándar Agent Skills)"]
         CMD["skills/momoy*/SKILL.md — puntos de entrada delgados hacia workflows o SK-NN"]
     end
 
@@ -78,7 +78,7 @@ flowchart TD
         W0X["03..11: Auditoría, TDD, QA, Observabilidad, Smoke, Verificación en vivo, Release, Mantenimiento"]
     end
 
-    subgraph CAPA2 ["2. CAPA DE HABILIDADES PROCEDIMENTALES (41 Skills)"]
+    subgraph CAPA2 ["2. CAPA DE HABILIDADES PROCEDIMENTALES (42 Skills)"]
         S_Spec["Skills de Specs (SK-01 a SK-15, SK-35 a SK-37, SK-39 a SK-41)"]
         S_Dev["Skills de Dev (SK-16 a SK-34, SK-38)"]
     end
@@ -122,6 +122,7 @@ momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [
 | `/momoy-characterize [módulo]` | Congela con tests el comportamiento de código legado y luego lo refactoriza ([`SK-24`](skills/development/05_quality_and_lint/SK-24_execute_characterization_testing.md)) | Antes de tocar código existente sin tests |
 | `/momoy-audit-spec [carpeta]` | Auditoría de specs en `docs/` ([`03`](workflows/03_spec_audit_workflow.md)) | Tras cambiar specs, antes de codificar |
 | `/momoy-audit-dev TK-XXX` | Revisión adversarial del código ([`04`](workflows/04_dev_audit_workflow.md)) | Ticket implementado, antes de aprobarlo |
+| `/momoy-external [informe]` | Clasifica cada recomendación de un informe externo contra el producto real: implementada, gap, conflicto con una decisión aprobada, fuera de alcance o no verificable ([`SK-42`](skills/specs/04_governance_and_quality/SK-42_intake_external_review.md)) | Llega una auditoría, consultoría o feedback de fuera del equipo |
 | `/momoy-tdd TK-XXX` | Bucle autónomo Red-Green-Refactor ([`05`](workflows/05_test_runner_workflow.md)) | Fase de pruebas de un ticket |
 | `/momoy-qa [objetivo]` | Pipeline QA completo con mutación ([`06`](workflows/06_full_qa_pipeline.md)) | Antes de cerrar un conjunto de cambios |
 | `/momoy-incident [stacktrace]` | Incidencia de producción → ticket ([`07`](workflows/07_production_observability_workflow.md)) | Llega un error real de producción |
@@ -153,6 +154,7 @@ Las propiedades mecánicas de lo que generan las skills de especificación se ve
 | `operacion` | Operación | Con un release desplegado: SLOs de disponibilidad y latencia, cada uno con alerta y runbook ensayado con éxito; backup con RPO/RTO y simulacro de restauración exitoso de menos de 90 días que cumple el RTO. Además, con un presupuesto de error agotado, `release` rechaza funcionalidades |
 | `mantenimiento` | Mantenimiento | Cada `MNT-NNN` cerrado traza sus hallazgos a tickets o `sin acción — motivo`; con algo desplegado, pasar 30 días sin una revisión cerrada es un hallazgo |
 | `retirada` | Mantenimiento | Cada `RET-NNN` completado tiene aviso de al menos 30 días, tickets de eliminación cerrados e historias con `retired_by`; vencida la retención, exige registrar la anonimización o eliminación de los datos |
+| `externo` | Transversal | Cada `EXT-NNN` con su origen, cada recomendación clasificada con evidencia, cada `gap` trazado a un ticket existente o a `sin acción — motivo` y cada `conflicto` citando el ADR que lo decide |
 | `postmortem` | Incidentes | Cada `PM-NNN` con línea de tiempo con horas, análisis de por qué ningún gate lo detectó y, si está cerrado, acciones trazadas a tickets; uno crítico o alto sin cerrar a los 5 días de resolverse es un hallazgo |
 
 Sin argumentos genera un informe del repositorio que **no bloquea** (la deuda documental previa es información); `--verbose` lista cada hallazgo y `--strict` lo convierte en bloqueante. `--changed` revisa solo lo modificado y `--ticket TK-XXX` la Definition of Ready de un ticket; ambos **bloquean** y los invocan `/momoy-spec` (workflow 01) y `/momoy-dev` (workflow 02). `--today AAAA-MM-DD` evalúa los plazos (revisión de KPIs, cadencia de mantenimiento, plazo de un postmortem) como si hoy fuera esa fecha, para simulacros y auditorías retroactivas. Estados válidos de historias y tickets: `backlog`, `approved`, `in_progress`, `done`, `cancelled`.
@@ -180,7 +182,7 @@ Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestruc
 *   **Alcance y Producto:** `docs/01_product_definition/` (PRDs, Reglas de Negocio, experimentos de validación y resultados medidos).
 *   **Arquitectura y Diseño:** `docs/02_architecture_design/` (Capas, Mappers, ADRs y Estructura).
 *   **Persistencia y APIs:** `docs/03_persistence_and_api/` (Esquemas de Base de Datos y contrato OpenAPI 3.1.0, en YAML o JSON según el stack).
-*   **Gobernanza y Calidad:** `docs/04_governance_and_quality/` (Estrategias de prueba, seguridad, CI/CD e informes).
+*   **Gobernanza y Calidad:** `docs/04_governance_and_quality/` (Estrategias de prueba, seguridad, CI/CD, informes y revisiones externas en `external_reviews/`).
 *   **Gestión Ágil:** `docs/05_agile_planning/` (User Stories INVEST y Tickets Técnicos).
 *   **Release y Operación:** `docs/06_release_and_operations/` (releases, SLOs, runbooks, backups, simulacros, postmortems, revisiones de mantenimiento y retiradas).
 
@@ -188,13 +190,13 @@ Toda regla de arquitectura, base de datos, ciberseguridad, testing e infraestruc
 
 ## 4. Catálogo de Skills por Fase y Rol Técnico
 
-Las 41 habilidades (`SK-01` a `SK-41`) son runbooks especializados organizados por fases y roles técnicos que la IA carga bajo demanda:
+Las 42 habilidades (`SK-01` a `SK-42`) son runbooks especializados organizados por fases y roles técnicos que la IA carga bajo demanda:
 
 ### Fase Documental (Product Owner & Architect Roles)
 *   **01_product_definition:** [SK-01 Descubrimiento de Producto](skills/specs/01_product_definition/SK-01_discover_product_vision.md), [SK-02 Generación del PRD](skills/specs/01_product_definition/SK-02_generate_prd.md), [SK-37 Experimento de Validación](skills/specs/01_product_definition/SK-37_design_validation_experiment.md) y [SK-39 Medición de Resultados](skills/specs/01_product_definition/SK-39_measure_product_outcomes.md).
 *   **02_architecture_design:** [SK-03 Modelo de Dominio](skills/specs/02_architecture_design/SK-03_design_domain_model.md), [SK-04 Diseño Técnico](skills/specs/02_architecture_design/SK-04_design_technical_architecture.md), [SK-05 Asistente de Diseño UI/UX](skills/specs/02_architecture_design/SK-05_design_ui_ux_system.md) y [SK-36 Registro de Decisiones de Arquitectura (ADR)](skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md).
 *   **03_persistence_and_api:** [SK-06 Esquema de Base de Datos](skills/specs/03_persistence_and_api/SK-06_design_database_schema.md) y [SK-07 Especificación API REST](skills/specs/03_persistence_and_api/SK-07_design_api_specification.md).
-*   **04_governance_and_quality:** [SK-08 Estrategia de Seguridad](skills/specs/04_governance_and_quality/SK-08_define_security_strategy.md), [SK-09 Estrategia de Pruebas](skills/specs/04_governance_and_quality/SK-09_define_testing_strategy.md), [SK-10 Pipeline CI/CD e IaC](skills/specs/04_governance_and_quality/SK-10_configure_cicd_pipeline.md) y [SK-35 Generación del Contrato Operativo Raíz (AGENTS.md)](skills/specs/04_governance_and_quality/SK-35_generate_root_contract.md).
+*   **04_governance_and_quality:** [SK-08 Estrategia de Seguridad](skills/specs/04_governance_and_quality/SK-08_define_security_strategy.md), [SK-09 Estrategia de Pruebas](skills/specs/04_governance_and_quality/SK-09_define_testing_strategy.md), [SK-10 Pipeline CI/CD e IaC](skills/specs/04_governance_and_quality/SK-10_configure_cicd_pipeline.md) y [SK-35 Generación del Contrato Operativo Raíz (AGENTS.md)](skills/specs/04_governance_and_quality/SK-35_generate_root_contract.md) y [SK-42 Ingesta de una Recomendación Externa](skills/specs/04_governance_and_quality/SK-42_intake_external_review.md).
 *   **05_agile_planning:** [SK-11 Historias de Usuario (INVEST)](skills/specs/05_agile_planning/SK-11_generate_user_stories.md), [SK-12 Planificación de Tickets](skills/specs/05_agile_planning/SK-12_generate_backlog_tickets.md), [SK-13 Matriz de Trazabilidad](skills/specs/05_agile_planning/SK-13_generate_traceability_matrix.md), [SK-14 Mapa del Backlog](skills/specs/05_agile_planning/SK-14_generate_backlog_map.md) y [SK-15 Registro de PRs](skills/specs/05_agile_planning/SK-15_document_pull_requests.md) y [SK-41 Retirada de una Funcionalidad](skills/specs/05_agile_planning/SK-41_retire_capability.md).
 
 ### Fase DevSecOps & Gobernanza de Seguridad (DevSecOps Lead & Auditor Roles)
