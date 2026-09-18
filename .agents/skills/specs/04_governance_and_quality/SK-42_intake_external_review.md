@@ -1,7 +1,7 @@
 ---
 name: external-review-intake
 description: "Convierte un informe externo (auditoría UX, revisión de seguridad, consultoría, feedback de un cliente) en decisiones trazables: contrasta cada recomendación contra el producto real y la clasifica como implementada, gap, conflicto con una decisión aprobada, fuera de alcance o no verificable, con evidencia del repositorio en cada una; solo los gaps se convierten en trabajo, y un conflicto exige un ADR, nunca una edición silenciosa."
-version: "1.0.0"
+version: "1.1.0"
 category: "specs/04_governance_and_quality"
 inputs:
   - report_path: "Ruta o contenido del informe externo (PDF, markdown, correo, notas de una reunión)"
@@ -13,7 +13,7 @@ outputs:
   - "docs/04_governance_and_quality/external_reviews/EXT-NNN-{slug}.md"
 ---
 
-# SK-42: Ingesta de una Recomendación Externa (v1.0.0)
+# SK-42: Ingesta de una Recomendación Externa (v1.1.0)
 
 Actúa como un **Technical Lead** que recibe un informe de fuera del equipo y tiene que decidir qué hacer con él.
 
@@ -67,10 +67,21 @@ Buscar además lo que el informe **no** dice: una capacidad crítica del product
 
 Presentar al humano el recuento por clasificación, cada `gap` con el trabajo que propondría (ticket de remediación, o historia nueva vía `/momoy-spec`), cada `conflicto` con la decisión que contradice, y **detenerse**. Prohibido crear tickets o escribir el registro antes de su confirmación.
 
+**Seguimiento: vocabulario cerrado.** Cada recomendación que no esté ya implementada declara una de estas cuatro formas, y ninguna otra:
+
+| Seguimiento | Cuándo | Qué significa |
+| :--- | :--- | :--- |
+| `TK-NNN` o `US-NNN` | El trabajo ya está especificado | El ticket o la historia existen en el repositorio |
+| `pendiente de cascada — <motivo>` | El gap necesita comportamiento nuevo | Se hará, pero primero hay que especificarlo con `/momoy-spec` |
+| `pendiente de ADR — <motivo>` | El conflicto aún no se decidió | La decisión se tomará con `/momoy-adr`, no editando el estándar |
+| `sin acción — <motivo>` | No se hará | Con el motivo escrito, para que la próxima revisión no lo vuelva a proponer |
+
+Distinguir "no se hará" de "falta decidirlo" es el punto: un pendiente sin nombre propio acaba archivado como si se hubiera descartado.
+
 ### Fase 4: Persistencia y Seguimiento
 
 1. Escribir `docs/04_governance_and_quality/external_reviews/EXT-{NNN}-{slug}.md` (formato abajo).
-2. Crear con [`SK-12`](../05_agile_planning/SK-12_generate_backlog_tickets.md) solo los tickets aprobados, citando `EXT-{NNN}` en su frontmatter. Los gaps que exigen comportamiento nuevo se anotan como `sin acción — requiere cascada de spec` hasta que el humano lance `/momoy-spec`.
+2. Crear con [`SK-12`](../05_agile_planning/SK-12_generate_backlog_tickets.md) solo los tickets aprobados, citando `EXT-{NNN}` en su frontmatter. Los gaps que exigen comportamiento nuevo quedan como `pendiente de cascada — <motivo>` hasta que el humano lance `/momoy-spec`, y los conflictos sin decidir como `pendiente de ADR — <motivo>`.
 3. Ejecutar `python3 .agents/scripts/check_spec_artifacts.py --changed` y corregir los hallazgos del gate `externo`.
 4. **Reporte final:** usar la **Plantilla B** de [`rules/00_output_reporting_standard.md`](../../../rules/00_output_reporting_standard.md).
 
@@ -100,11 +111,12 @@ reviewed_on: AAAA-MM-DD
 |---|---|---|---|---|
 | R-01 | [Qué propone, en una línea] | implementado | `ruta/al/archivo` | — |
 | R-02 | [...] | gap | [dónde se buscó] | TK-XXX |
-| R-03 | [...] | conflicto | `DESIGN.md` §N | ADR-XXX |
-| R-04 | [...] | fuera_de_alcance | PRD Non-Goal N | sin acción — [motivo] |
+| R-03 | [...] | gap | [dónde se buscó] | pendiente de cascada — [motivo] |
+| R-04 | [...] | conflicto | `DESIGN.md` §N | ADR-XXX |
+| R-05 | [...] | fuera_de_alcance | PRD Non-Goal N | sin acción — [motivo] |
 
 ## Conclusión
 [Qué aportó realmente el informe y qué no. Si procede, qué convendría pedir la próxima vez para que una revisión externa rinda más.]
 ```
 
-El gate `externo` de `.agents/scripts/check_spec_artifacts.py` verifica el formato, que cada recomendación tenga una clasificación del vocabulario y su evidencia, que cada `gap` esté trazado a un ticket existente o a `sin acción — motivo`, y que cada `conflicto` cite un ADR existente o su `sin acción — motivo`.
+El gate `externo` de `.agents/scripts/check_spec_artifacts.py` verifica el formato, que cada recomendación tenga una clasificación del vocabulario y su evidencia, y que el seguimiento de cada `gap` y cada `conflicto` use una de las cuatro formas de arriba, con el ticket, la historia o el ADR realmente existentes y el motivo escrito cuando queda pendiente o se descarta.
