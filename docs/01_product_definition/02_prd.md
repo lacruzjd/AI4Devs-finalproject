@@ -73,9 +73,14 @@ El sistema optimiza la rotación de inventarios forzando una lógica FEFO (First
 La identidad visual de la aplicación sigue el **Sistema FEFO** (turno Día/Noche, `US-022`) — ver [`DESIGN.md`](../../DESIGN.md) y [`docs/02_architecture_design/05_ui_ux_design_system.md`](../02_architecture_design/05_ui_ux_design_system.md) para el detalle completo de tokens, tipografía y ergonomía táctil. La navegación se organiza en un **shell de rutas de nivel superior** (Inventario, Estaciones, Recetas, Reportes, Ajustes) con acceso por rol (`US-023`), en lugar de un tablero único con menús superpuestos; el contenido de cada ruta se muestra inline y Ajustes tiene sub-rutas enlazables (`US-024`).
 
 ### 1.3. Objetivos de Negocio y KPIs (Métricas de Éxito)
-*   **Reducción de Merma Desconocida:** Disminuir en un **30%** la diferencia financiera entre el inventario teórico del sistema y las auditorías físicas semanales en un periodo de 90 días.
-*   **Tasa de Rotación de Remanentes (TRR):** Lograr que el tiempo promedio desde que se abre un insumo y se registra su remanente hasta que se marca como "totalmente consumido" sea **menor a 72 horas (3 días)**.
-*   **Reducción de Duplicidad de Aperturas:** Bajar a cero la incidencia de apertura de nuevos insumos sellados cuando ya existe un remanente activo del mismo ingrediente en la cocina.
+
+| KPI | Fuente de datos | Línea base | Umbral de éxito | Ventana | Fecha de revisión |
+|---|---|---|---|---|---|
+| Merma desconocida (varianza de conciliación) | `ShiftReconciliationItem.variance` (cantidad física frente a teórica) de las conciliaciones de turno | Por medir: primera conciliación con uso real | Reducir un 30% la varianza negativa media frente a la línea base | 90 días | 2026-12-17 |
+| Tasa de Rotación de Remanentes (TRR) | `GET /api/v1/reports/rotation` (`averageTrrHours` sobre remanentes en estado terminal) | Por medir: primera ventana con uso real | Media menor a 72 horas, con al menos 30 remanentes en la muestra | 90 días | 2026-12-17 |
+| Duplicidad de aperturas | No medible: el sistema no registra el evento de abrir un insumo sellado existiendo un remanente activo del mismo insumo | No medible | Cero aperturas duplicadas | 90 días | 2026-12-17 |
+
+**Cómo leer esta tabla.** La línea base dice `Por medir` porque RestoStock solo está desplegado en un entorno de revisión, sin operación real: hasta que un restaurante lo use, no hay cifra de partida honesta. El KPI de duplicidad se declara `No medible` con su motivo, en vez de inventarle una fuente: hacerlo medible exige instrumentar el evento, decisión todavía no tomada. En la fecha de revisión, `/momoy-outcomes` emite un veredicto por KPI con los datos que existan, y `no_medible` es un veredicto válido.
 
 ---
 
@@ -492,6 +497,19 @@ A continuación se resume el backlog del MVP de RestoStock, estructurado bajo el
         *   **When** El chef hace clic en "Guardar en Catálogo de Recetas".
         *   **Then** El sistema crea una nueva receta en la base de datos con sus ingredientes asociados, lista para ser consumida mediante el flujo de consumo rápido (`US-007`).
 
+
+---
+
+### Épica de usabilidad EXT-001 (revisión externa UX/UI, 2026-09-18)
+
+Seis historias nacidas de la revisión externa [`EXT-001`](../04_governance_and_quality/external_reviews/EXT-001-auditoria-ux-ui.md), que contrastó un informe UX/UI de 26 recomendaciones contra el producto real. No introducen capacidades nuevas: corrigen el acceso y la presentación de capacidades ya entregadas.
+
+*   **US-038** — historial de movimientos accesible durante el turno ([ADR-007](../02_architecture_design/adr/ADR-007-visibilidad-del-historial-de-movimientos.md)).
+*   **US-039** — panel de estado y acciones rápidas sobre el inventario.
+*   **US-040** — el consumo de un remanente vencido queda bloqueado (INV-5) y los vencidos se separan de los que caducan hoy.
+*   **US-041** — ordenación del catálogo de insumos.
+*   **US-042** — ficha de insumo con sus movimientos recientes.
+*   **US-043** — errores de validación junto a su campo.
 
 ---
 
