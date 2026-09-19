@@ -144,6 +144,14 @@ export class Remanente {
     return this.props.status;
   }
 
+  /**
+   * US-040 / INV-5: un remanente está vencido cuando su fecha de vencimiento ya pasó.
+   * El reloj se recibe como parámetro para que la regla sea determinista en los tests.
+   */
+  public isExpired(now: Date): boolean {
+    return this.props.expirationDate < now;
+  }
+
   public get expirationDate(): Date {
     return this.props.expirationDate;
   }

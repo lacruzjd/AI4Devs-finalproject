@@ -29,6 +29,50 @@ describe('TK-005: Partial Remanente Consumption TDD Suite', () => {
     stockRepo.seedRemanente(activeRemanente);
   });
 
+  it('US-040/TK-155: debe rechazar con 422 el consumo de un remanente vencido, sin alterar su estado', async () => {
+    // 1. ARRANGE: remanente vencido hace 2 horas (INV-5, inocuidad alimentaria)
+    const expired = new Remanente({
+      id: 'rem-vencido-1',
+      insumoId: 'ins-salsa',
+      currentQuantity: new DecimalQuantity('1.000'),
+      initialQuantity: new DecimalQuantity('1.000'),
+      location: 'KITCHEN_FRIDGE',
+      status: 'ACTIVE',
+      expirationDate: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    });
+    stockRepo.seedRemanente(expired);
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-vencido-1/consume')
+      .send({ quantity: '0.250', reasonId: 'reason-seed-1' });
+
+    // 3. ASSERT — ORACULO RED: 422 con el sobre RFC 7807 del proyecto
+    expect(response.status).toBe(422);
+    expect(response.body).toMatchObject({ title: 'RemanenteExpiredException', status: 422 });
+
+    // ORACULO ESTADO: el remanente no se tocó
+    const untouched = await stockRepo.findRemanenteById('rem-vencido-1');
+    expect(untouched?.currentQuantity.toString()).toBe('1.000');
+    expect(untouched?.status).toBe('ACTIVE');
+  });
+
+  it('US-040/TK-155: un remanente que vence dentro de unas horas sigue siendo consumible', async () => {
+    // 1. ARRANGE: el remanente del beforeEach vence en 12 h — "caduca hoy" no es "vencido"
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '0.250', reasonId: 'reason-seed-1' });
+
+    // 3. ASSERT
+    expect(response.status).toBe(200);
+  });
+
   it('debe registrar exitosamente un consumo parcial (1.750 -> 1.500) manteniendo el estado ACTIVE (200 OK)', async () => {
     // 1. ARRANGE
     const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);

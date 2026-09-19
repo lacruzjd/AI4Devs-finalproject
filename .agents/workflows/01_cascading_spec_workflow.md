@@ -1,4 +1,4 @@
-# 💡 Instrucción para el Agente de IA: Propagación de Nuevas Ideas o Funcionalidades
+# Instrucción para el Agente de IA: Propagación de Nuevas Ideas o Funcionalidades
 
 > [!IMPORTANT]
 > **DIRECTIVA PARA EL AGENTE DE IA:**
@@ -8,9 +8,9 @@
 > Para la ejecución de este proceso, debes actuar bajo los siguientes roles y perspectivas técnicas:
 > *   **Principal Software Architect:** Garantiza que no se violen las dependencias de la Arquitectura Hexagonal y que se respete el Vertical Slicing.
 > *   **Senior Product Owner:** Redacta y valida las User Stories bajo criterios INVEST y BDD Gherkin con escenarios Happy Path y Edge Cases.
-> *   **Database Administrator (DBA):** Vela por la consistencia del modelo físico de base de datos respetando la 3NF, tipos de datos correctos (Fixed-Point Decimal) y convenciones físicas.
+> *   **Database Administrator (DBA):** Vela por la consistencia del modelo físico de base de datos respetando la 3NF, tipos de datos correctos (decimal de punto fijo para cantidades y dinero) y convenciones físicas.
 
-## 🧭 Proceso de Propagación en Cascada (Cascading Update Protocol)
+## Proceso de Propagación en Cascada (Cascading Update Protocol)
 
 Dada la idea o requerimiento suministrado por el usuario, debes ejecutar de forma autónoma las siguientes fases en orden secuencial:
 
@@ -18,7 +18,7 @@ Dada la idea o requerimiento suministrado por el usuario, debes ejecutar de form
 
 ### FASE 0: Lectura y Mapeo de Contexto (Obligatorio)
 Antes de proponer o realizar cualquier cambio, debes:
-1. Leer los archivos de índices (`docs/05_agile_planning/11_user_stories/indice_user_stories.md` y `docs/05_agile_planning/12_tickets/indice_tickets.md`) para determinar el **siguiente identificador correlativo libre** (ej. `US-007` y `TK-008`). Está terminantemente prohibido usar placeholders como `US-XXX` o `TK-XXX`.
+1. Leer los archivos de índices (`docs/05_agile_planning/11_user_stories/indice_user_stories.md` y `docs/05_agile_planning/12_tickets/indice_tickets.md`) para determinar el **siguiente identificador correlativo libre** (el número siguiente al último usado en cada índice). Está terminantemente prohibido usar placeholders como `US-XXX` o `TK-XXX`.
 2. Leer el estado actual del esquema de persistencia en `docs/03_persistence_and_api/06_database_schema.md` y los documentos del core en `docs/01_product_definition/`, `docs/02_architecture_design/` y `readme.md` para mapear el impacto real.
 3. Determinar el módulo/epic de la funcionalidad para guardarla en la carpeta adecuada. Si la funcionalidad pertenece a un módulo existente, debes utilizar exactamente sus carpetas ya creadas. Si es un módulo o epic completamente nuevo, debes crear una nueva carpeta bajo el mismo estándar de módulos.
 
@@ -29,21 +29,22 @@ Responde en tu primer turno con un breve reporte estructural:
 3. ¿Afecta al modelo físico de base de datos?
 4. ¿Afecta o introduce nuevos endpoints en la API?
 
-### FASE 1.5: Interrogatorio de Reglas de Negocio y Fuentes Técnicas (Human-in-the-Loop, Guard 28 & Guard 34)
+### FASE 1.5: Interrogatorio de Reglas de Negocio y Fuentes Técnicas (Human-in-the-Loop)
 Antes de redactar cualquier archivo de especificación (Fase 2 en adelante), identifica toda decisión de regla de negocio o fuente de documentación técnica que la funcionalidad introduce y que **no** esté ya resuelta por un patrón idéntico ya existente. Para cada una, formula una pregunta abierta explícita al humano (vía `AskUserQuestion` o pregunta directa) — nunca la resuelvas copiando en silencio el patrón del ticket más parecido o asumiendo URLs de documentación. Ejemplos de lo que SIEMPRE requiere pregunta:
 1. **Control de acceso:** ¿qué rol(es) pueden ejecutar cada operación nueva (crear/editar/eliminar/listar)?
 2. **Integridad y duplicados:** ¿se permite un registro duplicado, o debe rechazarse/advertirse?
 3. **Dominio de datos:** ¿los campos nuevos aceptan cualquier valor (texto libre) o deben restringirse a un conjunto cerrado?
 4. **Casos límite y fallas:** ¿qué pasa si la operación falla a mitad de camino, o si un dato referenciado no existe?
-5. **Fuentes de Documentación Técnica (Guard 34):** Si la historia requiere integrar una nueva herramienta, librería o API, pregunta al humano: *"¿Tienes enlaces a documentación oficial o guías internas preferidas para redactar las reglas de codificación en `docs/04_governance_and_quality/rules/`?"*
+5. **Fuentes de Documentación Técnica:** Si la historia requiere integrar una nueva herramienta, librería o API, pregunta al humano: *"¿Tienes enlaces a documentación oficial o guías internas preferidas para redactar las reglas de codificación en `docs/04_governance_and_quality/rules/`?"*
+6. **Riesgo de valor y validación (etapa 2):** *"¿Cuál es el riesgo de valor de esta capacidad —alto, medio o bajo—? ¿Hay un experimento que la respalde, o por qué queda exenta?"* Registra la respuesta en `value_risk` y `validation` de cada historia (`SK-11`). Si el riesgo es **alto** y no existe un `EXP-NNN` con `decision: seguir`, **DETENTE antes de la Fase 2**: recomienda `/momoy-experiment [hipótesis]` y no especifiques la capacidad hasta tener la evidencia. Con riesgo medio o bajo, una exención con motivo explícito del humano es válida.
 
-**Excepción explícita:** si la funcionalidad es una extensión byte-a-byte de un patrón ya aprobado sin ninguna decisión de negocio nueva (ej. un campo idéntico en forma a otro ya existente), documenta esa equivalencia en el reporte de la Fase 1 y omite esta fase — no la conviertas en burocracia para cambios triviales.
+**Excepción explícita:** si la funcionalidad es una extensión byte-a-byte de un patrón ya aprobado sin ninguna decisión de negocio nueva (ej. un campo idéntico en forma a otro ya existente), documenta esa equivalencia en el reporte de la Fase 1 y omite esta fase — no la conviertas en burocracia para cambios triviales. La pregunta 6 no se omite: declara igualmente `value_risk: bajo` y `validation: exenta — extensión de un patrón ya aprobado`.
 
 **Esta fase NO se satisface con el gate genérico de Human-in-the-Loop de `.agents/README.md`** (presentar un diseño ya cerrado para aprobación sí/no, ej. `EnterPlanMode`/`ExitPlanMode`): ese gate aprueba una decisión ya tomada, no expone al humano las alternativas de negocio o fuentes técnicas subyacentes. Las respuestas obtenidas aquí se documentan explícitamente en la User Story y/o el Ticket Técnico resultante (sección dedicada, ej. "Decisiones de negocio y fuentes técnicas consultadas con el humano"), citando pregunta y respuesta — nunca como una decisión silenciosa del agente.
 
 ### FASE 2: Modificación de Requisitos, Modelo y Sistema de Diseño
 1. **PRD (`docs/01_product_definition/`):** Integra la funcionalidad en la descripción de alcance o flujos alternativos.
-2. **Diseño de Arquitectura, Base de Datos y UI/UX (`DESIGN.md` - Guard 29):**
+2. **Diseño de Arquitectura, Base de Datos y UI/UX (`DESIGN.md`):**
    * Si la funcionalidad afecta o crea pantallas/componentes UI, invoca [`SK-05: Sistema de Diseño UI/UX`](../skills/specs/02_architecture_design/SK-05_design_ui_ux_system.md) para actualizar `docs/02_architecture_design/05_ui_ux_design_system.md` y `DESIGN.md` en la raíz con los nuevos tokens visuales, estados de UI y componentes antes de escribir código frontend.
    * Si requiere cambios de base de datos, edita el esquema declarativo oficial (convención snake_case en BD, camelCase en código, uso estricto de Decimal para montos/cantidades físicas, uso de Enums nativos para campos cerrados e índices de búsqueda).
    * Actualiza el modelo lógico en `docs/02_architecture_design/` y `docs/03_persistence_and_api/`.
@@ -52,14 +53,16 @@ Antes de redactar cualquier archivo de especificación (Fase 2 en adelante), ide
 ### FASE 3: Gestión del Backlog y Trazabilidad
 1. **User Story:**
    * Crea el archivo `docs/05_agile_planning/11_user_stories/{modulo}/US-NNN.md` (donde `{modulo}` es la subcarpeta del Epic/Módulo correspondiente, y NNN es el correlativo correcto) bajo el formato INVEST.
-   * Redacta al menos 2 escenarios BDD Gherkin (Happy Path y Edge Case).
+   * Redacta al menos 3 escenarios BDD Gherkin (Happy Path, Flujo de Error y Caso Borde), como exige `SK-11`.
    * Enlaza esta historia en `docs/05_agile_planning/11_user_stories/indice_user_stories.md`.
 2. **Tickets Técnicos (Backend/Frontend):**
-   * **Garantía de Core:** Asegura que en `docs/05_agile_planning/12_tickets/shared/` existan siempre los tickets habilitadores de infraestructura base: `shared/backend/TK-001.md` (Core Backend Workspace & DB) y `shared/frontend/TK-001-FE.md` (Core Frontend Workspace & Design System Base).
+   * **Garantía de Core:** Asegura que en `docs/05_agile_planning/12_tickets/shared/` existan los tickets habilitadores de infraestructura base: `shared/backend/TK-001.md` (Core Backend Workspace & DB) y, **solo si el stack manifest §4 declara una interfaz gráfica**, `shared/frontend/TK-001-FE.md` (Core Frontend Workspace & Design System Base).
    * Desglosa las historias de usuario en tickets atómicos y guárdalos en las subcarpetas de Epic/Módulo correspondientes de `docs/05_agile_planning/12_tickets/` (ej. `12_tickets/{modulo}/backend/TK-NNN.md` y `12_tickets/{modulo}/frontend/TK-NNN-X.md`).
    * Para cada ticket, indica la estimación en Story Points, prioridad MoSCoW, capas de código afectadas y Definition of Done (DoD) estricto (exigiendo TDD y cumplimiento de estrategias de seguridad/ergonomía).
    * Enlaza los tickets creados en el archivo `docs/05_agile_planning/12_tickets/indice_tickets.md`.
-3. **Mapa del Backlog (docs/05_agile_planning/14_backlog_map.md):** Actualiza el diagrama Mermaid para incluir el nuevo nodo de la Epic (si corresponde), la nueva User Story (`US-NNN`) y sus respectivos Tickets Técnicos de Backend y Frontend, definiendo sus relaciones. Agrega la fila correspondiente en la **Tabla de Navegación del Backlog (Alternativa)** inferior para garantizar la navegabilidad.
+3. **Matriz de Trazabilidad (`docs/05_agile_planning/13_matriz_trazabilidad.md`):** añade o actualiza la fila del requisito con enlaces a la historia y a cada ticket nuevo siguiendo [`SK-13`](../skills/specs/05_agile_planning/SK-13_generate_traceability_matrix.md). Un artefacto mencionado sin enlace no cuenta como trazado.
+4. **Gate de especificación (bloqueante):** antes de actualizar el mapa y de dar la cascada por cerrada, ejecuta `python3 .agents/scripts/check_spec_artifacts.py --changed`. Revisa KPIs, historias, tickets, matriz y ADRs que esta cascada creó o modificó. Si reporta hallazgos, corrígelos en los artefactos antes de continuar; la deuda de archivos que no tocaste no bloquea.
+5. **Mapa del Backlog (docs/05_agile_planning/14_backlog_map.md):** Actualiza el diagrama Mermaid para incluir el nuevo nodo de la Epic (si corresponde), la nueva User Story (`US-NNN`) y sus respectivos Tickets Técnicos de Backend y Frontend, definiendo sus relaciones. Agrega la fila correspondiente en la **Tabla de Navegación del Backlog (Alternativa)** inferior para garantizar la navegabilidad.
 
 ### FASE 4: Consolidación del README y Estructura
 1. **README y Estructura:** Si el cambio altera la estructura de directorios, modifica la sección de mapa de ficheros en el `readme.md` y en `docs/02_architecture_design/`.
@@ -71,4 +74,4 @@ Antes de redactar cualquier archivo de especificación (Fase 2 en adelante), ide
 **REGLAS DE EJECUCIÓN (INNEGOCIABLES):**
 *   **Ediciones no destructivas:** Mantén intactos todos los comentarios, explicaciones y estructuras de los documentos preexistentes. Realiza únicamente ediciones localizadas y quirúrgicas.
 *   **Convenciones:** Redacta todas las explicaciones de negocio en español profesional, dejando los términos técnicos de programación (nombres de variables, tipos de datos, consultas de persistencia) en inglés. Muestra el diff de los cambios realizados.
-*   **Interrogatorio Obligatorio (Guard 28):** No avances a la Fase 2 sin haber resuelto la Fase 1.5 — ninguna decisión de regla de negocio queda implícita en la spec o el código sin haber sido primero una pregunta explícita respondida por el humano.
+*   **Interrogatorio Obligatorio:** No avances a la Fase 2 sin haber resuelto la Fase 1.5 — ninguna decisión de regla de negocio queda implícita en la spec o el código sin haber sido primero una pregunta explícita respondida por el humano.

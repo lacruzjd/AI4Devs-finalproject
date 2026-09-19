@@ -1,7 +1,7 @@
 ---
 name: product-discovery
 description: "Guía la fase de Descubrimiento de Producto (Product Discovery), investigación de mercado web activa, análisis Buy vs Build, graduación de incertidumbre, evaluación de oportunidades IA, Lean Canvas Mermaid Diagram (9 bloques) y delimitación agnóstica de specs MVP."
-version: "2.6.1"
+version: "2.9.0"
 category: "01_product_definition"
 inputs:
   - product_idea_or_research_md
@@ -17,20 +17,20 @@ Tu objetivo es procesar la entrada proporcionada (`[product_idea_or_research_md]
 
 ---
 
-## 📌 PROTOCOLO TRIMODAL DE EJECUCIÓN (TRIPLE MODE EXECUTION)
+## PROTOCOLO TRIMODAL DE EJECUCIÓN (TRIPLE MODE EXECUTION)
 
 Evalúa la naturaleza del parámetro de entrada y ejecuta el modo correspondiente:
 
-### 🟢 MODO A: REFINAMIENTO, NORMALIZACIÓN Y AUDITORÍA ADVERSARIAL (Insumo `00_research_human_notes.md`)
+### MODO A: REFINAMIENTO, NORMALIZACIÓN Y AUDITORÍA ADVERSARIAL (Insumo `00_research_human_notes.md`)
 1. **Preservación Incondicional del Insumo:** El archivo `00_research_human_notes.md` NO se sobreescribe ni se altera; permanece intacto como evidencia primaria del humano.
-2. **Normalización Semántica (DDD):** Lee el insumo usando `view_file`, desambigua la terminología y unifica el Lenguaje Ubicuo en `01_product_discovery.md`.
-3. **Auditoría de Cobertura:** Si identifica vacíos normativos o competitivos, ejecuta búsquedas web puntuales (`search_web`) para complementar sin alterar la visión del humano.
+2. **Normalización Semántica (DDD):** Lee el insumo, desambigua la terminología y unifica el Lenguaje Ubicuo en `01_product_discovery.md`.
+3. **Auditoría de Cobertura:** Si identifica vacíos normativos o competitivos, ejecuta búsquedas web puntuales con la herramienta de búsqueda del asistente para complementar sin alterar la visión del humano.
 
-### 🔵 MODO B: INVESTIGACIÓN AUTÓNOMA Y GENERACIÓN DE DESCUBRIMIENTO (Idea Vaga)
-1. **Investigación Web Activa (`search_web`):** Mapea soluciones comerciales (SaaS), alternativas Open Source, métricas de la industria y restricciones normativas.
+### MODO B: INVESTIGACIÓN AUTÓNOMA Y GENERACIÓN DE DESCUBRIMIENTO (Idea Vaga)
+1. **Investigación Web Activa:** Mapea soluciones comerciales (SaaS), alternativas Open Source, métricas de la industria y restricciones normativas.
 2. **Evaluación Estratégica "Buy vs. Build":** Justifica el desarrollo propio frente a soluciones existentes y extrae el Core Diferencial (Ventaja Competitiva).
 
-### 🟠 MODO C: RECONSTRUCCIÓN RETROACTIVA DESDE CÓDIGO LEGACY (Insumo `codebase_path`, sin `docs/` previo)
+### MODO C: RECONSTRUCCIÓN RETROACTIVA DESDE CÓDIGO LEGACY (Insumo `codebase_path`, sin `docs/` previo)
 Usado exclusivamente por [`00_brownfield_adoption_workflow.md`](../../../workflows/00_brownfield_adoption_workflow.md) cuando un proyecto existente adopta `.agents/` por primera vez y no tiene documentación de producto previa.
 1. **Inspección de Evidencia de Producto:** Examina rutas HTTP/endpoints, entidades de dominio, textos de UI, nombres de tablas y mensajes de commit/PR históricos para inferir qué problema de negocio resuelve el sistema — nunca a partir de nombres de variables o clases aisladas.
 2. **Entrevista Estructurada al Humano (OBLIGATORIA):** El código revela el "qué" pero no el "por qué" — presenta tu hipótesis de negocio inferida y formula preguntas puntuales al humano sobre: usuarios reales, métricas de éxito actuales, y qué partes del comportamiento observado en el código son reglas de negocio deliberadas vs. deuda técnica accidental. No asumas silenciosamente ninguna hipótesis sin esta confirmación.
@@ -38,14 +38,14 @@ Usado exclusivamente por [`00_brownfield_adoption_workflow.md`](../../../workflo
 
 ---
 
-## 📌 MATRIZ DE GRADUACIÓN DE INCERTIDUMBRE (LEAN DISCOVERY VS. RIGOR SDD)
+## MATRIZ DE GRADUACIÓN DE INCERTIDUMBRE (LEAN DISCOVERY VS. RIGOR SDD)
 Adapta la profundidad del análisis según la madurez del proyecto:
 - **Alta Volatilidad / Startup / MVP:** Delimita un **Slice Vertical Mínimo** (un único caso de uso ejecutable E2E con el modelo de datos mínimo). Prioriza velocidad de validación de hipótesis sobre exhaustividad documental.
 - **Sistema Maduro / Evolutivo:** Exige exhaustividad en el PRD, análisis formal de integraciones y modelo relacional completo.
 
 ---
 
-## 🧠 MINI-FRAMEWORK DE EVALUACIÓN DE OPORTUNIDADES DE IA
+## MINI-FRAMEWORK DE EVALUACIÓN DE OPORTUNIDADES DE IA
 Si el producto incluye o propone capacidades de Inteligencia Artificial (LLM, RAG, ML), evalúa obligatoriamente:
 1. **Impacto en KPIs de Negocio:** ¿Mejora ingresos, retención o reduce tiempos operativos significativamente?
 2. **Viabilidad de Datos:** ¿Existen datos históricos limpios, estructurados y accesibles?
@@ -54,17 +54,17 @@ Si el producto incluye o propone capacidades de Inteligencia Artificial (LLM, RA
 
 ---
 
-## 📌 CABECERA DE NAVEGABILIDAD Y TÍTULO
+## CABECERA DE NAVEGABILIDAD Y TÍTULO
 *Si existe `00_research_human_notes.md`:*
-`> **Navegación:** [00_research_human_notes.md](../../../../docs/01_product_definition/00_research_human_notes.md) (Insumo) ➔ [ 01_product_discovery.md ] ➔ [01_glosario_y_reglas_negocio.md](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [02_prd.md](../../../../docs/01_product_definition/02_prd.md)`
+`> **Navegación:** [00_research_human_notes.md](../../../../docs/01_product_definition/00_research_human_notes.md) (Insumo) → [ 01_product_discovery.md ] → [01_glosario_y_reglas_negocio.md](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [02_prd.md](../../../../docs/01_product_definition/02_prd.md)`
 
 *Si NO existe insumo previo:*
-`> **Navegación:** [ 01_product_discovery.md ] ➔ [01_glosario_y_reglas_negocio.md](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [02_prd.md](../../../../docs/01_product_definition/02_prd.md)`
+`> **Navegación:** [ 01_product_discovery.md ] → [01_glosario_y_reglas_negocio.md](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [02_prd.md](../../../../docs/01_product_definition/02_prd.md)`
 
 
-# 🚀 Paso 1: Concepción, Descubrimiento e Investigación (Product Discovery) - [NOMBRE_PRODUCTO]
+# Paso 1: Concepción, Descubrimiento e Investigación (Product Discovery) - [NOMBRE_PRODUCTO]
 
-## 📌 ÍNDICE DE CONTENIDOS
+## ÍNDICE DE CONTENIDOS
 1. [Resumen Ejecutivo (Lean Canvas Dashboard)](#1-resumen-ejecutivo-lean-canvas-dashboard)
 2. [Investigación de Mercado, Buy vs. Build y Frontera Problema/Solución](#2-investigación-de-mercado-buy-vs-build-y-frontera-problemasolución)
 3. [Visión y Métricas de Éxito (KPIs)](#3-visión-y-métricas-de-éxito-kpis)
@@ -92,7 +92,7 @@ graph TD
     classDef cos fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#263238;
     classDef rev fill:#e8eaf6,stroke:#283593,stroke-width:2px,color:#1a237e;
 
-    subgraph M["🚀 LEAN CANVAS DASHBOARD - [NOMBRE_PRODUCTO]"]
+    subgraph M["LEAN CANVAS DASHBOARD - [NOMBRE_PRODUCTO]"]
         direction TB
         
         subgraph TOP["NÚCLEO ESTRATÉGICO Y OPERATIVO"]
@@ -139,12 +139,13 @@ graph TD
 2. **Evaluación Estratégica "Buy vs. Build":** Fundamenta por qué las alternativas comerciales no resuelven el problema y justifica el desarrollo a medida.
 3. **Descripción Breve del Software:** Descripción ejecutiva del software y dolor operativo real que resuelve, sin tecnicismos ni referencias a IA.
 4. **Valor Añadido y Ventajas Competitivas:** Valor añadido aportado y Core Diferencial competitivo.
-5. **Separación de Roles (Estratégico vs. Operativo):** Diferencia las necesidades del perfil auditor/gerencial (rentabilidad y control) frente al perfil operativo de línea (velocidad y sencillez táctil).
+5. **Separación de Roles (Estratégico vs. Operativo):** Diferencia las necesidades del perfil auditor/gerencial (rentabilidad y control) frente al perfil operativo (velocidad y sencillez en su entorno de uso real).
 6. **El Problema Real y Contexto del Usuario:** Ineficiencias de negocio e impacto en los User Personas.
 
 ## 3. Visión del Producto, Descripción y Objetivos Estratégicos
 1. MÉTRICA DE LA ESTRELLA DEL NORTE (North Star Metric): Métrica cuantitativa de entrega de valor al usuario.
 2. TEMAS ENTEROS DEL ROADMAP: Módulos funcionales de valor de negocio 100% autónomos.
+3. KPIs MEDIBLES: una tabla con exactamente estas columnas: `| KPI | Fuente de datos | Línea base | Umbral de éxito | Ventana | Fecha de revisión |`. La **fuente de datos** dice de dónde saldrá el dato real; la **línea base**, desde dónde se parte (si aún no se midió, `Por medir` y cuándo); la **fecha de revisión** va en `AAAA-MM-DD` y es la que después dispara la medición de resultados. Si un KPI no tiene fuente posible, escribe `No medible: <motivo>` en esa columna — nunca inventes una fuente ni una cifra. Verificado por `.agents/scripts/check_spec_artifacts.py` (gate `kpi`).
 
 ## 4. Restricciones Operativas, Normativas y Entorno (Contexto Agnóstico)
 1. RESTRICCIONES DE CUMPLIMIENTO Y NORMATIVAS: Privacy, inocuidad, GDPR, EU AI Act o regulaciones sectoriales.
@@ -153,7 +154,7 @@ graph TD
 4. ENTORNO FÍSICO Y DISPOSITIVOS DE USO: Factores de forma y condiciones operativas táctiles/móviles/escritorio.
 
 ## 5. Delimitación del Alcance y Funciones Principales del MVP
-1. HIPÓTESIS DE VALIDACIÓN: Estructura "Creemos que si permitimos a [User Persona] realizar [acción], lograremos [impacto]".
+1. HIPÓTESIS DE VALIDACIÓN: Estructura "Creemos que si permitimos a [User Persona] realizar [acción], lograremos [impacto]". Formularla no la valida: toda hipótesis con riesgo de valor alto se pone a prueba con [`SK-37`](SK-37_design_validation_experiment.md) antes de especificarse, y la investigación del Modo B no cuenta como evidencia.
 2. USER PERSONA: Perfil del usuario, frustraciones y disparadores de uso.
 3. FUNCIONES PRINCIPALES Y HAPPY PATH (Slice Vertical): Secuencia lógica numerada del flujo de valor E2E.
 4. FUERA DE ALCANCE (Non-goals): Límites explícitos para prevenir el crecimiento descontrolado del alcance (scope creep).
@@ -164,4 +165,4 @@ Formula 5 preguntas incómodas sobre reglas de negocio complejas, escenarios lí
 ---
 
 Guarda el archivo en: `docs/01_product_definition/01_product_discovery.md` (o `[RUTA_DE_SALIDA]`).
-Extrae y registra términos e invariantes en: `docs/01_product_definition/01_glosario_y_reglas_negocio.md`.
+Extrae y registra términos e invariantes en: `docs/01_product_definition/01_glosario_y_reglas_negocio.md`. **Cada invariante lleva un identificador `INV-NN`** (ej. `**INV-01 — Título válido:** ...`): las historias y tickets que la implementan lo citan, y el gate `trazabilidad` marca toda invariante que ninguna historia ni ticket cite. Sin identificador, una invariante no se puede trazar. **Una invariante es una sola regla:** si dice dos cosas (ej. "la clave se guarda con hash y el administrador puede rotarla"), se divide en dos `INV-NN`; si no, un ticket que implementa la primera mitad la cita y la segunda queda sin implementar sin que nada lo detecte.

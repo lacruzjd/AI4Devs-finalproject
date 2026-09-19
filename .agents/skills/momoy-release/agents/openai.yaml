@@ -1,0 +1,3 @@
+# Codex: el comando solo se lanza cuando el usuario lo invoca explícitamente ($nombre o /skills).
+policy:
+  allow_implicit_invocation: false

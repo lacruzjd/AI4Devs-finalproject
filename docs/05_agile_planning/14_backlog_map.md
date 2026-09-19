@@ -306,6 +306,34 @@ graph TD
 | **🔐 Seguridad (`security`)** | regresión de TK-133 — smoke test de la Fase 0.2 pre-entrega (C-DEV-006-4) | [TK-135: `CLIENT_ORIGIN`/`ENCRYPTION_KEY` Vacíos Abortan el Arranque en `docker compose`](12_tickets/security/backend/TK-135.md) | N/A *(backend/infra)* | ✅ Done |
 | **🔐 Seguridad (`security`)** | barrido de CVEs pre-push — continuación de TK-134 (C-DEV-006-4) | [TK-136: Barrido de CVEs de Dependencias en la Ventana Pre-Push (`js-yaml`)](12_tickets/security/backend/TK-136.md) | N/A *(backend/infra)* | ✅ Done |
 
+---
 
+## Épica de usabilidad EXT-001 (revisión externa UX/UI)
 
+```mermaid
+graph TD
+    EXT["EXT-001 revisión externa UX/UI"] --> US038["US-038 Historial en el turno"]
+    EXT --> US039["US-039 Panel de estado"]
+    EXT --> US040["US-040 Vencido no se consume"]
+    EXT --> US041["US-041 Ordenar catálogo"]
+    EXT --> US042["US-042 Ficha de insumo"]
+    EXT --> US043["US-043 Errores por campo"]
+    US038 --> TK153["TK-153 guard stock:read"]
+    US038 --> TK153FE["TK-153-FE navegación"]
+    US039 --> TK154FE["TK-154-FE panel"]
+    US040 --> TK155["TK-155 regla de vencimiento"]
+    US040 --> TK155FE["TK-155-FE separación visual"]
+    US041 --> TK156FE["TK-156-FE orden"]
+    US042 --> TK157FE["TK-157-FE ficha"]
+    US043 --> TK158FE["TK-158-FE errores por campo"]
+    TK149FE["TK-149-FE montar AlertFeed"] --> TK154FE
+```
 
+| Historia | Tickets |
+|---|---|
+| [US-038](11_user_stories/stock/US-038.md) | [TK-153](12_tickets/stock/backend/TK-153.md), [TK-153-FE](12_tickets/stock/frontend/TK-153-FE.md) |
+| [US-039](11_user_stories/kitchen/US-039.md) | [TK-154-FE](12_tickets/kitchen/frontend/TK-154-FE.md) |
+| [US-040](11_user_stories/kitchen/US-040.md) | [TK-155](12_tickets/kitchen/backend/TK-155.md), [TK-155-FE](12_tickets/kitchen/frontend/TK-155-FE.md) |
+| [US-041](11_user_stories/catalog/US-041.md) | [TK-156-FE](12_tickets/catalog/frontend/TK-156-FE.md) |
+| [US-042](11_user_stories/catalog/US-042.md) | [TK-157-FE](12_tickets/catalog/frontend/TK-157-FE.md) |
+| [US-043](11_user_stories/shared/US-043.md) | [TK-158-FE](12_tickets/shared/frontend/TK-158-FE.md) |

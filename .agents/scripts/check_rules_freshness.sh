@@ -1,20 +1,34 @@
 #!/usr/bin/env bash
 
-# M-05: Detecta drift entre las reglas dinámicas (docs/04_governance_and_quality/rules/,
-# extraídas por SK-27) y los documentos fuente de los que se derivan. Informativo, no bloqueante:
-# un doc fuente más reciente que su regla derivada no es necesariamente un bug, pero merece revisión.
+# Detecta drift entre las reglas dinámicas (docs/04_governance_and_quality/rules/, extraídas por
+# SK-27) y los documentos fuente de los que se derivan.
+# Código 0: verificado — alineado, o con drift informado (no es necesariamente un bug, pero merece
+# revisión). Código 2: no verificable — falta la carpeta, falta alguna de las 7 reglas o una regla no
+# está commiteada. Anti-Gate-Hueco: lo que no se puede verificar nunca se informa como alineado.
 set -uo pipefail
 
-echo "🔄 Auditando frescura de reglas dinámicas vs documentos fuente..."
+echo "Auditando frescura de reglas dinámicas vs documentos fuente..."
 echo ""
 
 RULES_DIR="docs/04_governance_and_quality/rules"
 STALE_FOUND=0
+UNVERIFIABLE=0
+RULE_FILES=(domain_rules.md backend_rules.md frontend_rules.md database_rules.md security_rules.md testing_rules.md git_rules.md)
 
 if [ ! -d "$RULES_DIR" ]; then
-  echo "⚠️  $RULES_DIR no encontrado. Omitiendo verificación (proyecto sin SK-27 ejecutado aún)."
-  exit 0
+  echo "❌ No verificable: $RULES_DIR no existe. Ejecuta SK-27 para generar las reglas del proyecto."
+  exit 2
 fi
+
+for rule in "${RULE_FILES[@]}"; do
+  if [ ! -f "$RULES_DIR/$rule" ]; then
+    echo "❌ No verificable: falta $RULES_DIR/$rule (SK-27 genera las 7 reglas)."
+    UNVERIFIABLE=1
+  elif [ -n "$(git status --porcelain -- "$RULES_DIR/$rule" 2>/dev/null)" ]; then
+    echo "❌ No verificable: $RULES_DIR/$rule tiene cambios sin commit; la frescura se mide con el historial de git."
+    UNVERIFIABLE=1
+  fi
+done
 
 last_commit_epoch() {
   git log -1 --format=%ct -- "$1" 2>/dev/null || echo ""
@@ -33,6 +47,11 @@ check_pair() {
 
   for src in "${sources[@]}"; do
     [ -f "$src" ] || continue
+    if [ -n "$(git status --porcelain -- "$src" 2>/dev/null)" ]; then
+      echo "⚠️  Posible drift: '$src' tiene cambios sin commit posteriores a '$rule_file'."
+      STALE_FOUND=1
+      continue
+    fi
     local src_ts
     src_ts=$(last_commit_epoch "$src")
     [ -n "$src_ts" ] || continue
@@ -52,8 +71,11 @@ check_pair "$RULES_DIR/testing_rules.md" "docs/04_governance_and_quality/09_test
 check_pair "$RULES_DIR/git_rules.md" "AGENTS.md"
 
 echo ""
-if [ "$STALE_FOUND" -eq "0" ]; then
-  echo "✨ Reglas dinámicas alineadas con sus documentos fuente."
+if [ "$UNVERIFIABLE" -ne "0" ]; then
+  echo "No verificable: corrige lo marcado con ❌ antes de dar las reglas por alineadas."
+  exit 2
+elif [ "$STALE_FOUND" -eq "0" ]; then
+  echo "✅ Reglas dinámicas alineadas con sus documentos fuente."
 else
-  echo "ℹ️  Hay documentos fuente más recientes que su regla derivada (ver arriba). No bloqueante — revisión humana recomendada."
+  echo "Nota: hay documentos fuente más recientes que su regla derivada (ver arriba). No bloqueante — revisión humana recomendada."
 fi

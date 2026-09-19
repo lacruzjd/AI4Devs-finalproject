@@ -1,4 +1,4 @@
-# ⚙️ Instrucción para el Agente de IA: Protocolo de Desarrollo en Cascada
+# Instrucción para el Agente de IA: Protocolo de Desarrollo en Cascada
 
 > [!IMPORTANT]
 > **DIRECTIVA PARA EL AGENTE DE IA:**
@@ -12,7 +12,7 @@
 
 ---
 
-## 🧭 Proceso de Desarrollo en Cascada (Cascading Development Protocol)
+## Proceso de Desarrollo en Cascada (Cascading Development Protocol)
 
 Dado el ticket técnico (`TK-XXX`) o requerimiento de codificación suministrado por el usuario, debes ejecutar de forma autónoma las siguientes fases en orden secuencial:
 
@@ -21,7 +21,8 @@ Dado el ticket técnico (`TK-XXX`) o requerimiento de codificación suministrado
 ### FASE 0: Lectura del Ticket y Mapeo del Entorno
 Antes de escribir cualquier línea de código:
 1. **Analizar el Ticket:** Lee detalladamente la especificación del ticket (ubicada en `docs/05_agile_planning/12_tickets/{modulo}/{backend|frontend}/TK-XXX.md`). Identifica los Criterios de Aceptación y el Definition of Done (DoD).
-   - **Fail-Fast Obligatorio (Guard 26):** si ese archivo `TK-XXX.md` **no existe** — porque el usuario pidió implementar una capacidad nueva en lenguaje natural, sin ticket previo — **DETENTE aquí**. No improvises la implementación y reconstruyas la especificación después: invoca primero la Etapa 1 completa de [01_cascading_spec_workflow.md](01_cascading_spec_workflow.md) (`SK-02` → PRD, `SK-11` → User Story, `SK-12` → Ticket Técnico, `SK-13` → Matriz de Trazabilidad, `SK-14` → Backlog Map) y solo entonces vuelve a esta FASE 0 con el `TK-XXX.md` ya creado. Programar primero y especificar después viola este Guard aunque se corrija en la misma sesión.
+   - **Fail-Fast Obligatorio:** si ese archivo `TK-XXX.md` **no existe** — porque el usuario pidió implementar una capacidad nueva en lenguaje natural, sin ticket previo — **DETENTE aquí**. No improvises la implementación y reconstruyas la especificación después: invoca primero la Etapa 1 completa de [01_cascading_spec_workflow.md](01_cascading_spec_workflow.md) (`SK-02` → PRD, `SK-11` → User Story, `SK-12` → Ticket Técnico, `SK-13` → Matriz de Trazabilidad, `SK-14` → Backlog Map) y solo entonces vuelve a esta FASE 0 con el `TK-XXX.md` ya creado. Programar primero y especificar después viola este Guard aunque se corrija en la misma sesión.
+   - **Definition of Ready (bloqueante):** si el ticket existe, ejecuta `python3 .agents/scripts/check_spec_artifacts.py --ticket TK-XXX`. Si reporta hallazgos — tipo que mezcla backend y frontend, más de 5 puntos, historia inexistente, secciones obligatorias ausentes o ticket fuera de la matriz —, **DETENTE**: el ticket no está listo. Presenta los hallazgos al humano y corrige la especificación (o que el humano apruebe explícitamente seguir) antes de escribir código.
 2. **Identificar la Naturaleza de la Tarea:**
    - **Ticket de Backend:** Involucra dominio, casos de uso, repositorios y controladores REST.
    - **Ticket de Frontend:** Involucra componentes UI, hooks de estado, llamadas a la API y ruteo.
@@ -31,8 +32,8 @@ Antes de escribir cualquier línea de código:
 
 ### FASE 1: Extracción / Sincronización de Reglas (`SK-27_extract_rules`)
 1. Revisa la carpeta `docs/04_governance_and_quality/rules/`.
-2. Ejecuta `bash .agents/scripts/check_rules_freshness.sh` para verificar de forma determinista (vía timestamps de git, no inferencia) si algún doc fuente cambió después que su regla derivada.
-3. Ejecuta la skill [SK-27 Extracción de Reglas](../skills/development/01_rules_extraction/SK-27_extract_project_rules.md) para sincronizar las reglas de gobernanza técnica solo si: (a) los archivos de reglas (`domain_rules.md`, `backend_rules.md`, `frontend_rules.md`, `database_rules.md`, `testing_rules.md`, `security_rules.md`, `git_rules.md`) no existen, o (b) el script reportó `⚠️ Posible drift` para algún archivo relevante al ticket en curso.
+2. Ejecuta `bash .agents/scripts/check_rules_freshness.sh` para verificar de forma determinista (vía timestamps de git, no inferencia) si algún doc fuente cambió después que su regla derivada. Código de salida `0`: verificado (alineado, o con deriva informada); código `2`: **no verificable** — falta la carpeta de reglas, falta alguna de las 7 reglas o una regla no está commiteada. Un `2` nunca cuenta como alineado.
+3. Ejecuta la skill [SK-27 Extracción de Reglas](../skills/development/01_rules_extraction/SK-27_extract_project_rules.md) para sincronizar las reglas de gobernanza técnica solo si: (a) el script salió con código `2` porque faltan archivos de reglas (`domain_rules.md`, `backend_rules.md`, `frontend_rules.md`, `database_rules.md`, `testing_rules.md`, `security_rules.md`, `git_rules.md`), o (b) el script reportó `⚠️ Posible drift` para algún archivo relevante al ticket en curso.
 4. **Guarda nueva descubierta a mitad de proyecto:** si este ticket agrega una guarda nueva de "prohibir/mandatar patrón X" a la sección 6 de `AGENTS.md` (el patrón `"Discovered in TK-XXX"` ya usado por la mayoría de las guardas existentes), el mismo ticket DEBE también agregar el bullet correspondiente a la lista enumerada del paso "Generación de Scripts de Gobernanza Ejecutable" de `SK-27` — nunca dejar la guarda solo en prosa. Un `AGENTS.md` con una regla nueva y ningún script que la verifique es, en sí mismo, deuda de gobernanza sin cerrar: la próxima vez que alguien corra `SK-27` en este proyecto (o lo instale en uno nuevo vía `install.sh`), esa guarda debe generarse como script ejecutable, no solo copiarse como texto.
 
 ---
@@ -47,7 +48,7 @@ Si el ticket modifica o crea modelos de base de datos:
 ### FASE 3: Implementación Guiada por Pruebas - TDD (`SK-16` / `SK-17` & `05_test_runner_workflow`)
 Ejecuta la skill correspondiente ([SK-16 Backend](../skills/development/02_backend_development/SK-16_develop_backend_ticket.md) o [SK-17 Frontend](../skills/development/03_frontend_development/SK-17_develop_frontend_ticket.md)) delegando el bucle determinista de pruebas al subagente [05_test_runner_workflow.md](05_test_runner_workflow.md):
 1. **RED:** Escribir primero el test unitario o de integración usando `InMemoryRepository` fakes, confirmando el estado de fallo explícito.
-2. **GREEN:** Implementar el código mínimo en capas Hexagonales (`Domain` ➔ `Application` ➔ `Infrastructure`) hasta pasar el test.
+2. **GREEN:** Implementar el código mínimo en capas Hexagonales (`Domain` → `Application` → `Infrastructure`) hasta pasar el test.
 3. **REFACTOR & MUTATION:** Limpiar código e invocar la verificación de mutación según el umbral definido en `docs/04_governance_and_quality/rules/testing_rules.md`.
 
 ---
@@ -57,6 +58,7 @@ Antes de dar por terminado el desarrollo:
 1. Ejecuta la skill [SK-19 Refactorización y Lints](../skills/development/05_quality_and_lint/SK-19_refactor_and_lint.md).
 2. Valida la compilación de tipos y el análisis estático ejecutando los comandos CLI autorizados en `AGENTS.md`.
 3. **Quality Gate:** Se exige estricto **0 errores y 0 advertencias**. Si hay lints, deben ser resueltos antes de avanzar.
+4. **Descubrimiento de tests:** ejecuta `bash docs/04_governance_and_quality/scripts/check_test_discovery.sh` (generado por `SK-27`). Si el ticket añadió archivos de test, el recuento de su pasada debe haber subido: una suite en verde que no ejecutó los tests nuevos no prueba nada.
 
 ---
 
@@ -79,7 +81,7 @@ Si el ticket es de Frontend o interfaz de usuario:
 
 ---
 
-### FASE 5.B: Verificación en Vivo del Stack Completo (TK-055, para tickets de integración full-stack)
+### FASE 5.B: Verificación en Vivo del Stack Completo (para tickets de integración full-stack)
 Si el ticket toca integración full-stack real (un endpoint nuevo consumido por UI, un flujo de autenticación, o cambios en el arranque/seed/migraciones del backend), ejecuta [09_live_stack_verification_workflow.md](09_live_stack_verification_workflow.md) — levanta la infraestructura real declarada en `docs/00_stack_manifest.md`, recorre el flujo crítico del ticket con el motor E2E declarado, y limpia el entorno de prueba por completo al terminar. No sustituye a `SK-20`/TDD, es la capa que verifica que las piezas ya probadas por separado funcionan juntas con infraestructura real — el mecanismo concreto detrás del Antipatrón B de `rules/04_verified_implementation_standard.md`.
 
 ---
@@ -92,7 +94,7 @@ Antes del commit final, revisa las correcciones reales que ocurrieron durante es
    - Patrón de código prohibido/obligatorio y verificable de forma determinista → nueva Guard en la Sección 6 de `AGENTS.md` (formato `"Discovered in TK-XXX"`, igual que las guardas existentes) + evalúa si amerita también un bullet nuevo en la lista de generación de scripts de `SK-27_extract_project_rules.md` (ver FASE 1, punto 4 de este mismo workflow).
    - Regla de negocio/dominio (ej. un rango válido, una invariante) → el archivo de reglas correspondiente en `docs/04_governance_and_quality/rules/` o el PRD en `docs/01_product_definition/`, nunca una Guard de código.
    - Corrección de proceso/flujo de trabajo del propio agente → un paso nuevo o una aclaración en el workflow relevante (`01`-`09`), no una Guard de código.
-3. **Redacta la propuesta completa antes de presentarla**: texto exacto de la regla, archivo destino, y si aplica, si el script de verificación se genera ahora o queda explícitamente pendiente para una sesión de auditoría posterior (no todo requiere el costo de un script inmediato; sí requiere quedar registrado para que no se pierda — la Guard 29 vivió solo en prosa entre `TK-057-FE` y la auditoría que la cerró, precisamente por no quedar registrada como pendiente en ningún lado).
+3. **Redacta la propuesta completa antes de presentarla**: texto exacto de la regla, archivo destino, y si aplica, si el script de verificación se genera ahora o queda explícitamente pendiente para una sesión de auditoría posterior (no todo requiere el costo de un script inmediato; sí requiere quedar registrado para que no se pierda — en un proyecto real, la regla de alineación con el sistema de diseño vivió solo en prosa durante varios tickets hasta la auditoría que la cerró, precisamente por no quedar registrada como pendiente en ningún lado).
 4. **Presenta al humano para aprobación explícita** — reutiliza el gate HITL ya existente en `.agents/README.md` ("ningún cambio a `rules/`, `skills/` o `workflows/` gobierna nada sin confirmación explícita del humano"). No se escribe nada de este paso sin esa confirmación.
 5. Solo con aprobación, escribe el/los archivo(s) correspondiente(s).
 
@@ -106,7 +108,7 @@ Si esta fase no encuentra ninguna corrección que pase el filtro del punto 1, re
 
 ---
 
-## 🚫 REGLAS DE EJECUCIÓN INNEGOCIABLES:
-1. **No Vibe-Coding (Guard 26):** Jamás comiences a escribir clases o controladores sin haber leído las reglas en `docs/04_governance_and_quality/rules/` y el ticket específico — y si ese ticket no existe todavía, el primer paso es crearlo vía la Etapa 1 (`01_cascading_spec_workflow.md`), nunca escribir el código primero y documentarlo después.
+## REGLAS DE EJECUCIÓN INNEGOCIABLES:
+1. **No Vibe-Coding:** Jamás comiences a escribir clases o controladores sin haber leído las reglas en `docs/04_governance_and_quality/rules/` y el ticket específico — y si ese ticket no existe todavía, el primer paso es crearlo vía la Etapa 1 (`01_cascading_spec_workflow.md`), nunca escribir el código primero y documentarlo después.
 2. **InMemory Fakes:** Nunca uses mocks complejos de bases de datos para tests unitarios. Utiliza repositorios falsos en memoria (`InMemoryRepository`).
 3. **Commit por Ticket:** No consolides el trabajo de varios tickets en un solo commit. Mantén la trazabilidad git impecable.

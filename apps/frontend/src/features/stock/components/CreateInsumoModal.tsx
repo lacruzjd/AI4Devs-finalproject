@@ -14,7 +14,35 @@ interface CreateInsumoModalProps {
 
 type Unit = 'KG' | 'L' | 'UNITS';
 
-const TextField: React.FC<{ id: string; label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; step?: string; min?: string; maxLength?: number; required?: boolean }> = ({
+/**
+ * US-043 / TK-158-FE: el mensaje vive junto a su campo, asociado con `aria-describedby`
+ * y marcado con `aria-invalid` — el banner de cabecera queda solo para los errores que no
+ * corresponden a ningún campo (por ejemplo, un fallo del servidor).
+ */
+/** US-043 / TK-158-FE: campos obligatorios y su mensaje, separados del envío. */
+const FIELD_INPUT_IDS: Partial<Record<keyof FormState, string>> = {
+  name: 'insumo-name-input',
+  storageLocationId: 'insumo-sector-select',
+};
+
+function validateInsumoForm(state: FormState): Partial<Record<keyof FormState, string>> {
+  const invalid: Partial<Record<keyof FormState, string>> = {};
+  if (!state.name.trim()) invalid.name = 'El nombre del insumo es obligatorio.';
+  if (!state.storageLocationId) {
+    invalid.storageLocationId = 'Debe seleccionar el sub-sector de bodega donde se deposita el insumo.';
+  }
+  return invalid;
+}
+
+/** Mueve el foco al primer campo inválido en orden de lectura; devuelve si había alguno. */
+function focusFirstInvalid(invalid: Partial<Record<keyof FormState, string>>): boolean {
+  const [firstInvalid] = Object.keys(invalid) as (keyof FormState)[];
+  if (!firstInvalid) return false;
+  document.getElementById(FIELD_INPUT_IDS[firstInvalid] ?? '')?.focus();
+  return true;
+}
+
+const TextField: React.FC<{ id: string; label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; step?: string; min?: string; maxLength?: number; required?: boolean; error?: string }> = ({
   id,
   label,
   value,
@@ -25,6 +53,7 @@ const TextField: React.FC<{ id: string; label: string; value: string; onChange: 
   min,
   maxLength,
   required,
+  error,
 }) => (
   <div className="mb-4">
     <label htmlFor={id} className="form-label">
@@ -41,7 +70,14 @@ const TextField: React.FC<{ id: string; label: string; value: string; onChange: 
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       required={required}
+      aria-invalid={error ? true : undefined}
+      aria-describedby={error ? `${id}-error` : undefined}
     />
+    {error && (
+      <p id={`${id}-error`} role="alert" className="field-error">
+        {error}
+      </p>
+    )}
   </div>
 );
 
@@ -83,13 +119,16 @@ function useCreateInsumoForm(onClose: () => void, onSuccess: () => void) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // US-043 / TK-158-FE: errores por campo; `error` queda para lo que no tiene campo.
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormState, string>>>({});
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setState((s) => ({ ...s, [key]: value }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!state.name.trim()) return setError('El nombre del insumo es obligatorio.');
-    if (!state.storageLocationId) return setError('Debe seleccionar el sub-sector de bodega donde se deposita el insumo.');
+    const invalid = validateInsumoForm(state);
+    setFieldErrors(invalid);
+    if (focusFirstInvalid(invalid)) return;
 
     setLoading(true);
     setError(null);
@@ -112,11 +151,11 @@ function useCreateInsumoForm(onClose: () => void, onSuccess: () => void) {
     }
   };
 
-  return { state, set, loading, error, submit };
+  return { state, set, loading, error, fieldErrors, submit };
 }
 
 export const CreateInsumoModal: React.FC<CreateInsumoModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { state, set, loading, error, submit } = useCreateInsumoForm(onClose, onSuccess);
+  const { state, set, loading, error, fieldErrors, submit } = useCreateInsumoForm(onClose, onSuccess);
 
   if (!isOpen) return null;
 
@@ -129,8 +168,8 @@ export const CreateInsumoModal: React.FC<CreateInsumoModalProps> = ({ isOpen, on
 
       {error && <ErrorBanner message={error} />}
 
-      <form onSubmit={submit}>
-        <TextField id="insumo-name-input" label="Nombre del Insumo *" value={state.name} onChange={(v) => set('name', v)} placeholder="Ej. Queso Parmesano" required />
+      <form noValidate onSubmit={submit}>
+        <TextField id="insumo-name-input" label="Nombre del Insumo *" value={state.name} onChange={(v) => set('name', v)} placeholder="Ej. Queso Parmesano" required error={fieldErrors.name} />
         <UnitToggle value={state.unitOfMeasure} onChange={(v) => set('unitOfMeasure', v)} />
         <div className="mb-4">
           <StorageSectorSelect id="insumo-sector-select" label="Sub-sector de Bodega *" value={state.storageLocationId} onChange={(v) => set('storageLocationId', v)} />

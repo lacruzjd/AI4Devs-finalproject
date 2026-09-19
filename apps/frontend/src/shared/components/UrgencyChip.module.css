@@ -25,6 +25,15 @@
   border-color: var(--color-danger);
   color: var(--color-danger-text);
 }
+
+/* US-040 / TK-155-FE: vencido comparte el rojo con crítico, así que se distingue por
+   relleno sólido (no solo por color) y por su etiqueta "Vencido" (WCAG 1.4.1). */
+.chip--expired {
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+  color: var(--color-danger-on);
+  font-weight: 700;
+}
 .chip--warning {
   background-color: color-mix(in srgb, var(--color-warning) 15%, transparent);
   border-color: var(--color-warning);
@@ -42,6 +51,10 @@
 :global(:root[data-theme='dark']) .chip--critical {
   background-color: transparent;
   color: var(--color-danger-text);
+}
+:global(:root[data-theme='dark']) .chip--expired {
+  background-color: var(--color-danger);
+  color: var(--color-danger-on);
 }
 :global(:root[data-theme='dark']) .chip--warning {
   background-color: transparent;

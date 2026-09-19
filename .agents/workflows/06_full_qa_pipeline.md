@@ -1,23 +1,23 @@
 ---
 name: 06_full_qa_pipeline
-description: "Pipeline QA completo SOTA v2.1: (0) Pre-Flight Check proactivo, (1) Análisis Anti-N+1, Mass-Assignment y contratos, (2) Diseño de tests Few-Shot RAG, (3) Auto-Loop TDD & Mutación Stryker >= 70% con veredicto en JSON Schema estricto."
-version: "2.1.0"
+description: "Pipeline QA completo v2.2: (0) Pre-Flight Check proactivo, (1) Análisis Anti-N+1, Mass-Assignment y contratos, (2) Diseño de tests Few-Shot RAG, (3) Auto-Loop TDD & Mutación Stryker >= 70% con veredicto en JSON Schema estricto."
+version: "2.2.0"
 category: "workflows/quality"
 ---
 
-# 🧪 Full QA Pipeline SOTA (v2.1.0)
+# Full QA Pipeline (v2.2.0)
 
 Este workflow ejecuta el pipeline de aseguramiento de calidad de forma interactiva, segura y determinista sobre el proyecto.
 
 ---
 
-## ⚡ Paso 0 — Pre-Flight Proactive Health Check
+## Paso 0 — Pre-Flight Proactive Health Check
 1. Ejecutar la verificación de tipos y linters oficiales declarados en `AGENTS.md` antes de modificar cualquier archivo.
 2. Si se detecta desincronización de tipos o compilación corrupta, invocar `SK-22_agent_troubleshooting` para corregir de forma preventiva antes de continuar.
 
 ---
 
-## 🎯 Paso 1 — Análisis de Riesgo RBT (6 Dimensiones), Anti-N+1, Mass-Assignment & Contratos
+## Paso 1 — Análisis de Riesgo RBT (6 Dimensiones), Anti-N+1, Mass-Assignment & Contratos
 1. Escanear los cambios en el código (`git diff` o archivo objetivo).
 2. **Evaluación de Riesgos en 6 Dimensiones (Prompt 8 RBT Standard):**
    - **UI:** Renderizado, feedback visual, micro-animaciones, ergonomic targets $\ge 48\text{px}$.
@@ -28,13 +28,13 @@ Este workflow ejecuta el pipeline de aseguramiento de calidad de forma interacti
    - **Regresión:** Efectos colaterales en módulos adyacentes.
 3. **Estructura de Evaluación por Riesgo:**
    - Descripción del riesgo | Impacto | Probabilidad (Alta/Media/Baja) | Severidad | Método de Detección (Oráculo) | Tipo de Prueba Recomendada.
-4. **Auditorías Específicas de Backend:** Anti-N+1 en ORM, Anti-Mass-Assignment y Validación de Contrato OpenAPI.
+4. **Auditorías Específicas de Backend:** Anti-N+1 en ORM, Anti-Mass-Assignment y Validación de Contrato de API. La validación de contrato se ejecuta con la auditoría diferencial adversarial de [`SK-25`](../skills/development/05_quality_and_lint/SK-25_audit_contract_validation.md) (contrato vs. validadores de runtime, con severidad CRÍTICA/ALTA/MEDIA/BAJA); cualquier discrepancia CRÍTICA entra en la Matriz RBT como riesgo bloqueante.
 5. Entregar la Matriz RBT estructurada sin generar código todavía.
-6. 🛑 **PAUSA OBLIGATORIA (Gate 1):** Esperar confirmación del usuario para avanzar al Paso 2.
+6. **PAUSA OBLIGATORIA (Gate 1):** Esperar confirmación del usuario para avanzar al Paso 2.
 
 ---
 
-## 🧪 Paso 2 — Modelado MBT (`SK-34`), Fixture Builders (`SK-32`) & Few-Shot RAG (`SK-26`)
+## Paso 2 — Modelado MBT (`SK-34`), Fixture Builders (`SK-32`) & Few-Shot RAG (`SK-26`)
 1. Invocar `SK-34_model_based_testing_designer` para construir el modelo de máquina de estados (Estados, Transiciones, Guards, Invariantes).
 2. Invocar `SK-26_few_shot_retriever` para recuperar los 2 mejores patrones de tests/código existentes en la base de código actual.
 3. Invocar `SK-32_test_fixture_builder` para generar constructores de datos de prueba deterministas (Object Mother / Builder Pattern) para la fase *Arrange*.
@@ -43,11 +43,11 @@ Este workflow ejecuta el pipeline de aseguramiento de calidad de forma interacti
    - Cobertura simétrica Sad Path (al menos 1 test de excepción RFC 7807 por cada flujo feliz).
    - Casos borde (Unicode, nulos, rangos extremales).
    - Snapshots de regresión visual (`toHaveScreenshot()`) en componentes UI táctiles/móviles si aplica.
-5. 🛑 **PAUSA OBLIGATORIA (Gate 2):** Esperar confirmación del usuario sobre el modelo MBT para avanzar al Paso 3 (Generación de Código).
+5. **PAUSA OBLIGATORIA (Gate 2):** Esperar confirmación del usuario sobre el modelo MBT para avanzar al Paso 3 (Generación de Código).
 
 ---
 
-## 🔄 Paso 3 — Bucle TDD, Performance & Auto-Loop de Pruebas de Mutación (`05_test_runner_workflow`)
+## Paso 3 — Bucle TDD, Performance & Auto-Loop de Pruebas de Mutación (`05_test_runner_workflow`)
 1. **DELEGACIÓN A SUBAGENTE DE TESTING:** Invocar el subagente especializado [05_test_runner_workflow.md](05_test_runner_workflow.md) para ejecutar el ciclo RED-GREEN-REFACTOR.
 2. **VERIFICACIÓN DE SLAS DE RENDIMIENTO:** Invocar `SK-29_load_and_performance_testing` para validar que los percentiles de latencia cumplan los criterios (p95 < 200ms).
 3. **MUTATION AUTO-LOOP:** Ejecutar el runner de Mutation Testing del proyecto especificado en `AGENTS.md`. Si el **Mutation Score es menor al umbral de `testing_rules.md` (default: 70%)**, el subagente ejecutará iteraciones autónomas (hasta 3 ciclos) agregando casos borde adicionales hasta matar a todos los mutantes sintéticos.

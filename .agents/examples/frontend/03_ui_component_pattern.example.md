@@ -1,10 +1,10 @@
-# 📐 Patrón Agnóstico: Componente UI y Estados Defensivos
+# Patrón Agnóstico: Componente UI y Estados Defensivos
 
 Este documento define la estructura abstracta (pseudocódigo) de un **Componente de Interfaz de Usuario** con abstracción por repositorio (DIP) y 4 estados defensivos. Es 100% agnóstico de UI framework (React, Vue, Angular, Svelte, Flutter, etc.).
 
 ---
 
-## 🧩 Pseudocódigo de Referencia:
+## Pseudocódigo de Referencia:
 
 ```text
 INTERFAZ IRepositorioClienteUI:

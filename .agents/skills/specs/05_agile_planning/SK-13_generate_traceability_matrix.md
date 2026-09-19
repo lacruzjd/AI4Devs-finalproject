@@ -1,7 +1,7 @@
 ---
 name: traceability-matrix
 description: "Audita la trazabilidad biyectiva End-to-End del sistema (regla de cero orfandad) y autogenera la Matriz de Trazabilidad SDD."
-version: "3.2.0"
+version: "3.4.0"
 category: "05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
@@ -13,7 +13,7 @@ outputs:
   - "docs/05_agile_planning/13_matriz_trazabilidad.md"
 ---
 
-# 📊 SK-13: Matriz de Trazabilidad End-to-End (v3.2.0)
+# SK-13: Matriz de Trazabilidad End-to-End (v3.4.0)
 
 Actúa como un **Lead Quality & Governance Architect** experto en trazabilidad documental, gestión de requerimientos y auditoría de alineación entre especificaciones de negocio, esquemas de BD, contratos de API y tickets de trabajo.
 
@@ -21,7 +21,7 @@ Tu objetivo es cruzar verticalmente los artefactos del sistema para generar la M
 
 ---
 
-## 🚫 Non-Goals de Ejecución del Agente (Guards)
+## Non-Goals de Ejecución del Agente (Guards)
 
 Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 1. **Regla de Cero Orfandad:** Prohibido dejar tickets o requerimientos sueltos. Todo ticket técnico debe tener asignada al menos 1 Historia de Usuario (`US-XXX`) y 1 Endpoint REST o entidad de persistencia correspondiente.
@@ -29,26 +29,27 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ---
 
-## 🔄 Pipeline de Ejecución Secuencial en 3 Pasos
+## Pipeline de Ejecución Secuencial en 3 Pasos
 
-### 📍 Paso 1: Auditoría de Trazabilidad Vertical (Cross-Check)
+### Paso 1: Auditoría de Trazabilidad Vertical (Cross-Check)
 1. Cruzar los Requerimientos (`REQ-XXX`) del PRD con las Historias de Usuario (`11_user_stories/`), los Tickets Técnicos (`12_tickets/`), los Modelos de Persistencia (`06_database_schema.md`) y los Endpoints REST (`07_api_specification.md`).
 2. Verificar el estado de desarrollo de cada componente (`Done`, `In Progress`, `Pending`).
 
-### 📍 Paso 2: Construcción de la Matriz End-to-End
+### Paso 2: Construcción de la Matriz End-to-End
 1. Generar el archivo `docs/05_agile_planning/13_matriz_trazabilidad.md` con las columnas: `ID Req.`, `Módulo / Slice`, `Entidad de Persistencia`, `Endpoint REST`, `Historia de Usuario`, `Ticket Backend`, `Ticket Frontend`, `Estado` y `Skill de IA Asociada`.
 
-### 📍 Paso 3: Validación de Cobertura
+### Paso 3: Validación de Cobertura
 1. Confirmar que el 100% de los requerimientos del MVP tengan cobertura completa en backend y frontend.
 2. **Trazabilidad de decisiones de arquitectura (ADR):** si el proyecto tiene ADRs (`docs/02_architecture_design/adr/`, generados por [`SK-36`](../02_architecture_design/SK-36_generate_architecture_decision_record.md)), auditar el enlace en **ambos sentidos** y reportar las dos clases de huérfano:
    - **ADR huérfano:** un ADR `Accepted` cuyo campo `Implementado por:` no nombra ninguna historia/ticket existente — la decisión se tomó pero nadie la ejecutó, o la ejecutó sin registrarlo.
    - **Decisión no registrada:** un ticket cuyo alcance resuelve una disyuntiva con ≥2 caminos viables sin ADR que la respalde (ver Test Decisivo de `SK-36` Fase 1).
 
-   Ambos casos se **reportan al humano**, nunca se corrigen inventando el enlace que falta (misma prohibición de invención del Guard 2 de este skill).
+   Ambos casos se **reportan al humano**, nunca se corrigen inventando el enlace que falta (misma prohibición de invención del Non-Goal 2 de este skill).
+3. **Verificación determinista antes de dar la matriz por buena:** ejecuta `python3 .agents/scripts/check_spec_artifacts.py --changed`. Su gate `trazabilidad` comprueba lo mecánico — cada historia y ticket enlazado desde la matriz (distingue "no aparece" de "aparece sin enlace"), enlaces que resuelven, ADRs `accepted` que nombran artefactos existentes e **invariantes `INV-NN` del glosario que alguna historia o ticket cita** —; la "decisión no registrada" sigue siendo juicio y se revisa a mano.
 
 ---
 
-## 📌 Formato de Salida y Cabecera GFM
+## Formato de Salida y Cabecera GFM
 
 El archivo generado en `docs/05_agile_planning/13_matriz_trazabilidad.md` debe incluir:
 
@@ -66,10 +67,10 @@ inputs:
   - docs/05_agile_planning/12_tickets/
 ---
 
-# 📊 Matriz de Trazabilidad End-to-End (Verified Spec-Driven Development - VSDD)
+# Matriz de Trazabilidad End-to-End (Verified Spec-Driven Development - VSDD)
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Índice de Tickets (12_tickets/12_indice_tickets.md)](./12_tickets/12_indice_tickets.md) | [📖 Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Mapa Jerárquico del Backlog (14_backlog_map.md) ➡️](./14_backlog_map.md)
+> [← Volver a Índice de Tickets (12_tickets/indice_tickets.md)](./12_tickets/indice_tickets.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Mapa Jerárquico del Backlog (14_backlog_map.md) →](./14_backlog_map.md)
 
 ---
 ```

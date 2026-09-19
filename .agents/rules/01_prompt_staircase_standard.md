@@ -1,15 +1,15 @@
-# 🧗‍♂️ Estándar de Escalera de Prompts de 8 Peldaños (.agents/rules/01_prompt_staircase_standard.md)
+# Estándar de Escalera de Prompts de 8 Peldaños (.agents/rules/01_prompt_staircase_standard.md)
 
 Este documento define la secuencia procedimental innegociable de 8 peldaños que todo subagente de IA y desarrollador DEBE seguir al abordar tareas de automatización de pruebas y QA.
 
 ---
 
-## 📐 Regla Fundamental
+## Regla Fundamental
 > ⚠️ **"Un error común es pedirle a la IA el Peldaño 6 (generar código) sin haber completado y validado los Peldaños 1 al 5. No automatices pantallas; automatiza comportamientos."**
 
 ---
 
-## 🪜 Los 8 Peldaños de la Escalera de Prompts
+## Los 8 Peldaños de la Escalera de Prompts
 
 ```mermaid
 graph TD
@@ -19,12 +19,12 @@ graph TD
     STEP4 --> STEP5["5. Definición de Oráculos Multi-Capa (UI + Red + Estado)"]
     STEP5 --> STEP6["6. Generación de Código de Prueba (Sin Sleeps Fijos)"]
     STEP6 --> STEP7["7. Diagnóstico y Triage (SK-22)"]
-    STEP7 --> STEP8["8. Endurecimiento Senior (Helpers / POM - Guard 20)"]
+    STEP7 --> STEP8["8. Endurecimiento Senior (Helpers / POM)"]
 ```
 
 ---
 
-### 📝 Desglose de Peldaños
+### Desglose de Peldaños
 
 | Peldaño | Nombre del Peldaño | Acción Exigida al Agente de IA | Artefacto Generado |
 | :---: | :--- | :--- | :--- |
@@ -35,4 +35,4 @@ graph TD
 | **5** | **Definición de Oráculos** | Establecer validaciones exactas para UI, Red y Estado. | Tupla de 3 Oráculos |
 | **6** | **Generación de Código** | Escribir la suite TDD/E2E sin `sleeps` fijos ni delays flotantes. | Código de Prueba Base |
 | **7** | **Diagnóstico y Triage** | Analizar fallos, flakiness y timing sin relajar oráculos. | Fix Mínimo (`SK-22`) |
-| **8** | **Endurecimiento Senior** | Encapsular en Page Objects y helpers, anotando el código. | Code Refactor (Guard 20) |
+| **8** | **Endurecimiento Senior** | Encapsular en Page Objects y helpers, anotando el código. | Code Refactor |

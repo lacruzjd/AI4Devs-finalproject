@@ -3,6 +3,7 @@ import { IConsumptionReasonRepository } from '../../../domain/kitchen/repositori
 import { DecimalQuantity } from '../../../domain/stock/value-objects/DecimalQuantity.js';
 import { EntityNotFoundException } from '../../../domain/errors/EntityNotFoundException.js';
 import { InactiveConsumptionReasonException } from '../../../domain/kitchen/errors/InactiveConsumptionReasonException.js';
+import { RemanenteExpiredException } from '../../../domain/kitchen/errors/RemanenteExpiredException.js';
 
 export interface ConsumeRemanenteDTO {
   remanenteId: string;
@@ -31,6 +32,13 @@ export class ConsumeRemanenteUseCase {
     const remanente = await this.remanenteRepository.findRemanenteById(dto.remanenteId);
     if (!remanente) {
       throw new EntityNotFoundException('Remanente', dto.remanenteId);
+    }
+
+    // US-040 / INV-5: la inocuidad manda sobre el resto de validaciones — un remanente
+    // vencido no se consume ni aunque el motivo sea válido. Solo se puede descartar.
+    const now = new Date();
+    if (remanente.isExpired(now)) {
+      throw new RemanenteExpiredException(remanente.id);
     }
 
     // ADR-004: el motivo se resuelve y valida ANTES de tocar el remanente — un

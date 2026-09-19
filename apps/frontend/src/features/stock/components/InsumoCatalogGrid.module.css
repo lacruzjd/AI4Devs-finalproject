@@ -38,3 +38,17 @@
   font-size: var(--fs-xs);
   color: var(--text-secondary);
 }
+
+/* US-042 / TK-157-FE: el nombre del insumo actúa como entrada a su ficha. */
+.insumo-name-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}

@@ -1,7 +1,7 @@
 ---
 name: SK-22_agent_troubleshooting
 description: "Guía procedimental de autorrecuperación para diagnosticar y resolver fallos de compilación, bloqueos de migraciones o errores de dependencias de forma agnóstica."
-version: "1.0.0"
+version: "1.0.1"
 category: "development/05_quality_and_lint"
 inputs:
   - error_log: "Mensaje o traza de error de compilación/ejecución"
@@ -17,7 +17,7 @@ Sigue estrictamente este árbol de decisión procedimental:
 
 ---
 
-## 🔍 FASE 1: Clasificación del Error
+## FASE 1: Clasificación del Error
 1. **Identificar la Naturaleza del Error:**
    - **Error de Tipos / Compilación (ej. faltantes de módulos, inconsistencias de tipos/interfaces):** Módulos o declaraciones desactualizadas.
    - **Error de Persistencia / Migración de BD (ej. locks de migración, esquemas desalineados):** Tablas desincronizadas o clientes ORM no generados.
@@ -25,7 +25,7 @@ Sigue estrictamente este árbol de decisión procedimental:
 
 ---
 
-## 🛠️ FASE 2: Algoritmo de Autorrecuperación
+## FASE 2: Algoritmo de Autorrecuperación
 
 ### Caso A: Fallo de Compilación en Monorepo / Módulos Compartidos
 1. **Acción:** Recompilar todos los paquetes del monorepo en orden de dependencia usando el comando de `build` declarado en `AGENTS.md`.
@@ -38,6 +38,6 @@ Sigue estrictamente este árbol de decisión procedimental:
 
 ---
 
-## 🚨 FASE 3: Verificación de Recuperación
+## FASE 3: Verificación de Recuperación
 1. **Confirmar Corrección:** Ejecutar nuevamente el comando que había fallado inicialmente.
 2. **Validar Calidad:** Ejecutar los comandos oficiales de `test` y `lint` declarados en `AGENTS.md` para asegurar 0 errores y 0 regresiones.

@@ -1,4 +1,4 @@
-# 🏚️ Instrucción para el Agente de IA: Adopción de Proyecto Brownfield (Código Existente ➔ `.agents/` Operativo)
+# Instrucción para el Agente de IA: Adopción de Proyecto Brownfield (Código Existente → `.agents/` Operativo)
 
 > [!IMPORTANT]
 > **DIRECTIVA PARA EL AGENTE DE IA:**
@@ -16,7 +16,7 @@
 
 ---
 
-## 🧭 Proceso de Adopción (Fases Secuenciales)
+## Proceso de Adopción (Fases Secuenciales)
 
 ### FASE 0: Verificación de Precondiciones
 1. Confirma que `docs/00_stack_manifest.md` **no existe**. Si existe, aplica la Guardia de Entrada de arriba y detente.
@@ -34,7 +34,7 @@ El código revela comportamiento, no intención de negocio — esta fase existe 
 3. Invoca [`SK-03: Modelo Conceptual de Dominio`](../skills/specs/02_architecture_design/SK-03_design_domain_model.md) sobre el PRD reconstruido. Produce `docs/02_architecture_design/03_domain_model.md` — es una dependencia explícita de `SK-04` en FASE 3.
 
 ### FASE 3: Descubrimiento de Stack Tecnológico (Delegado en `SK-04`, Modo Brownfield — Human-in-the-Loop OBLIGATORIO)
-Invoca [`SK-04: Arquitectura de Sistema y Stack Tecnológico`](../skills/specs/02_architecture_design/SK-04_design_technical_architecture.md) en su **Modo Brownfield**: inspecciona manifiestos reales del proyecto (`package.json`, lockfiles, `requirements.txt`, Dockerfiles, etc.), presenta el inventario detectado al humano para confirmación — nunca propone alternativas a tecnología ya en producción — y tras la aprobación escribe tanto `docs/02_architecture_design/04_technical_design.md` como `docs/00_stack_manifest.md` (con las 8 secciones canónicas, poblado con lo realmente detectado, no con valores por defecto).
+Invoca [`SK-04: Arquitectura de Sistema y Stack Tecnológico`](../skills/specs/02_architecture_design/SK-04_design_technical_architecture.md) en su **Modo Brownfield**: inspecciona manifiestos reales del proyecto (`package.json`, lockfiles, `requirements.txt`, Dockerfiles, etc.), presenta el inventario detectado al humano para confirmación — nunca propone alternativas a tecnología ya en producción — y tras la aprobación escribe tanto `docs/02_architecture_design/04_technical_design.md` como `docs/00_stack_manifest.md` (con las 9 secciones canónicas, poblado con lo realmente detectado, no con valores por defecto).
 
 ### FASE 4: Contrato Operativo Raíz
 La mayoría de las skills invocadas de aquí en adelante (incluyendo `SK-27` a continuación) asumen que `AGENTS.md` existe para leer comandos canónicos — en un proyecto que nunca usó `.agents/`, casi siempre no existe todavía, aunque el proyecto ya tenga código funcionando.

@@ -148,14 +148,14 @@ def main():
     for msg in messages:
         print(msg)
 
-    print(f"\n📊 Total de enlaces + required_rules verificados: {checked_count}")
-    print(f"📊 Total de skills con ID único auditadas: {skill_count}")
-    print(f"🚨 Total de problemas de integridad encontrados: {broken_count}")
+    print(f"\nTotal de enlaces + required_rules verificados: {checked_count}")
+    print(f"Total de skills con ID único auditadas: {skill_count}")
+    print(f"Total de problemas de integridad encontrados: {broken_count}")
 
     if broken_count > 0:
         sys.exit(1)
     else:
-        print("✨ Enlaces, required_rules e IDs de skills en .agents/ están 100% correctos y verificados.")
+        print("✅ Enlaces, required_rules e IDs de skills en .agents/ están 100% correctos y verificados.")
 
 
 if __name__ == "__main__":

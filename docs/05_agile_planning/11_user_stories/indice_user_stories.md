@@ -90,3 +90,12 @@ Este documento contiene las especificaciones detalladas de las historias de usua
     *   *Descripción:* Corrige la inconsistencia de `US-023`: Reportes se muestra inline (no como `<Modal>` flotante) y Ajustes pasa a 5 sub-rutas deep-linkables (`/ajustes/configuracion`, `/personal`, `/roles`, `/movimientos`, `/catalogo`). ✅ Frontend implementado (`TK-089-FE`, `TK-090-FE`); verificado en el stack Docker real.
 *   **[US-031: Fusión Selectiva de Patrones de UI Explorados con Stitch](shared/US-031.md)**
     *   *Descripción:* 4 mejoras puntuales de interacción elegidas por el humano entre 5 mockups exploratorios (no productivos) generados con Google Stitch: chips de operario reciente en el login, botón de acción rápida circular en el tablero de cocina, resaltado full-bleed de fila con varianza en conciliación, y barra de herramientas acoplada en el catálogo de bodega. No cambia tokens ni tipografía del Sistema FEFO (`05_ui_ux_design_system.md` v4.2.0). ✅ Cerrada: `TK-113-FE`/`TK-115-FE`/`TK-116-FE` implementados; `TK-114-FE` cerrado sin código (ya existía desde `US-023`).
+
+## Épica de usabilidad EXT-001 (revisión externa UX/UI, 2026-09-18)
+
+*   **[US-038: Consultar el historial de movimientos durante el turno](stock/US-038.md)** — ⏳ Approved. Épica de usabilidad `EXT-001` (revisión externa UX/UI).
+*   **[US-039: Ver de un vistazo qué necesita atención al abrir la aplicación](kitchen/US-039.md)** — ⏳ Approved. Épica de usabilidad `EXT-001` (revisión externa UX/UI).
+*   **[US-040: Impedir el consumo de un remanente vencido](kitchen/US-040.md)** — ⏳ Approved. Épica de usabilidad `EXT-001` (revisión externa UX/UI).
+*   **[US-041: Ordenar el catálogo de insumos](catalog/US-041.md)** — ⏳ Approved. Épica de usabilidad `EXT-001` (revisión externa UX/UI).
+*   **[US-042: Consultar la ficha de un insumo con su historial](catalog/US-042.md)** — ⏳ Approved. Épica de usabilidad `EXT-001` (revisión externa UX/UI).
+*   **[US-043: Ver el error junto al campo que lo causa](shared/US-043.md)** — ⏳ Approved. Épica de usabilidad `EXT-001` (revisión externa UX/UI).

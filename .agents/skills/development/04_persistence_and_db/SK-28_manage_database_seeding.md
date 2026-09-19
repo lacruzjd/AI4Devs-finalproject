@@ -1,7 +1,7 @@
 ---
 name: SK-28_manage_database_seeding
 description: "Guía procedimental agnóstica para crear, auditar y ejecutar estrategias de sembrado de datos (seeding) bajo los 5 pilares profesionales de ingeniería."
-version: "1.0.0"
+version: "1.0.2"
 category: "development/04_persistence_and_db"
 inputs:
   - seeding_requirements: "Descripción de las entidades, catálogo maestro o fixtures a sembrar"
@@ -17,7 +17,7 @@ Sigue secuencialmente este flujo procedimental:
 
 ---
 
-## 🔍 FASE 1: Verificación de Reglas y Clasificación de Datos
+## FASE 1: Verificación de Reglas y Clasificación de Datos
 1. **Leer Reglas de Base de Datos:** Revisa `docs/04_governance_and_quality/rules/database_rules.md` (Sección 3: *Gobernanza y Manejo Profesional de Semillas*).
 2. **Clasificar los Datos Solicitados:**
    - **Essential Seeds (Estructurales):** ¿Son catálogos fijos, roles o configuraciones obligatorias para el funcionamiento del sistema en Producción?
@@ -26,9 +26,9 @@ Sigue secuencialmente este flujo procedimental:
 
 ---
 
-## 🛠️ FASE 2: Diseño del Script de Sembrado Agnóstico e Idempotente
+## FASE 2: Diseño del Script de Sembrado Agnóstico e Idempotente
 1. **Garantizar Idempotencia Obligatoria:**
-   - En ORMs (Prisma, TypeORM, Drizzle): Utiliza `upsert({ where, update, create })` en `prisma/seed.ts`.
+   - En ORMs (ej. Prisma, TypeORM, Drizzle): utiliza la operación idempotente del ORM declarado (ej. `upsert({ where, update, create })`) en el script de seed que declara el proyecto.
    - En SQL Nativo: Utiliza `INSERT INTO ... ON CONFLICT (...) DO UPDATE`.
    - En Repositorios InMemory/NoSQL: Comprueba la existencia por identificador único antes de sembrar.
 2. **Sanitización PII y Hashing Seguro:**
@@ -38,14 +38,14 @@ Sigue secuencialmente este flujo procedimental:
 
 ---
 
-## 🚀 FASE 3: Desacoplamiento y Runner CLI
+## FASE 3: Desacoplamiento y Runner CLI
 1. **Crear o Actualizar el Runner CLI:** Ubica la semilla relacional física en `prisma/seed.ts` (usando `PrismaClient`) y la semilla efímera en `src/infrastructure/seeds/seed.ts`.
 2. **Configurar el Comando de Ejecución:** Asegúrate de declarar el script ejecutable en `package.json` (ej. `"seed": "tsx prisma/seed.ts"`, `"db:seed": "prisma db seed"`).
 3. **Desacoplar de Servidores Web:** Garantiza que el arranque del servidor de producción (`app.ts` / `server.ts`) NO ejecute semillas pesadas en tiempo de recepción de tráfico.
 
 ---
 
-## 🧪 FASE 4: Verificación y Reporte
+## FASE 4: Verificación y Reporte
 1. **Ejecutar el Runner:** Corre el comando de sembrado del proyecto (ej. `npx prisma db seed` o runner equivalente).
 2. **Probar Idempotencia:** Re-ejecuta el comando por segunda vez y confirma que termine con **0 errores** y **0 registros duplicados**.
 3. **Reportar al Humano:** Notifica el estado y los registros sembrados estructurados según `.agents/rules/00_output_reporting_standard.md`.

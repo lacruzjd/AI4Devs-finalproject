@@ -26,6 +26,8 @@ export const router = createBrowserRouter([
       // catálogo de bodega, no las estaciones). Redirect para enlaces guardados.
       { path: 'estaciones', element: <Navigate to="/bodega" replace /> },
       { path: 'recetas', element: <RecetasRoute /> },
+      // US-038 / TK-153-FE (ADR-007): el historial deja de vivir bajo /ajustes.
+      { path: 'movimientos', element: <MovimientosRoute /> },
       {
         path: 'reportes',
         element: (
@@ -46,7 +48,8 @@ export const router = createBrowserRouter([
           { path: 'configuracion', element: <ConfiguracionRoute /> },
           { path: 'personal', element: <PersonalRoute /> },
           { path: 'roles', element: <RolesRoute /> },
-          { path: 'movimientos', element: <MovimientosRoute /> },
+          // Ruta antigua conservada como redirección: el equipo tiene el enlace guardado.
+          { path: 'movimientos', element: <Navigate to="/movimientos" replace /> },
           { path: 'motivos', element: <MotivosRoute /> },
           { path: 'ia', element: <AiSettingsRoute /> },
         ],

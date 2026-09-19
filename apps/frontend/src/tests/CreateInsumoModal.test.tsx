@@ -26,6 +26,19 @@ describe('TK-078-FE / TK-096-FE: CreateInsumoModal', () => {
     vi.unstubAllGlobals();
   });
 
+  it('US-043/TK-158-FE: el error de un campo obligatorio aparece junto al campo y le da el foco', async () => {
+    render(<CreateInsumoModal isOpen onClose={vi.fn()} onSuccess={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Guardar Insumo/i }));
+
+    const nameInput = await screen.findByLabelText(/Nombre del Insumo/i);
+    expect(nameInput).toHaveAttribute('aria-invalid', 'true');
+    const describedBy = nameInput.getAttribute('aria-describedby');
+    expect(describedBy).toBeTruthy();
+    expect(document.getElementById(describedBy as string)).toHaveTextContent('El nombre del insumo es obligatorio.');
+    expect(nameInput).toHaveFocus();
+  });
+
   it('debe mostrar el campo de costo con la unidad de medida por defecto (KG) como sufijo', () => {
     stubFetch(() => ({}));
     render(<CreateInsumoModal isOpen={true} onClose={() => {}} onSuccess={() => {}} />);

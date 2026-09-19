@@ -92,12 +92,14 @@ export const AlertFeed: React.FC<AlertFeedProps> = ({
         </p>
       </header>
 
-      <main className={styles['alert-feed-main']}>
+      {/* TK-149-FE: era <main> dentro de un <section> — el documento ya tiene su main en la
+          ruta, y dos rompen la semántica (y las consultas por rol de los tests). */}
+      <div className={styles['alert-feed-main']}>
         {viewState === 'error' && <AlertFeedErrorState error={error as string} onRetry={onRetry} />}
         {viewState === 'loading' && <AlertFeedSkeleton />}
         {viewState === 'empty' && <AlertFeedEmptyState />}
         {viewState === 'data' && <AlertFeedDataReady alerts={alerts} onAction={onAction} />}
-      </main>
+      </div>
     </section>
   );
 };

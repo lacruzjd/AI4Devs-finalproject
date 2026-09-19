@@ -9,6 +9,8 @@ Execute commands autonomously from workspace root using exact flags:
 - **Run Unit/Integration Tests:** `pnpm test`
 - **Run Full Build Verification:** `pnpm run build`
 - **Run Linter & Static Analysis:** `pnpm run lint`
+- **Run Type Check:** `pnpm -r exec tsc --noEmit`
+- **Generate Prisma Client (after install, before lint/test/build):** `pnpm --filter @restostock/backend exec prisma generate --schema=prisma/schema.prisma`
 - **Validate DB Schema:** `pnpm --filter @restostock/backend exec prisma validate --schema=prisma/schema.prisma`
 - **Validate OpenAPI Spec:** `npx -y @stoplight/spectral-cli lint docs/03_persistence_and_api/openapi.yaml`
 - **Validate DESIGN.md Spec:** `npx -y @google/design.md lint DESIGN.md`

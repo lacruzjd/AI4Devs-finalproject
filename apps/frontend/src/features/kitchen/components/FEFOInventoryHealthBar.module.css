@@ -31,6 +31,15 @@
 .health-bar-segment--safe { background-color: var(--color-success); }
 .health-bar-segment--warning { background-color: var(--color-warning); }
 .health-bar-segment--critical { background-color: var(--color-danger); }
+/* Vencido: mismo rojo que crítico, diferenciado por trama diagonal para no depender del color. */
+.health-bar-segment--expired {
+  background-color: var(--color-danger);
+  background-image: repeating-linear-gradient(
+    45deg,
+    color-mix(in srgb, var(--color-danger-on) 35%, transparent) 0 3px,
+    transparent 3px 7px
+  );
+}
 
 /* Leyenda numérica bajo la barra (TK-087-FE) */
 .health-legend {

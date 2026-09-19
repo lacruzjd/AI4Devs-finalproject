@@ -17,8 +17,18 @@ también a .py, no solo a .sh; (2) cualquier archivo con una extensión fuera de
 allowlist .sh/.py/.md es en sí mismo una violación — la vía más simple de acoplarse a un
 stack es escribir el script en otro lenguaje por completo, y ningún substring bloqueado
 lo habría detectado.
+
+Segunda pasada (documentación): el markdown de skills, workflows y rules es el 90% de momoy y
+tampoco puede acoplarse a un proyecto concreto. Hasta ahora nada lo verificaba, y en un
+proyecto real se acumularon identificadores de su historial (tickets, auditorías) que en otro
+proyecto no significan nada o colisionan con los suyos, y números de guardia que solo existen
+en un AGENTS.md concreto (SK-27 advierte que esa numeración es propia de cada proyecto). La
+pasada es informativa por defecto; --strict-docs la vuelve bloqueante y es el modo que usa
+validate_agents.sh desde que la deuda heredada llegó a 0.
 """
+import argparse
 import os
+import re
 import sys
 
 BLOCKED_SUBSTRINGS = [
@@ -53,6 +63,66 @@ PATTERN_CHECKED_EXTENSIONS = {".sh", ".py"}
 # contiene, por definición, cada patrón prohibido). Único archivo exento del chequeo de
 # patrones; sigue sujeto al chequeo de extensión como cualquier otro.
 SELF_FILENAME = os.path.basename(__file__)
+
+
+DOC_PATTERNS = [
+    (re.compile(r"\b(?:TK|US|REQ)-\d{3}(?:-[A-Z0-9]+)?\b"),
+     "identificador de ticket, historia o requisito de un proyecto concreto: describe la lección, no su ID"),
+    (re.compile(r"\bAUDIT-[A-Z]+-\d{3}\b|\bC-DEV-\d{3}-\d+\b"),
+     "identificador de auditoría de un proyecto concreto: describe la lección, no su ID"),
+    (re.compile(r"\bGuards? \d+\b"),
+     "número de guardia: depende del AGENTS.md de cada proyecto; cita la guardia por su nombre"),
+    (re.compile(r"apps/(?:backend|frontend)"),
+     "layout de monorepo de un proyecto concreto"),
+]
+# Convención de momoy (SK-12): todo proyecto tiene tickets habilitadores de core con estos IDs.
+DOC_ALLOWED_MATCHES = {"TK-001", "TK-001-FE"}
+DOC_EXEMPT_FILENAMES = {"CHANGELOG.md"}
+# Toda tecnología sale de docs/00_stack_manifest.md: un comando de gestor de paquetes escrito
+# como instrucción impone un stack. Se admite marcado como ejemplo o junto a la referencia al
+# manifest. Mencionar el binario sin argumentos (una enumeración) no es un comando.
+DOC_COMMAND_PATTERN = re.compile(
+    r"`(?:pnpm|npm|npx|yarn|bun|pip3?|poetry|uv|cargo|mvn|gradle|dotnet|composer|bundle)\s[^`]*`")
+DOC_COMMAND_REASON = ("comando de gestor de paquetes impuesto por momoy: la herramienta y el comando salen de "
+                      "docs/00_stack_manifest.md (§6 y §7); léelo del manifest o márcalo como ejemplo (ej.)")
+DOC_EXAMPLE_MARKERS = re.compile(r"\bej\.|\bpor ejemplo\b|\be\.g\.|equivalente|stack_manifest", re.IGNORECASE)
+# Herramientas de formatos de artefacto propios de momoy, no elecciones del proyecto (SK-05: DESIGN.md).
+DOC_ALLOWED_COMMAND_SUBSTRINGS = ("@google/design.md",)
+DOC_EXTENSIONS = {".md", ".sh", ".py"}
+
+
+def run_doc_checks(agents_dir):
+    """Recorre .agents/ (excluyendo tests/, __pycache__, el CHANGELOG y este módulo) buscando
+    acoplamiento a un proyecto concreto en documentación y comentarios.
+
+    Devuelve (checked_count, findings) con findings = [(ruta_relativa, línea, motivo, coincidencia)].
+    """
+    checked_count = 0
+    findings = []
+    if not os.path.isdir(agents_dir):
+        return checked_count, findings
+    for root, dirs, files in os.walk(agents_dir):
+        dirs[:] = sorted(d for d in dirs if d not in EXCLUDED_DIR_NAMES)
+        for fname in sorted(files):
+            _, ext = os.path.splitext(fname)
+            if ext not in DOC_EXTENSIONS or fname in DOC_EXEMPT_FILENAMES or fname == SELF_FILENAME:
+                continue
+            file_path = os.path.join(root, fname)
+            rel_path = os.path.relpath(file_path, agents_dir)
+            checked_count += 1
+            with open(file_path, encoding="utf-8", errors="ignore") as f:
+                for line_idx, line in enumerate(f, 1):
+                    for pattern, reason in DOC_PATTERNS:
+                        for match in (m.group(0) for m in pattern.finditer(line)):
+                            if match not in DOC_ALLOWED_MATCHES:
+                                findings.append((rel_path, line_idx, reason, match))
+                    for m in DOC_COMMAND_PATTERN.finditer(line):
+                        if DOC_EXAMPLE_MARKERS.search(line[:m.start()]):
+                            continue
+                        if any(allowed in m.group(0) for allowed in DOC_ALLOWED_COMMAND_SUBSTRINGS):
+                            continue
+                        findings.append((rel_path, line_idx, DOC_COMMAND_REASON, m.group(0)))
+    return checked_count, findings
 
 
 def run_checks(scripts_dir):
@@ -116,6 +186,10 @@ def run_checks(scripts_dir):
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Guardas de agnosticismo de momoy.")
+    parser.add_argument("--strict-docs", action="store_true", help="falla si la documentación está acoplada a un proyecto")
+    parser.add_argument("--verbose", action="store_true", help="lista cada acoplamiento de la documentación")
+    args = parser.parse_args()
     scripts_dir = os.path.dirname(os.path.abspath(__file__))
 
     checked_count, violation_count, messages = run_checks(scripts_dir)
@@ -123,13 +197,26 @@ def main():
     for msg in messages:
         print(msg)
 
-    print(f"\n📊 Total de archivos .sh/.py auditados en .agents/scripts/ (recursivo): {checked_count}")
-    print(f"🚨 Total de acoplamientos a stack encontrados: {violation_count}")
+    print(f"\nTotal de archivos .sh/.py auditados en .agents/scripts/ (recursivo): {checked_count}")
+    print(f"Total de acoplamientos a stack encontrados: {violation_count}")
 
-    if violation_count > 0:
+    doc_checked, doc_findings = run_doc_checks(os.path.dirname(scripts_dir))
+    marker = "❌" if args.strict_docs else "⚠️"
+    if args.verbose or args.strict_docs:
+        for rel_path, line_idx, reason, match in doc_findings:
+            print(f"{marker} {rel_path} L{line_idx}: '{match}' — {reason}")
+    by_reason = {}
+    for _, _, reason, _ in doc_findings:
+        by_reason[reason] = by_reason.get(reason, 0) + 1
+    print(f"\nTotal de archivos de .agents/ auditados por acoplamiento a proyecto: {doc_checked}")
+    print(f"Total de acoplamientos a proyecto en documentación: {len(doc_findings)}"
+          + ("" if args.strict_docs else " (informativo; --verbose para listarlos)"))
+    for reason, count in sorted(by_reason.items(), key=lambda kv: -kv[1]):
+        print(f"  {count:4d}  {reason.split(':')[0]}")
+
+    if violation_count > 0 or (args.strict_docs and doc_findings):
         sys.exit(1)
-    else:
-        print("✨ .agents/scripts/ sigue siendo 100% agnóstico de stack.")
+    print("✅ .agents/scripts/ sigue siendo 100% agnóstico de stack.")
 
 
 if __name__ == "__main__":
