@@ -8,17 +8,21 @@ interface InsumoCardProps {
   item: InsumoItem;
   onRestock: (insumo: InsumoItem) => void;
   onEdit: (insumo: InsumoItem) => void;
+  onOpenDetail: (insumo: InsumoItem) => void;
   canManage: boolean;
 }
 
-const InsumoCard: React.FC<InsumoCardProps> = ({ item, onRestock, onEdit, canManage }) => {
+const InsumoCard: React.FC<InsumoCardProps> = ({ item, onRestock, onEdit, onOpenDetail, canManage }) => {
   const [expanded, setExpanded] = useState(false);
   const breakdown = item.stockByLocation ?? [];
 
   return (
     <div className={styles['insumo-card']}>
       <div className="flex-between gap-2">
-        <span className="fw-semibold">{item.name}</span>
+        {/* US-042 / TK-157-FE: el nombre abre la ficha con su stock por sector y movimientos. */}
+        <button type="button" className={styles['insumo-name-button']} onClick={() => onOpenDetail(item)}>
+          {item.name}
+        </button>
         <span className="neutral-badge">{item.unitOfMeasure}</span>
       </div>
       <div className="text-primary-color font-mono fs-xs mt-1">{item.id}</div>
@@ -58,14 +62,15 @@ interface InsumoCatalogGridProps {
   insumos: InsumoItem[];
   onRestock: (insumo: InsumoItem) => void;
   onEdit: (insumo: InsumoItem) => void;
+  onOpenDetail: (insumo: InsumoItem) => void;
   canManage: boolean;
 }
 
 /** Vista de grilla del catálogo de bodega (TK-116-FE, US-031) — alternativa a `InsumoTable`. */
-export const InsumoCatalogGrid: React.FC<InsumoCatalogGridProps> = ({ insumos, onRestock, onEdit, canManage }) => (
+export const InsumoCatalogGrid: React.FC<InsumoCatalogGridProps> = ({ insumos, onRestock, onEdit, onOpenDetail, canManage }) => (
   <div className={styles['insumo-grid']}>
     {insumos.map((item) => (
-      <InsumoCard key={item.id} item={item} onRestock={onRestock} onEdit={onEdit} canManage={canManage} />
+      <InsumoCard key={item.id} item={item} onRestock={onRestock} onEdit={onEdit} onOpenDetail={onOpenDetail} canManage={canManage} />
     ))}
   </div>
 );

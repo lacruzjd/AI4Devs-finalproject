@@ -22,6 +22,33 @@ describe('TK-116-FE: barra de herramientas acoplada del catálogo de bodega (US-
     );
   };
 
+  it('US-041/TK-156-FE: ordena por cantidad respetando el filtro y la búsqueda', async () => {
+    stubInsumos();
+    render(<InsumoCatalogPanel />);
+    await screen.findByText('Lomo Vacuno');
+
+    fireEvent.change(screen.getByLabelText('Ordenar catálogo'), { target: { value: 'quantity-asc' } });
+
+    const rows = screen.getAllByRole('row').slice(1); // sin la cabecera
+    expect(rows[0]).toHaveTextContent('Leche Entera'); // 10.000 antes que 20.000
+    expect(rows[1]).toHaveTextContent('Lomo Vacuno');
+
+    // La búsqueda sigue viva y el orden se aplica solo al subconjunto filtrado.
+    fireEvent.change(screen.getByPlaceholderText(/Buscar insumo/i), { target: { value: 'Lomo' } });
+    const filtered = screen.getAllByRole('row').slice(1);
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0]).toHaveTextContent('Lomo Vacuno');
+  });
+
+  it('US-041/TK-156-FE: por defecto ordena alfabéticamente', async () => {
+    stubInsumos();
+    render(<InsumoCatalogPanel />);
+    await screen.findByText('Lomo Vacuno');
+
+    const rows = screen.getAllByRole('row').slice(1);
+    expect(rows[0]).toHaveTextContent('Leche Entera');
+  });
+
   it('sin preferencia guardada, arranca en vista de lista (tabla)', async () => {
     stubInsumos();
     render(<InsumoCatalogPanel />);

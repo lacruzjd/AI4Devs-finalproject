@@ -36,3 +36,11 @@
   background-color: var(--color-primary);
   color: var(--color-primary-on);
 }
+
+/* US-041 / TK-156-FE: control de orden, alineado con la búsqueda y el alternador de vista. */
+.sort-control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}

@@ -4,7 +4,7 @@ id: TK-158-FE
 related_story: US-043
 points: 2
 type: frontend
-status: approved
+status: done
 inputs:
   - docs/05_agile_planning/11_user_stories/shared/US-043.md
   - docs/04_governance_and_quality/external_reviews/EXT-001-auditoria-ux-ui.md

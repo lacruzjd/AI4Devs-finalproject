@@ -7,7 +7,9 @@ import { EditInsumoModal } from './EditInsumoModal.js';
 import { InsumoManageActions } from './InsumoManageActions.js';
 import { CatalogToolbar } from './CatalogToolbar.js';
 import { InsumoCatalogGrid } from './InsumoCatalogGrid.js';
+import { InsumoDetailModal } from './InsumoDetailModal.js';
 import { CatalogView, getCatalogView, setCatalogView } from '../catalogViewPreference.js';
+import { sortInsumos, DEFAULT_CATALOG_SORT, type CatalogSort } from '../catalogSort.js';
 import { ErrorBanner } from '../../../shared/components/ErrorBanner.js';
 import styles from './InsumoCatalogPanel.module.css';
 
@@ -127,11 +129,12 @@ interface InsumoCatalogBodyProps {
   filteredInsumos: InsumoItem[];
   onRestock: (insumo: InsumoItem) => void;
   onEdit: (insumo: InsumoItem) => void;
+  onOpenDetail: (insumo: InsumoItem) => void;
   canManage: boolean;
   view: CatalogView;
 }
 
-const InsumoCatalogBody: React.FC<InsumoCatalogBodyProps> = ({ error, loading, filteredInsumos, onRestock, onEdit, canManage, view }) => (
+const InsumoCatalogBody: React.FC<InsumoCatalogBodyProps> = ({ error, loading, filteredInsumos, onRestock, onEdit, onOpenDetail, canManage, view }) => (
   <>
     {error && <ErrorBanner message={error} />}
 
@@ -142,7 +145,7 @@ const InsumoCatalogBody: React.FC<InsumoCatalogBodyProps> = ({ error, loading, f
         No se encontraron insumos registrados en bodega.
       </div>
     ) : view === 'grid' ? (
-      <InsumoCatalogGrid insumos={filteredInsumos} onRestock={onRestock} onEdit={onEdit} canManage={canManage} />
+      <InsumoCatalogGrid insumos={filteredInsumos} onRestock={onRestock} onEdit={onEdit} onOpenDetail={onOpenDetail} canManage={canManage} />
     ) : (
       <InsumoTable insumos={filteredInsumos} onRestock={onRestock} onEdit={onEdit} canManage={canManage} />
     )}
@@ -190,21 +193,63 @@ function useInsumoCatalog() {
  * "Reabastecer" (endpoints `POST/PUT /insumos` y `PATCH /insumos/:id/restock`, todos
  * `requireRole('ADMIN')`). Default `false`: montado en `/estaciones` sólo lista.
  */
+/** US-041 / TK-156-FE: primero se filtra, después se ordena — el orden nunca amplía el subconjunto. */
+function searchAndSort(insumos: InsumoItem[], search: string, sort: CatalogSort): InsumoItem[] {
+  const term = search.toLowerCase();
+  return sortInsumos(insumos.filter((item) => item.name.toLowerCase().includes(term)), sort);
+}
+
+interface CatalogModalsProps {
+  isCreateOpen: boolean;
+  onCloseCreate: () => void;
+  restockTarget: InsumoItem | null;
+  onCloseRestock: () => void;
+  editTarget: InsumoItem | null;
+  onCloseEdit: () => void;
+  onSuccess: () => void;
+}
+
+/** Modales del catálogo agrupados: alta, reposición y edición comparten `onSuccess`. */
+const CatalogModals: React.FC<CatalogModalsProps> = ({
+  isCreateOpen,
+  onCloseCreate,
+  restockTarget,
+  onCloseRestock,
+  editTarget,
+  onCloseEdit,
+  onSuccess,
+}) => (
+  <>
+    <CreateInsumoModal isOpen={isCreateOpen} onClose={onCloseCreate} onSuccess={onSuccess} />
+    <RestockInsumoModal isOpen={restockTarget !== null} insumo={restockTarget} onClose={onCloseRestock} onSuccess={onSuccess} />
+    <EditInsumoModal isOpen={editTarget !== null} insumo={editTarget} onClose={onCloseEdit} onSuccess={onSuccess} />
+  </>
+);
+
 export const InsumoCatalogPanel: React.FC<{ canManage?: boolean }> = ({ canManage = false }) => {
   const { insumos, loading, error, fetchInsumos } = useInsumoCatalog();
   const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<CatalogSort>(DEFAULT_CATALOG_SORT);
+  const [detailTarget, setDetailTarget] = useState<InsumoItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [restockTarget, setRestockTarget] = useState<InsumoItem | null>(null);
   const [editTarget, setEditTarget] = useState<InsumoItem | null>(null);
   const { view, handleViewChange } = useCatalogViewState();
 
-  const filteredInsumos = insumos.filter((item) => item.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredInsumos = searchAndSort(insumos, search, sort);
 
   return (
     <div className={styles['insumo-catalog-panel']}>
       <InsumoCatalogHeader onCreateClick={() => setIsModalOpen(true)} canManage={canManage} />
 
-      <CatalogToolbar search={search} onSearchChange={setSearch} view={view} onViewChange={handleViewChange} />
+      <CatalogToolbar
+        search={search}
+        onSearchChange={setSearch}
+        view={view}
+        onViewChange={handleViewChange}
+        sort={sort}
+        onSortChange={setSort}
+      />
 
       <InsumoCatalogBody
         error={error}
@@ -212,23 +257,28 @@ export const InsumoCatalogPanel: React.FC<{ canManage?: boolean }> = ({ canManag
         filteredInsumos={filteredInsumos}
         onRestock={setRestockTarget}
         onEdit={setEditTarget}
+        onOpenDetail={setDetailTarget}
         canManage={canManage}
         view={view}
       />
 
-      <CreateInsumoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={fetchInsumos} />
-
-      <RestockInsumoModal
-        isOpen={restockTarget !== null}
-        insumo={restockTarget}
-        onClose={() => setRestockTarget(null)}
-        onSuccess={fetchInsumos}
+      <InsumoDetailModal
+        insumo={detailTarget}
+        onClose={() => setDetailTarget(null)}
+        onRestock={(insumo) => {
+          setDetailTarget(null);
+          setRestockTarget(insumo);
+        }}
+        canManage={canManage}
       />
 
-      <EditInsumoModal
-        isOpen={editTarget !== null}
-        insumo={editTarget}
-        onClose={() => setEditTarget(null)}
+      <CatalogModals
+        isCreateOpen={isModalOpen}
+        onCloseCreate={() => setIsModalOpen(false)}
+        restockTarget={restockTarget}
+        onCloseRestock={() => setRestockTarget(null)}
+        editTarget={editTarget}
+        onCloseEdit={() => setEditTarget(null)}
         onSuccess={fetchInsumos}
       />
     </div>

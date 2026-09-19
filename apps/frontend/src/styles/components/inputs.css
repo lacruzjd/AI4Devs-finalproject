@@ -47,3 +47,10 @@
 .input-with-icon {
   padding-left: 38px;
 }
+
+/* US-043 / TK-158-FE: mensaje de validación junto a su campo. */
+.field-error {
+  margin: var(--space-1) 0 0;
+  color: var(--color-danger-text);
+  font-size: var(--fs-sm);
+}
