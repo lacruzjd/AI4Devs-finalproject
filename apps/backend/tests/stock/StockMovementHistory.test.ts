@@ -8,7 +8,7 @@ import { Insumo } from '../../src/domain/stock/entities/Insumo.js';
 import { DecimalQuantity } from '../../src/domain/stock/value-objects/DecimalQuantity.js';
 import { StorageLocation } from '../../src/domain/stock/entities/StorageLocation.js';
 
-describe('TK-050: Trazabilidad de Movimientos de Stock (auditoria, solo ADMIN)', () => {
+describe('TK-050 + TK-153: Trazabilidad de Movimientos de Stock (acceso por stock:read, ADR-007)', () => {
   const secret = 'test-secret-key-movement-history-12345';
   let stockRepo: InMemoryStockRepository;
   let adminToken: string;
@@ -68,15 +68,18 @@ describe('TK-050: Trazabilidad de Movimientos de Stock (auditoria, solo ADMIN)',
     expect(response.body[0].insumoId).toBe('ins-tomate-1');
   });
 
-  it('rechaza con 403 Forbidden a un usuario KITCHEN_STAFF (dato administrativo)', async () => {
+  // US-038 / TK-153 (ADR-007) supersede el criterio original de TK-050 ("dato
+  // administrativo — solo ADMIN"): el personal de cocina, que ya consulta el stock,
+  // ve el historial para resolver descuadres en su turno. El caso 403 sigue cubierto
+  // en `MovementsAccess.test.ts` con un rol sin `stock:read`.
+  it('KITCHEN_STAFF consulta el historial: el acceso lo decide stock:read (ADR-007)', async () => {
     const app = createApp({ stockRepository: stockRepo, jwtSecret: secret });
 
     const response = await request(app)
       .get('/api/v1/stock/movements')
       .set('Authorization', `Bearer ${staffToken}`);
 
-    expect(response.status).toBe(403);
-    expect(response.body).toHaveProperty('title', 'ForbiddenException');
+    expect(response.status).toBe(200);
   });
 
   it('rechaza con 401 Unauthorized sin token', async () => {
