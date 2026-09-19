@@ -38,6 +38,14 @@ function buildPermissionGuard(
   return roleRepository ? [authorizePermissions(roleRepository, permission)] : [requireRole(...fallbackRoles)];
 }
 
+/** Guards de las rutas de stock que ya migraron a permisos finos (TK-117, TK-153). */
+function buildStockGuards(isAuthRequired: boolean, roleRepository?: IRoleRepository) {
+  return {
+    extractPermission: buildPermissionGuard(isAuthRequired, roleRepository, 'stock:extract', 'ADMIN', 'KITCHEN_STAFF'),
+    readPermission: buildPermissionGuard(isAuthRequired, roleRepository, 'stock:read', 'ADMIN', 'KITCHEN_STAFF'),
+  };
+}
+
 export function createStockRouter(
   stockRepository: IInsumoRepository & IRemanenteRepository & IStockUnitOfWork,
   stockMovementQueryRepository?: IStockMovementQueryRepository,
@@ -53,8 +61,7 @@ export function createStockRouter(
   // el authMiddleware a nivel de mount en app.ts.
   const role = (...roles: string[]): ReturnType<typeof requireRole>[] =>
     isAuthRequired ? [requireRole(...roles)] : [];
-  const extractPermission = buildPermissionGuard(isAuthRequired, roleRepository, 'stock:extract', 'ADMIN', 'KITCHEN_STAFF');
-  const readPermission = buildPermissionGuard(isAuthRequired, roleRepository, 'stock:read', 'ADMIN', 'KITCHEN_STAFF');
+  const { extractPermission, readPermission } = buildStockGuards(isAuthRequired, roleRepository);
   // args: (insumoRepository, unitOfWork, clock, idGenerator, locationRepository)
   // — el repo concreto satisface las 2 primeras interfaces.
   const useCase = new RecordExtractionUseCase(
