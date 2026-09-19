@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Package, Boxes, ChefHat, BarChart3, Settings } from 'lucide-react';
+import { Package, Boxes, ChefHat, BarChart3, Settings, History } from 'lucide-react';
 import { usePermissions } from '../shared/hooks/usePermissions.js';
 import styles from './AppShell.module.css';
 
@@ -16,6 +16,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/', label: 'Inventario', icon: <Package size={18} /> },
   { to: '/bodega', label: 'Bodega', icon: <Boxes size={18} /> },
   { to: '/recetas', label: 'Recetas', icon: <ChefHat size={18} /> },
+  // US-038 / TK-153-FE (ADR-007): quien consulta el stock ve también qué se movió.
+  { to: '/movimientos', label: 'Movimientos', icon: <History size={18} />, requiredPermission: 'stock:read' },
   { to: '/reportes', label: 'Reportes', icon: <BarChart3 size={18} />, requiredPermission: 'reports:view' },
   { to: '/ajustes', label: 'Ajustes', icon: <Settings size={18} />, requiredPermission: 'roles:manage' },
 ];
