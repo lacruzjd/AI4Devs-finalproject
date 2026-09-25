@@ -105,4 +105,4 @@ Este documento contiene las especificaciones detalladas de las historias de usua
 *   **[US-047: El repositorio no contradice al sistema desplegado](shared/US-047.md)** — ✅ Done. Origen: `EXT-002` R-01/R-05/R-08/R-11/R-12 (revisión de entrega final).
 *   **[US-048: Una operación de cocina se registra entera o no se registra](kitchen/US-048.md)** — ✅ Done. Deuda declarada al cerrar `TK-160` + `EXT-002` R-07.
 *   **[US-049: Una cantidad se muestra siempre en su unidad real, o no se inventa](stock/US-049.md)** — ✅ Done. Hallazgo propio al evaluar R-06 de `EXT-002`, no una recomendación del informe.
-*   **[US-050: El README no aparenta ser exhaustivo cuando no lo es](shared/US-050.md)** — ⏳ Approved. `EXT-002` R-04, reducido al descubrir que §0–§7 es la plantilla de entrega del curso.
+*   **[US-050: El README no aparenta ser exhaustivo cuando no lo es](shared/US-050.md)** — ✅ Done. `EXT-002` R-04, reducido al descubrir que §0–§7 es la plantilla de entrega del curso.

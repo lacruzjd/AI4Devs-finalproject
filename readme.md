@@ -311,7 +311,7 @@ El `nginx` que sirve el SPA hace de proxy inverso hacia el backend (`/api/`), pr
 ### **2.6. Tests y Gobernanza Agéntica:**
 El proyecto sigue la directiva de **Desarrollo Guiado por Pruebas (TDD)** y **Gobernanza Agéntica v2.15.0**:
 *   Se prohíbe escribir código de producción sin un test unitario/integración que falle previamente (`RED` a `GREEN`).
-*   Suite completa verificada: **830/830 tests al 100 % de éxito (587 backend + 243 frontend)**, ejecutados en cada corrida de CI.
+*   Suite completa verificada: **898 tests al 100 % de éxito (608 backend + 290 frontend)**, ejecutados en cada corrida de CI. El recuento exacto cambia con cada ticket; la cifra vigente es la que reporta `pnpm test`.
 *   Patrón de **3 Oráculos** (UI, RED, ESTADO) para aserciones deterministas en Playwright E2E y pruebas unitarias/integración.
 *   Uso de **Fake Repositories** en memoria para pruebas de la capa de aplicación con sincronización dinámica entre modelos de lectura y escritura.
 *   **Mutation testing (Stryker) — alcance real, declarado sin adornos ([`TK-138`](docs/05_agile_planning/12_tickets/shared/backend/TK-138.md)):** el gate corre **acotado al diff** y aplica el umbral del 70 % **por archivo**, nunca agregado — agrupar dejaría que un archivo con tests fuertes compense estadísticamente a uno débil, algo confirmado en vivo en `AUDIT-DEV-002`. Funciona igual en local (archivos sin commitear) y en CI (`git diff <base>...HEAD`), con **una sola implementación** para ambos.
@@ -662,7 +662,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 
 ## 5. Historias de Usuario
 
-Se detallan a continuación las 13 historias de usuario críticas del MVP (§5.1–5.13). El desarrollo posterior (Entrega Final) añadió otras 24, resumidas en §5.14. Todas las fichas completas están en el [Índice de Historias de Usuario](docs/05_agile_planning/11_user_stories/indice_user_stories.md):
+Se detallan a continuación las 13 historias de usuario críticas del MVP (§5.1–5.13), y §5.14 resume las que añadió el desarrollo posterior. **Esta sección es una selección representativa, no el listado completo:** el conjunto vigente —que sigue creciendo— vive en el [Índice de Historias de Usuario](docs/05_agile_planning/11_user_stories/indice_user_stories.md), que es la fuente. Aquí no se repite un recuento porque caducaría con la siguiente historia:
 
 ### **5.1. US-001: Autenticación por PIN del Personal de Cocina**
 *   **Formato de Negocio:** Como operario de cocina (Staff), quiero autenticarme en la terminal táctil ingresando mi PIN personal de 4 dígitos, para registrar mis movimientos de insumos y consumos de forma rápida y segura sin interrumpir el ritmo del servicio.
@@ -796,7 +796,9 @@ Las 13 historias anteriores son el núcleo del MVP (Entregas 1 y 2). El desarrol
 
 ## 6. Tickets de Trabajo
 
-El backlog técnico y funcional (disponible en el [Índice de Tickets de Trabajo](docs/05_agile_planning/12_tickets/indice_tickets.md)) contiene las especificaciones exactas para el desarrollo de cada sprint, organizados en subcarpetas por módulo/epic (ej: `12_tickets/{modulo}/backend/` y `12_tickets/{modulo}/frontend/`):
+El backlog técnico y funcional contiene las especificaciones exactas para el desarrollo de cada sprint, organizado en subcarpetas por módulo/epic (ej: `12_tickets/{modulo}/backend/` y `12_tickets/{modulo}/frontend/`).
+
+**Lo que sigue es una selección de los tickets más representativos, no el backlog completo.** El listado vigente y completo está en el [Índice de Tickets de Trabajo](docs/05_agile_planning/12_tickets/indice_tickets.md), que es la fuente; esta sección recoge los que mejor ilustran el recorrido del proyecto:
 
 ### ⚙️ 6.1. Tickets de Backend (en subcarpetas `docs/05_agile_planning/12_tickets/{modulo}/backend/`)
 
