@@ -339,3 +339,4 @@ graph TD
 | [US-043](11_user_stories/shared/US-043.md) | [TK-158-FE](12_tickets/shared/frontend/TK-158-FE.md) |
 | [US-044](11_user_stories/shared/US-044.md) | [TK-159](12_tickets/shared/backend/TK-159.md), [TK-160](12_tickets/shared/backend/TK-160.md), [TK-159-FE](12_tickets/shared/frontend/TK-159-FE.md), [TK-160-FE](12_tickets/shared/frontend/TK-160-FE.md) |
 | [US-045](11_user_stories/shared/US-045.md) | [TK-161-FE](12_tickets/shared/frontend/TK-161-FE.md), [TK-162-FE](12_tickets/shared/frontend/TK-162-FE.md), [TK-163-FE](12_tickets/shared/frontend/TK-163-FE.md) |
+| [US-046](11_user_stories/auth/US-046.md) | [TK-164](12_tickets/auth/backend/TK-164.md), [TK-165](12_tickets/auth/backend/TK-165.md) |

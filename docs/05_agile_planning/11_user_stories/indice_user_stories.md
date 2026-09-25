@@ -101,3 +101,4 @@ Este documento contiene las especificaciones detalladas de las historias de usua
 *   **[US-043: Ver el error junto al campo que lo causa](shared/US-043.md)** — ⏳ Approved. Épica de usabilidad `EXT-001` (revisión externa UX/UI).
 *   **[US-044: Seguir registrando consumo y descarte cuando se cae la red](shared/US-044.md)** — ✅ Done. Épica de operación en dispositivo personal (`ADR-008` / `ADR-009`).
 *   **[US-045: Usar las pantallas de cocina desde la pantalla de un teléfono](shared/US-045.md)** — ✅ Done. Épica de operación en dispositivo personal; desglosada tras la pasada de `SK-05` que añadió el tramo `xs` al sistema de diseño.
+*   **[US-046: El PIN inicial del administrador debe rotarse antes de poder operar](auth/US-046.md)** — ⏳ Approved. Origen: `EXT-002` R-02/R-10 (revisión de entrega final).
