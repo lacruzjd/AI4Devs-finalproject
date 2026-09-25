@@ -6,6 +6,7 @@ import { IInsumoRepository } from '../../../domain/stock/repositories/IInsumoRep
 import { IRemanenteRepository, StockMovementRecord } from '../../../domain/stock/repositories/IRemanenteRepository.js';
 import {
   AdhocConsumptionUnitOfWork,
+  RemanenteWriteUnitOfWork,
   ExtractionUnitOfWork,
   IStockUnitOfWork,
   PreparationCloseUnitOfWork,
@@ -217,6 +218,22 @@ export class PrismaStockRepository implements IInsumoRepository, IRemanenteRepos
     });
   }
 
+  /**
+   * US-048 / TK-168: frontera transaccional del consumo y el descarte de un remanente.
+   * La comprobación de idempotencia entra dentro para que ver y escribir ocurran sobre
+   * el mismo estado (Guarda 39).
+   */
+  public async runRemanenteWrite<T>(work: (uow: RemanenteWriteUnitOfWork) => Promise<T>): Promise<T> {
+    return this.prisma.$transaction(async (tx) => {
+      const uow: RemanenteWriteUnitOfWork = {
+        saveRemanente: (remanente) => this.saveRemanenteOn(tx, remanente),
+        recordMovement: (movement) => this.recordMovementOn(tx, movement),
+        findMovementByOperationId: (operationId) => this.findMovementByOperationIdOn(tx, operationId),
+      };
+      return work(uow);
+    });
+  }
+
   /** `ACTIVE` únicamente, orden FEFO — filtro adicional según el llamador (por insumo o por preparación). */
   private async findActiveRemanentesOn(
     client: StockDbClient,
@@ -377,7 +394,14 @@ export class PrismaStockRepository implements IInsumoRepository, IRemanenteRepos
 
   /** TK-159 / ADR-009: movimiento ya aplicado con esa clave de idempotencia, si existe. */
   public async findMovementByOperationId(operationId: string): Promise<StockMovementRecord | null> {
-    const found = await this.prisma.stockMovement.findUnique({ where: { operationId } });
+    return this.findMovementByOperationIdOn(this.prisma, operationId);
+  }
+
+  private async findMovementByOperationIdOn(
+    client: StockDbClient,
+    operationId: string
+  ): Promise<StockMovementRecord | null> {
+    const found = await client.stockMovement.findUnique({ where: { operationId } });
     if (!found) return null;
     return {
       id: found.id,

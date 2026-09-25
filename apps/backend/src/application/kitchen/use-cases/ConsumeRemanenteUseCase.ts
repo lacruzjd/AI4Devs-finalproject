@@ -1,6 +1,8 @@
 import { Remanente } from '../../../domain/stock/entities/Remanente.js';
 import { IRemanenteRepository } from '../../../domain/stock/repositories/IRemanenteRepository.js';
+import { IStockUnitOfWork } from '../../../domain/stock/repositories/IStockUnitOfWork.js';
 import { IConsumptionReasonRepository } from '../../../domain/kitchen/repositories/IConsumptionReasonRepository.js';
+import { StockMovementRecord } from '../../../domain/stock/repositories/IRemanenteRepository.js';
 import { DecimalQuantity } from '../../../domain/stock/value-objects/DecimalQuantity.js';
 import { EntityNotFoundException } from '../../../domain/errors/EntityNotFoundException.js';
 import { InactiveConsumptionReasonException } from '../../../domain/kitchen/errors/InactiveConsumptionReasonException.js';
@@ -32,7 +34,7 @@ export interface ConsumptionResponseDTO {
 
 export class ConsumeRemanenteUseCase {
   constructor(
-    private readonly remanenteRepository: IRemanenteRepository,
+    private readonly remanenteRepository: IRemanenteRepository & IStockUnitOfWork,
     private readonly consumptionReasonRepository: IConsumptionReasonRepository,
     /** TK-160 / ADR-009: para no reabrir un turno ya conciliado con una operación diferida. */
     private readonly reconciliationRepository?: IShiftReconciliationRepository
@@ -114,6 +116,7 @@ export class ConsumeRemanenteUseCase {
    * distintas, y confundirlas haría ilegible el cierre de turno.
    */
   private async recordTrail(
+    uow: { recordMovement: (movement: StockMovementRecord) => Promise<void> },
     remanente: Remanente,
     reasonId: string,
     dto: ConsumeRemanenteDTO,
@@ -130,7 +133,7 @@ export class ConsumeRemanenteUseCase {
       occurredAtAdjusted: occurred.adjusted,
     };
 
-    await this.remanenteRepository.recordMovement({
+    await uow.recordMovement({
       ...comun,
       id: `mov-${Date.now()}`,
       type: 'CONSUMPTION',
@@ -139,7 +142,7 @@ export class ConsumeRemanenteUseCase {
     });
 
     if (outcome.excess.toNumber() > 0) {
-      await this.remanenteRepository.recordMovement({
+      await uow.recordMovement({
         ...comun,
         id: `mov-var-${dto.operationId}`,
         type: 'DEFERRED_SYNC_VARIANCE',
@@ -172,12 +175,22 @@ export class ConsumeRemanenteUseCase {
     }
 
     const reason = await this.resolveReason(dto.reasonId);
-    const outcome = this.applyConsumption(remanente, new DecimalQuantity(dto.quantityToConsume), deferred);
+    const qtyToConsume = new DecimalQuantity(dto.quantityToConsume);
+    let outcome!: { applied: DecimalQuantity; excess: DecimalQuantity };
 
     // Persistir remanente actualizado
-    await this.remanenteRepository.saveRemanente(remanente);
-
-    await this.recordTrail(remanente, reason.id, dto, outcome, occurred);
+    // TK-168 / US-048: el remanente y sus movimientos se escriben dentro de una única
+    // frontera. Antes iban sueltos: una caída entre medias descontaba el stock y perdía
+    // el registro de la pérdida, justo lo que ADR-009 prometió no perder.
+    await this.remanenteRepository.runRemanenteWrite(async (uow) => {
+      // TK-168: la mutación del remanente ocurre DENTRO de la frontera. Aplicarla antes
+      // dejaba la entidad ya modificada cuando la transacción tomaba su punto de partida,
+      // de modo que revertir restauraba un estado que también estaba mal. Lo destapó el
+      // test de reversión, que seguía en rojo con la frontera ya puesta.
+      outcome = this.applyConsumption(remanente, qtyToConsume, deferred);
+      await uow.saveRemanente(remanente);
+      await this.recordTrail(uow, remanente, reason.id, dto, outcome, occurred);
+    });
 
     return {
       remanenteId: remanente.id,

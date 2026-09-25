@@ -357,4 +357,37 @@ describe('TK-005: Partial Remanente Consumption TDD Suite', () => {
     const untouched = await stockRepo.findRemanenteById('rem-salsa-1');
     expect(untouched?.currentQuantity.toString()).toBe('1.750');
   });
+  // ---------------------------------------------------------------------------
+  // TK-168 / US-048: una operación se registra entera o no se registra. Salda la
+  // mitigación 2 que TK-160 declaró incumplida.
+  // ---------------------------------------------------------------------------
+
+  it('TK-168: si una escritura falla a mitad, no queda nada escrito', async () => {
+    // 1. ARRANGE: consumo diferido con varianza => dos movimientos; el segundo falla
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+    const original = stockRepo.recordMovement.bind(stockRepo);
+    let escrituras = 0;
+    stockRepo.recordMovement = async (movement) => {
+      escrituras += 1;
+      if (escrituras === 2) throw new Error('fallo simulado a mitad de la operación');
+      return original(movement);
+    };
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '2.000', reasonId: 'reason-seed-1', operationId: 'op-parcial-1' });
+
+    // 3. ASSERT — la operación no se aplica a medias
+    expect(response.status).toBeGreaterThanOrEqual(500);
+
+    // ORACULO STOCK: el remanente conserva su cantidad anterior
+    const remanente = await stockRepo.findRemanenteById('rem-salsa-1');
+    expect(remanente?.currentQuantity.toString()).toBe('1.750');
+    expect(remanente?.status).toBe('ACTIVE');
+
+    // ORACULO LEDGER: ningún movimiento suelto sobrevive
+    expect(stockRepo.movements).toHaveLength(0);
+  });
 });

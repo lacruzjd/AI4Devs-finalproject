@@ -7,6 +7,7 @@ import {
 } from '../../../domain/stock/repositories/IRemanenteRepository.js';
 import {
   AdhocConsumptionUnitOfWork,
+  RemanenteWriteUnitOfWork,
   ExtractionUnitOfWork,
   IStockUnitOfWork,
   PreparationCloseUnitOfWork,
@@ -194,6 +195,11 @@ export class InMemoryStockRepository
 
   /** US-029: frontera transaccional del consumo ad-hoc de una receta. */
   async runAdhocConsumption<T>(work: (uow: AdhocConsumptionUnitOfWork) => Promise<T>): Promise<T> {
+    return this.withSnapshot(() => work(this));
+  }
+
+  /** US-048 / TK-168: frontera transaccional del consumo y el descarte de un remanente. */
+  async runRemanenteWrite<T>(work: (uow: RemanenteWriteUnitOfWork) => Promise<T>): Promise<T> {
     return this.withSnapshot(() => work(this));
   }
 

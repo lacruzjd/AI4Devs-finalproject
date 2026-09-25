@@ -5,6 +5,7 @@ import {
   ExtractionUnitOfWork,
   IStockUnitOfWork,
   WarehouseBalancesAfterDeduction,
+  RemanenteWriteUnitOfWork,
 } from '../../../domain/stock/repositories/IStockUnitOfWork.js';
 import { Insumo } from '../../../domain/stock/entities/Insumo.js';
 import { DecimalQuantity } from '../../../domain/stock/value-objects/DecimalQuantity.js';
@@ -73,6 +74,23 @@ class RecordingUnitOfWork implements IStockUnitOfWork {
   /** orden en el que se llamaron las escrituras (para verificar prep antes de remanente). */
   public callOrder: string[] = [];
   public deductBehaviour: () => WarehouseBalancesAfterDeduction = () => SECTOR_BALANCE;
+
+  /**
+   * TK-168: el puerto ganó esta frontera para el consumo y el descarte. Este doble no la
+   * ejercita —la extracción no la usa— pero debe cumplir el contrato del puerto.
+   */
+  async runRemanenteWrite<T>(work: (uow: RemanenteWriteUnitOfWork) => Promise<T>): Promise<T> {
+    const uow: RemanenteWriteUnitOfWork = {
+      saveRemanente: async (remanente) => {
+        this.savedRemanentes.push(remanente);
+      },
+      recordMovement: async (movement) => {
+        this.movements.push(movement);
+      },
+      findMovementByOperationId: async () => null,
+    };
+    return work(uow);
+  }
 
   async runExtraction<T>(work: (uow: ExtractionUnitOfWork) => Promise<T>): Promise<T> {
     this.runExtractionCalls += 1;
