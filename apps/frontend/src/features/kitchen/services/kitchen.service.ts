@@ -1,4 +1,6 @@
 import { apiRequest } from '../../../shared/http/apiClient.js';
+import { kitchenQueue } from '../../../shared/offline/kitchenQueue.js';
+import type { QueuedOperation } from '../../../shared/offline/types.js';
 import { DecimalQuantity } from '../../../shared/domain/DecimalQuantity.js';
 import { RecipesService } from '../../recipes/services/recipes.service.js';
 
@@ -178,38 +180,31 @@ export class KitchenService {
 
   // ADR-004 / US-004 / TK-108-FE: reasonId es obligatorio (catálogo administrable, US-030);
   // notes es texto libre siempre opcional.
-  public static async consumeRemanente(remanenteId: string, quantity: number | string, reasonId: string, notes?: string): Promise<void> {
-    try {
-      await apiRequest(`/kitchen/remanentes/${remanenteId}/consume`, { method: 'POST', body: { quantity, reasonId, notes } });
-      return;
-    } catch (err) {
-      console.error('[KitchenService] Error de red en consumeRemanente:', err);
-    }
-
-    // Aritmetica Decimal de Alta Precision (Guard 17) via el VO compartido shared/domain/DecimalQuantity
-    const found = this.mockRemanentes.find((r) => r.id === remanenteId);
-    if (found) {
-      const next = new DecimalQuantity(found.currentQuantity).subtractClamped(quantity.toString());
-      found.currentQuantity = next.toFixed(3);
-      if (next.isZero()) {
-        found.status = 'EXHAUSTED';
-      }
-    }
+  // TK-160-FE / US-044 / ADR-009: un único camino de código. La operación se encola
+  // siempre y se intenta enviar en el acto; con red el operario no nota diferencia, sin
+  // red queda pendiente y se envía al reconectar. Antes, un fallo de red mutaba un mock
+  // en memoria que se perdía al recargar: el registro no llegaba nunca al servidor.
+  public static async consumeRemanente(
+    remanenteId: string,
+    quantity: number | string,
+    reasonId: string,
+    notes?: string
+  ): Promise<QueuedOperation> {
+    const encolada = await kitchenQueue.enqueue({
+      kind: 'consume',
+      remanenteId,
+      quantity: quantity.toString(),
+      reasonId,
+      notes,
+    });
+    const desenlaces = await kitchenQueue.sync();
+    return desenlaces.find((o) => o.id === encolada.id) ?? encolada;
   }
 
-  public static async discardRemanente(remanenteId: string, reason: string): Promise<void> {
-    try {
-      await apiRequest(`/kitchen/remanentes/${remanenteId}/discard`, { method: 'POST', body: { reason } });
-      return;
-    } catch (err) {
-      console.error('[KitchenService] Error de red en discardRemanente:', err);
-    }
-
-    const found = this.mockRemanentes.find((r) => r.id === remanenteId);
-    if (found) {
-      found.currentQuantity = '0.000';
-      found.status = 'DISCARDED';
-    }
+  public static async discardRemanente(remanenteId: string, reason: string): Promise<QueuedOperation> {
+    const encolada = await kitchenQueue.enqueue({ kind: 'discard', remanenteId, reason });
+    const desenlaces = await kitchenQueue.sync();
+    return desenlaces.find((o) => o.id === encolada.id) ?? encolada;
   }
 
   public static async consumeRecipe(recipeId: string, portions: number): Promise<void> {

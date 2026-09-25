@@ -4,7 +4,7 @@ id: TK-160-FE
 related_story: US-044
 points: 5
 type: frontend
-status: approved
+status: done
 inputs:
   - docs/05_agile_planning/11_user_stories/shared/US-044.md
   - docs/02_architecture_design/adr/ADR-009-conflictos-de-la-cola-sin-conexion.md
@@ -62,6 +62,15 @@ Encolar localmente las operaciones de consumo y descarte cuando no hay red, sinc
 1. **TDD Compliance:** los tests se escriben y se ven fallar antes de la implementación, cubriendo el vaciado de la cola y el reintento.
 2. **Precisión Aritmética:** las cantidades encoladas conservan el tipo decimal declarado; prohibido redondear al serializar.
 3. **Verificación Total:** cero errores en los comandos de test, build y lint declarados en `AGENTS.md`.
+
+---
+
+## Decisiones y deuda declaradas al cerrar (2026-09-25)
+
+- **Librería de almacenamiento:** ninguna. `ADR-002` nombraba Dexie.js y nunca se instaló; al retomar la cola se decidió IndexedDB directo tras un puerto, registrado en [`ADR-010`](../../../../02_architecture_design/adr/ADR-010-almacenamiento-de-la-cola-sin-conexion.md) para no desviarse en silencio de una decisión aceptada.
+- **Sustituye un modo sin conexión falso.** El servicio de cocina, al fallar la red, mutaba un mock en memoria que se perdía al recargar: el registro no llegaba nunca al servidor. Ese camino se eliminó.
+- **El adaptador de IndexedDB no tiene test unitario.** La lógica de la cola sí (10 tests contra la implementación en memoria del puerto). El adaptador es una traducción delgada a la API del navegador y su verificación corresponde al workflow 09, igual que el service worker de `TK-159-FE`.
+- **Deuda: una operación rechazada se queda en la lista para siempre.** El ticket exigía que no desapareciera, y no lo hace, pero no hay forma de que el operario la dé por vista. Hace falta una decisión de producto —descartarla a mano, o limpiarlas al cerrar el turno— antes de implementar nada: no se inventa aquí.
 
 ---
 
