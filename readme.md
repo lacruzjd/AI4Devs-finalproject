@@ -118,11 +118,15 @@ La aplicación sigue el **Sistema de Diseño FEFO** (`US-022`/`US-023`, ver [`DE
     cp apps/backend/.env.example apps/backend/.env
     cp apps/frontend/.env.example apps/frontend/.env
     ```
-4.  **Ejecutar Pruebas Automatizadas:**
+4.  **Generar el cliente de Prisma** (obligatorio antes de probar o compilar — sin este paso la suite de composición del backend falla por una razón que no es suya):
+    ```bash
+    pnpm --filter @restostock/backend exec prisma generate --schema=prisma/schema.prisma
+    ```
+5.  **Ejecutar Pruebas Automatizadas:**
     ```bash
     pnpm test
     ```
-5.  **Compilación del Proyecto:**
+6.  **Compilación del Proyecto:**
     ```bash
     pnpm build
     ```

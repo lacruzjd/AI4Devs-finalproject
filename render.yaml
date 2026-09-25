@@ -7,11 +7,13 @@
 #    revisable) pero no la letra. NO es una excepción silenciosa.
 #    `infrastructure/opentofu/` sigue siendo la IaC del stack local/Docker.
 #
-# ⚠️ NO VERIFICADO contra Render real desde el entorno de desarrollo
-#    (rules/04_verified_implementation_standard.md, Antipatrón B). Los nombres de
-#    campo y el direccionamiento entre servicios deben confirmarse contra la
-#    documentación vigente de Render en el primer despliegue. Ver "Verificación
-#    pendiente" al final.
+# ✅ VERIFICADO contra Render real (TK-167 / US-047, corregido el 2026-09-25).
+#    Esta cabecera decía "NO VERIFICADO" mientras la sección "Verificación pendiente"
+#    del final de este mismo archivo ya documentaba su resolución en el primer
+#    despliegue (2026-09-09), incluidos los dos fallos de direccionamiento que
+#    aparecieron y cómo se corrigieron. Una revisión externa (EXT-002, R-11) tropezó
+#    con la contradicción. El servicio está desplegado y respondiendo; los detalles
+#    de lo que se verificó, y lo que sigue abierto, están al final.
 #
 # ── Por qué esta topología ─────────────────────────────────────────────────────
 # apps/frontend/src/shared/http/apiClient.ts fija `/api/v1` RELATIVO: el cliente
