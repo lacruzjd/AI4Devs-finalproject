@@ -102,3 +102,4 @@ Este documento contiene las especificaciones detalladas de las historias de usua
 *   **[US-044: Seguir registrando consumo y descarte cuando se cae la red](shared/US-044.md)** — ✅ Done. Épica de operación en dispositivo personal (`ADR-008` / `ADR-009`).
 *   **[US-045: Usar las pantallas de cocina desde la pantalla de un teléfono](shared/US-045.md)** — ✅ Done. Épica de operación en dispositivo personal; desglosada tras la pasada de `SK-05` que añadió el tramo `xs` al sistema de diseño.
 *   **[US-046: El PIN inicial del administrador debe rotarse antes de poder operar](auth/US-046.md)** — ✅ Done. Origen: `EXT-002` R-02/R-10 (revisión de entrega final).
+*   **[US-047: El repositorio no contradice al sistema desplegado](shared/US-047.md)** — ⏳ Approved. Origen: `EXT-002` R-01/R-05/R-08/R-11/R-12 (revisión de entrega final).
