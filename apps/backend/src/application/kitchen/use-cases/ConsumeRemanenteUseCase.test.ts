@@ -220,4 +220,68 @@ describe('TK-005: Partial Remanente Consumption TDD Suite', () => {
       expect(stockRepo.movements[0].reason).toBeUndefined();
     });
   });
+  // ---------------------------------------------------------------------------
+  // TK-159 / US-044 / ADR-009: idempotencia y momento real de las operaciones
+  // encoladas sin conexion. Reintentar una sincronizacion es comportamiento normal
+  // de una cola, no un caso raro.
+  // ---------------------------------------------------------------------------
+
+  it('TK-159: reenviar la misma clave de idempotencia no vuelve a descontar', async () => {
+    // 1. ARRANGE
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+    const body = { quantity: '0.250', reasonId: 'reason-seed-1', operationId: 'op-cola-1' };
+
+    // 2. ACT: la cola sincroniza y el reintento reenvia la misma operacion
+    const first = await request(app).post('/api/v1/kitchen/remanentes/rem-salsa-1/consume').send(body);
+    const retry = await request(app).post('/api/v1/kitchen/remanentes/rem-salsa-1/consume').send(body);
+
+    // 3. ASSERT — ORACULO ESTADO: se descuenta una sola vez
+    expect(first.status).toBe(200);
+    expect(retry.status).toBe(200);
+    const remanente = await stockRepo.findRemanenteById('rem-salsa-1');
+    expect(remanente?.currentQuantity.toString()).toBe('1.500');
+
+    // ORACULO RESPUESTA: el reintento devuelve lo mismo que la primera vez
+    expect(retry.body.remainingQuantity).toBe(first.body.remainingQuantity);
+
+    // ORACULO LEDGER: un unico movimiento con esa clave
+    expect(stockRepo.movements.filter((m) => m.operationId === 'op-cola-1')).toHaveLength(1);
+  });
+
+  it('TK-159: el movimiento conserva el momento real en que ocurrio en cocina', async () => {
+    // 1. ARRANGE: la operacion ocurrio hace dos horas y se sincroniza ahora
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+    const occurredAt = new Date(Date.now() - 2 * 60 * 60 * 1000);
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '0.250', reasonId: 'reason-seed-1', operationId: 'op-cola-2', occurredAt: occurredAt.toISOString() });
+
+    // 3. ASSERT: el ledger guarda el momento real, no el de recepcion
+    expect(response.status).toBe(200);
+    const movement = stockRepo.movements.find((m) => m.operationId === 'op-cola-2');
+    expect(movement?.occurredAt?.toISOString()).toBe(occurredAt.toISOString());
+    expect(movement?.occurredAtAdjusted).toBe(false);
+  });
+
+  it('TK-159: un momento imposible se acota y el movimiento queda marcado como corregido', async () => {
+    // 1. ARRANGE: el reloj del dispositivo va adelantado un dia
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+    const enElFuturo = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '0.250', reasonId: 'reason-seed-1', operationId: 'op-cola-3', occurredAt: enElFuturo.toISOString() });
+
+    // 3. ASSERT: se aplica igual, con el momento acotado y constancia de la correccion
+    expect(response.status).toBe(200);
+    const movement = stockRepo.movements.find((m) => m.operationId === 'op-cola-3');
+    expect(movement?.occurredAtAdjusted).toBe(true);
+    expect(movement!.occurredAt!.getTime()).toBeLessThanOrEqual(Date.now());
+  });
 });

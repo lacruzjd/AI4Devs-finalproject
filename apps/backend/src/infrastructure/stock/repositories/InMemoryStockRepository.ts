@@ -106,6 +106,11 @@ export class InMemoryStockRepository
     this.remanentes.set(remanente.id, remanente);
   }
 
+  /** TK-159 / ADR-009: la clave de idempotencia es única; el ledger es la fuente. */
+  async findMovementByOperationId(operationId: string): Promise<StockMovementRecord | null> {
+    return this.movements.find((m) => m.operationId === operationId) ?? null;
+  }
+
   async recordMovement(movement: StockMovementRecord): Promise<void> {
     this.movements.push({ ...movement, createdAt: movement.createdAt ?? new Date() });
   }

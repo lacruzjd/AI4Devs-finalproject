@@ -221,6 +221,17 @@ model Remanente {
 
 model StockMovement {
   id                    String             @id @default(uuid())
+  // TK-159 / US-044 / ADR-009: clave de idempotencia generada por el cliente para las
+  // operaciones encoladas sin conexion. Nula en las inmediatas. La unicidad la garantiza
+  // la base de datos, no una comprobacion previa en codigo (que tiene ventana de carrera).
+  operationId           String?            @unique
+  // TK-159 / ADR-009: momento real en que la operacion ocurrio en cocina, distinto de
+  // createdAt (momento de recepcion). Nulo en las inmediatas, que siguen usando createdAt.
+  // Sin este campo, FEFO y el cierre de turno ordenan los hechos por la hora de sincronizacion.
+  occurredAt            DateTime?
+  // TK-159: el servidor acoto un momento imposible (futuro, o anterior a la creacion del
+  // remanente). Se deja constancia en vez de confiar a ciegas o de rechazar la operacion.
+  occurredAtAdjusted    Boolean            @default(false)
   insumoId              String
   type                  String // EXTRACTION, DISCARD, RECONCILIATION, RESTOCK, EXTRACTION_RECIPE, DISCARD_DIRECT
   quantity              Decimal            @db.Decimal(12, 3)

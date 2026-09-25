@@ -21,6 +21,10 @@ const consumeRemanenteSchema = z.object({
   // ADR-004 / US-004 / TK-108: motivo estructurado obligatorio; texto libre siempre opcional.
   reasonId: z.string().min(1, 'Debe indicar el motivo del consumo.'),
   notes: z.string().optional(),
+  // TK-159 / US-044 / ADR-009: campos de la cola sin conexión. Opcionales — una petición
+  // inmediata desde la tablet sigue siendo válida y toma el momento de recepción.
+  operationId: z.string().min(1).optional(),
+  occurredAt: z.string().datetime({ offset: true }).optional(),
 });
 
 // TK-118: antes `z.string().min(1)` — aceptaba cualquier texto no vacío, que terminaba
@@ -31,6 +35,10 @@ const discardRemanenteSchema = z.object({
   reason: z.enum(['EXPIRATION', 'DAMAGED', 'QUALITY_FAIL'], {
     errorMap: () => ({ message: 'El motivo de descarte debe ser EXPIRATION, DAMAGED o QUALITY_FAIL.' }),
   }),
+  // TK-159 / US-044 / ADR-009: campos de la cola sin conexión. Opcionales — una petición
+  // inmediata desde la tablet sigue siendo válida y toma el momento de recepción.
+  operationId: z.string().min(1).optional(),
+  occurredAt: z.string().datetime({ offset: true }).optional(),
 });
 
 const consumeRecipeSchema = z.object({
@@ -192,6 +200,8 @@ export class KitchenController {
         quantityToConsume: parsedBody.quantity,
         reasonId: parsedBody.reasonId,
         notes: parsedBody.notes,
+        operationId: parsedBody.operationId,
+        occurredAt: parsedBody.occurredAt ? new Date(parsedBody.occurredAt) : undefined,
       });
 
       res.status(200).json(result);
@@ -216,6 +226,8 @@ export class KitchenController {
       const result = await this.discardRemanenteUseCase.execute({
         remanenteId: id,
         reason: parsedBody.reason,
+        operationId: parsedBody.operationId,
+        occurredAt: parsedBody.occurredAt ? new Date(parsedBody.occurredAt) : undefined,
       });
 
       res.status(200).json(result);

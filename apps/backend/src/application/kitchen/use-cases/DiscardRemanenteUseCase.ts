@@ -1,10 +1,15 @@
 import { IRemanenteRepository } from '../../../domain/stock/repositories/IRemanenteRepository.js';
+import { resolveOccurredAt } from '../../../domain/stock/value-objects/QueuedOperationTime.js';
 import { EntityNotFoundException } from '../../../domain/errors/EntityNotFoundException.js';
 import { IdGenerator } from '../../../domain/shared/IdGenerator.js';
 
 export interface DiscardRemanenteDTO {
   remanenteId: string;
   reason: string;
+  /** TK-159 / ADR-009: clave de idempotencia de una operación encolada sin conexión. */
+  operationId?: string;
+  /** TK-159 / ADR-009: momento real en cocina. Se acota si es imposible. */
+  occurredAt?: Date;
 }
 
 export interface DiscardResponseDTO {
@@ -21,6 +26,23 @@ export class DiscardRemanenteUseCase {
   ) {}
 
   public async execute(dto: DiscardRemanenteDTO): Promise<DiscardResponseDTO> {
+    // TK-159 / ADR-009: un reintento de sincronización no vuelve a descartar.
+    if (dto.operationId) {
+      const applied = await this.remanenteRepository.findMovementByOperationId(dto.operationId);
+      if (applied) {
+        const current = await this.remanenteRepository.findRemanenteById(dto.remanenteId);
+        if (!current) {
+          throw new EntityNotFoundException('Remanente', dto.remanenteId);
+        }
+        return {
+          remanenteId: current.id,
+          discardedQuantity: applied.quantity,
+          reason: dto.reason,
+          status: current.status,
+        };
+      }
+    }
+
     const remanente = await this.remanenteRepository.findRemanenteById(dto.remanenteId);
     if (!remanente) {
       throw new EntityNotFoundException('Remanente', dto.remanenteId);
@@ -35,8 +57,14 @@ export class DiscardRemanenteUseCase {
     // Registrar movimiento de auditoria por merma. Antes `` `mov-discard-${Date.now()}` `` —
     // mismo riesgo de colisión de PK que AUDIT-DEV-006 F-3 ya corrigió en otros use cases
     // (TK-099/TK-101), que no cubrieron este caso.
+    // TK-159 / ADR-009: el reloj del dispositivo puede estar mal. Se acota, no se confía.
+    const occurred = resolveOccurredAt(dto.occurredAt, new Date(), remanente.createdAt);
+
     await this.remanenteRepository.recordMovement({
       id: this.idGenerator.next('mov-discard'),
+      operationId: dto.operationId,
+      occurredAt: occurred.occurredAt,
+      occurredAtAdjusted: occurred.adjusted,
       insumoId: remanente.insumoId,
       type: `DISCARD_${dto.reason}`,
       quantity: discardedQty.toString(),

@@ -336,6 +336,21 @@ export class PrismaStockRepository implements IInsumoRepository, IRemanenteRepos
   }
 
   private async recordMovementOn(client: StockDbClient, movement: StockMovementRecord): Promise<void> {
+    try {
+      await this.insertMovementOn(client, movement);
+    } catch (error) {
+      // TK-159 / ADR-009: dos sincronizaciones simultáneas de la misma operación encolada
+      // pueden pasar ambas la comprobación previa; la que pierde la carrera choca contra el
+      // índice único. Eso es exactamente lo que el índice existe para impedir, así que se
+      // trata como lo que es —un reintento ya aplicado— y no como un error del operario.
+      if (movement.operationId && isUniqueViolationOn(error, 'operationId')) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  private async insertMovementOn(client: StockDbClient, movement: StockMovementRecord): Promise<void> {
     await client.stockMovement.create({
       data: {
         id: movement.id,
@@ -350,8 +365,38 @@ export class PrismaStockRepository implements IInsumoRepository, IRemanenteRepos
         reason: movement.reason,
         reasonId: movement.reasonId,
         recipeId: movement.recipeId,
+        // TK-159 / ADR-009: cola sin conexión. `operationId` lleva índice único en la BD,
+        // no una comprobación previa en código: el reintento de una sincronización es
+        // concurrente por naturaleza y una comprobación previa tiene ventana de carrera.
+        operationId: movement.operationId,
+        occurredAt: movement.occurredAt,
+        occurredAtAdjusted: movement.occurredAtAdjusted ?? false,
       },
     });
+  }
+
+  /** TK-159 / ADR-009: movimiento ya aplicado con esa clave de idempotencia, si existe. */
+  public async findMovementByOperationId(operationId: string): Promise<StockMovementRecord | null> {
+    const found = await this.prisma.stockMovement.findUnique({ where: { operationId } });
+    if (!found) return null;
+    return {
+      id: found.id,
+      insumoId: found.insumoId,
+      type: found.type,
+      quantity: found.quantity.toString(),
+      fromLoc: found.fromLoc,
+      fromStorageLocationId: found.fromStorageLocationId ?? undefined,
+      toLoc: found.toLoc,
+      operatorId: found.operatorId ?? undefined,
+      purpose: found.purpose ?? undefined,
+      reason: found.reason ?? undefined,
+      reasonId: found.reasonId ?? undefined,
+      recipeId: found.recipeId ?? undefined,
+      createdAt: found.createdAt,
+      operationId: found.operationId ?? undefined,
+      occurredAt: found.occurredAt ?? undefined,
+      occurredAtAdjusted: found.occurredAtAdjusted,
+    };
   }
 
   private toRemanente(raw: {
@@ -383,4 +428,16 @@ export class PrismaStockRepository implements IInsumoRepository, IRemanenteRepos
       terminalAt: raw.terminalAt ?? undefined,
     });
   }
+}
+
+/**
+ * TK-159: violación de restricción única de Prisma (`P2002`) sobre un campo concreto.
+ * Se comprueba el campo y no solo el código, para no tragarse una colisión distinta.
+ */
+function isUniqueViolationOn(error: unknown, field: string): boolean {
+  const candidate = error as { code?: string; meta?: { target?: unknown } } | null;
+  if (!candidate || candidate.code !== 'P2002') return false;
+  const target = candidate.meta?.target;
+  if (Array.isArray(target)) return target.includes(field);
+  return typeof target === 'string' && target.includes(field);
 }
