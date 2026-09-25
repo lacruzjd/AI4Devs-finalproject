@@ -4,6 +4,7 @@ import { Remanente, RemanenteStatusType } from '../../../domain/stock/entities/R
 import { DecimalQuantity } from '../../../domain/stock/value-objects/DecimalQuantity.js';
 import { IInsumoRepository } from '../../../domain/stock/repositories/IInsumoRepository.js';
 import { IRemanenteRepository, StockMovementRecord } from '../../../domain/stock/repositories/IRemanenteRepository.js';
+import { toMovementRow, toMovementRecord } from './stockMovementMapper.js';
 import {
   AdhocConsumptionUnitOfWork,
   RemanenteWriteUnitOfWork,
@@ -368,28 +369,7 @@ export class PrismaStockRepository implements IInsumoRepository, IRemanenteRepos
   }
 
   private async insertMovementOn(client: StockDbClient, movement: StockMovementRecord): Promise<void> {
-    await client.stockMovement.create({
-      data: {
-        id: movement.id,
-        insumoId: movement.insumoId,
-        type: movement.type,
-        quantity: movement.quantity,
-        fromLoc: movement.fromLoc,
-        fromStorageLocationId: movement.fromStorageLocationId,
-        toLoc: movement.toLoc,
-        operatorId: movement.operatorId,
-        purpose: movement.purpose,
-        reason: movement.reason,
-        reasonId: movement.reasonId,
-        recipeId: movement.recipeId,
-        // TK-159 / ADR-009: cola sin conexión. `operationId` lleva índice único en la BD,
-        // no una comprobación previa en código: el reintento de una sincronización es
-        // concurrente por naturaleza y una comprobación previa tiene ventana de carrera.
-        operationId: movement.operationId,
-        occurredAt: movement.occurredAt,
-        occurredAtAdjusted: movement.occurredAtAdjusted ?? false,
-      },
-    });
+    await client.stockMovement.create({ data: toMovementRow(movement) });
   }
 
   /** TK-159 / ADR-009: movimiento ya aplicado con esa clave de idempotencia, si existe. */
@@ -402,25 +382,7 @@ export class PrismaStockRepository implements IInsumoRepository, IRemanenteRepos
     operationId: string
   ): Promise<StockMovementRecord | null> {
     const found = await client.stockMovement.findUnique({ where: { operationId } });
-    if (!found) return null;
-    return {
-      id: found.id,
-      insumoId: found.insumoId,
-      type: found.type,
-      quantity: found.quantity.toString(),
-      fromLoc: found.fromLoc,
-      fromStorageLocationId: found.fromStorageLocationId ?? undefined,
-      toLoc: found.toLoc,
-      operatorId: found.operatorId ?? undefined,
-      purpose: found.purpose ?? undefined,
-      reason: found.reason ?? undefined,
-      reasonId: found.reasonId ?? undefined,
-      recipeId: found.recipeId ?? undefined,
-      createdAt: found.createdAt,
-      operationId: found.operationId ?? undefined,
-      occurredAt: found.occurredAt ?? undefined,
-      occurredAtAdjusted: found.occurredAtAdjusted,
-    };
+    return found ? toMovementRecord(found) : null;
   }
 
   private toRemanente(raw: {
