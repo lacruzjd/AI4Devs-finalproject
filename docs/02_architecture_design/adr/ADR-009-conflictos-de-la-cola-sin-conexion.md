@@ -11,7 +11,7 @@ date: 2026-09-25
 - **Estado:** `Accepted`
 - **Fecha:** 2026-09-25
 - **Decidido por:** el humano, sobre la matriz de opciones de `SK-36`
-- **Implementado por:** — pendiente de cascada de spec
+- **Implementado por:** [`US-044`](../../05_agile_planning/11_user_stories/shared/US-044.md) → [`TK-159`](../../05_agile_planning/12_tickets/shared/backend/TK-159.md), [`TK-160`](../../05_agile_planning/12_tickets/shared/backend/TK-160.md) y [`TK-160-FE`](../../05_agile_planning/12_tickets/shared/frontend/TK-160-FE.md) — `approved`
 
 ## Contexto
 

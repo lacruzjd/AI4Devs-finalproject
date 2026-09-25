@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: RestoStock API
   description: REST API specification for RestoStock real-time inventory and FEFO traceability system.
-  version: 7.0.0 # TK-129 / AUDIT-DEV-012 L-3: /settings/ai GET+PUT drop the inert replenishmentOn / anomalyAuditOn fields (no use case ever read them). oasdiff-confirmed removal of required response properties; deliberate. Single consumer is this repo's own frontend (TK-129-FE). Prior: 6.0.0 = TK-128 / US-035: RescueRecipeProposal.preventedWasteEstimate (physical quantity, meaningless — summed heterogeneous units, AUDIT-DEV-007 F-1) -> preventedWasteCost (nullable monetary string). oasdiff-confirmed breaking change, deliberate: the previous metric was wrong by construction. Single consumer is this monorepo's own frontend, updated in TK-128-FE. Prior: 5.0.0 = TK-108/ADR-004 (POST /kitchen/remanentes/{id}/consume requires reasonId).
+  version: 7.1.0 # TK-159 / US-044 / ADR-009: consume y discard aceptan operationId (clave de idempotencia) y occurredAt (momento real), ambos opcionales — cambio aditivo, la tablet sin cola sigue siendo compatible. Prior: 7.0.0 = TK-129 / AUDIT-DEV-012 L-3: /settings/ai GET+PUT drop the inert replenishmentOn / anomalyAuditOn fields (no use case ever read them). oasdiff-confirmed removal of required response properties; deliberate. Single consumer is this repo's own frontend (TK-129-FE). Prior: 6.0.0 = TK-128 / US-035: RescueRecipeProposal.preventedWasteEstimate (physical quantity, meaningless — summed heterogeneous units, AUDIT-DEV-007 F-1) -> preventedWasteCost (nullable monetary string). oasdiff-confirmed breaking change, deliberate: the previous metric was wrong by construction. Single consumer is this monorepo's own frontend, updated in TK-128-FE. Prior: 5.0.0 = TK-108/ADR-004 (POST /kitchen/remanentes/{id}/consume requires reasonId).
 servers:
   - url: http://localhost:3000
     description: Local Development Server
@@ -2310,6 +2310,14 @@ components:
         notes:
           type: string
           description: Free text, always optional — complements but never replaces the structured reason.
+        operationId:
+          type: string
+          format: uuid
+          description: 'US-044 / ADR-009: clave de idempotencia generada por el cliente. Opcional; obligatoria para operaciones encoladas sin conexión. Reenviar una clave ya aplicada devuelve el mismo resultado sin volver a descontar.'
+        occurredAt:
+          type: string
+          format: date-time
+          description: 'US-044 / ADR-009: momento real en que la operación ocurrió en cocina, sellado por el dispositivo. Opcional; sin él se usa el momento de recepción. El servidor acota valores imposibles (futuros o anteriores a la creación del remanente) en lugar de confiar a ciegas.'
 
     ConsumeRemanenteResponse:
       type: object
@@ -2338,6 +2346,14 @@ components:
           # a diferencia de ConsumptionReason/ADR-004); se documenta y valida ahora.
           enum: [EXPIRATION, DAMAGED, QUALITY_FAIL]
           example: "EXPIRATION"
+        operationId:
+          type: string
+          format: uuid
+          description: 'US-044 / ADR-009: clave de idempotencia generada por el cliente. Opcional; obligatoria para operaciones encoladas sin conexión. Reenviar una clave ya aplicada devuelve el mismo resultado sin volver a descontar.'
+        occurredAt:
+          type: string
+          format: date-time
+          description: 'US-044 / ADR-009: momento real en que la operación ocurrió en cocina, sellado por el dispositivo. Opcional; sin él se usa el momento de recepción. El servidor acota valores imposibles (futuros o anteriores a la creación del remanente) en lugar de confiar a ciegas.'
 
     DiscardRemanenteResponse:
       type: object

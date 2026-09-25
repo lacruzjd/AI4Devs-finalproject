@@ -167,6 +167,21 @@ erDiagram
 
 ---
 
+## 🔮 1-ter. Cambios de Esquema Planificados — ADR-009 (Cola de Operaciones sin Conexión)
+
+> **Estado:** 📝 Draft — se materializan al implementar `TK-159` y `TK-160` (`US-044`). El §4 (código `schema.prisma`) se actualiza en el ticket, no aquí. La migración requiere aprobación humana del archivo (AGENTS §3).
+
+| Cambio | Ticket | Motivo |
+| :--- | :--- | :--- |
+| `stock_movements.operation_id UUID?` con índice **único** — clave de idempotencia generada por el cliente | `TK-159` | Reintentar la sincronización de una cola es comportamiento normal, no excepcional. Sin unicidad garantizada en base de datos (no solo comprobada en código, que tiene ventana de carrera), cada reintento duplica el descuento |
+| `stock_movements.occurred_at TIMESTAMPTZ?` — momento real en cocina, distinto de `created_at` (momento de recepción) | `TK-159` | Sin él, FEFO y el cierre de turno ordenan los hechos por la hora de sincronización, que es falsa. Nulo para movimientos inmediatos, que siguen usando `created_at` |
+| `stock_movements.occurred_at_adjusted BOOLEAN DEFAULT false` — marca que el servidor acotó un momento imposible | `TK-159` | Un dispositivo puede tener el reloj mal. Se acota y se deja constancia, en vez de confiar a ciegas o de rechazar la operación |
+| Nuevo valor de `stock_movements.type` (columna `String`, sin enum): `DEFERRED_SYNC_VARIANCE` | `TK-160` | La varianza por sincronización diferida debe distinguirse de la de conteo físico: ambas acaban en el mismo informe de cierre y confundirlas lo haría ilegible |
+
+**Invariante que esta cascada no cambia:** `remanentes.current_quantity` nunca queda negativo. `ADR-009` acota a cero y registra la diferencia como varianza, en lugar de permitir cantidades negativas.
+
+---
+
 ## 📚 2. Diccionario Físico de Entidades & Gobernanza PII
 
 | Tabla | Campo | Tipo Físico | Restricción / Index | Sensibilidad PII / Cifrado | Descripción |

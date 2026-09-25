@@ -11,7 +11,7 @@ date: 2026-09-25
 - **Estado:** `Accepted`
 - **Fecha:** 2026-09-25
 - **Decidido por:** el humano, sobre la matriz de opciones de `SK-36`
-- **Implementado por:** — pendiente de cascada de spec
+- **Implementado por:** [`US-044`](../../05_agile_planning/11_user_stories/shared/US-044.md) y [`US-045`](../../05_agile_planning/11_user_stories/shared/US-045.md) → [`TK-159-FE`](../../05_agile_planning/12_tickets/shared/frontend/TK-159-FE.md) (shell instalable) — `approved`. Los tickets de `US-045` dependen de una pasada de `SK-05`
 
 ## Contexto
 
