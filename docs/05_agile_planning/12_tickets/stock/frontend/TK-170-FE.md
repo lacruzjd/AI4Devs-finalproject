@@ -4,7 +4,7 @@ id: TK-170-FE
 related_story: US-049
 points: 1
 type: frontend
-status: approved
+status: done
 inputs:
   - docs/05_agile_planning/11_user_stories/stock/US-049.md
 ---
@@ -60,6 +60,16 @@ Se elimina la tabla y el respaldo silencioso. Si la unidad falta, se hace visibl
 1. **TDD Compliance:** el test del escenario 2 se escribe y se ve fallar antes del cambio.
 2. **Precisión Aritmética:** no aplica; no se tocan cantidades, sólo su unidad mostrada.
 3. **Verificación Total:** cero errores en los comandos de test, build y lint declarados en `AGENTS.md`.
+
+---
+
+## Resultado (2026-09-25)
+
+La resolución de la unidad sale del componente a su propio módulo y queda **pura**: la unidad la da el dato, y si no llega se muestra la ausencia en vez de kilogramos. Cuatro tests nuevos, escritos en rojo primero; uno de ellos comprueba explícitamente que los antiguos identificadores de la tabla (`ins-2`, `ins-3`) **ya no deciden nada**.
+
+**Ningún test existente se modificó** —verificado contra el diff—: los 15 casos de la pantalla de extracción siguen siendo la red de que el camino normal no cambia, y pasan sin tocarse.
+
+Suite completa: 608 backend y 290 frontend. Lint y build sin errores.
 
 ---
 
