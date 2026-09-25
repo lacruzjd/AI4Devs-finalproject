@@ -512,7 +512,7 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 *   **[TK-162-FE: Tramo de Teléfono en Bodega e Historial](shared/frontend/TK-162-FE.md)** (Frontend) — ✅ Done. `US-045` / `SK-05`: las tablas anchas se desplazan dentro de su contenedor; el cuerpo de la página nunca en horizontal.
 *   **[TK-163-FE: Modales a Hoja Completa en Teléfono](shared/frontend/TK-163-FE.md)** (Frontend) — ✅ Done. `US-045` / `SK-05`: en `xs` los modales pasan a hoja completa, con el botón de confirmación al alcance del pulgar.
 
-*   **[TK-164: El Arranque Reasienta la Rotación Obligatoria del PIN Inicial](auth/backend/TK-164.md)** (Backend) — ⏳ Approved. `US-046` / `EXT-002` R-02: el bootstrap crea el administrador con un `upsert` directo que se salta el dominio y nunca reasienta `mustChangePin`. Se corrige comparando el PIN almacenado con el de siembra: si todavía coincide, nunca se rotó.
+*   **[TK-164: El Arranque Reasienta la Rotación Obligatoria del PIN Inicial](auth/backend/TK-164.md)** (Backend) — ✅ Done. `US-046` / `EXT-002` R-02: el bootstrap crea el administrador con un `upsert` directo que se salta el dominio y nunca reasienta `mustChangePin`. Se corrige comparando el PIN almacenado con el de siembra: si todavía coincide, nunca se rotó.
 *   **[TK-165: Documentar el Endpoint de Cambio de PIN en el Contrato](auth/backend/TK-165.md)** (Backend) — ⏳ Approved. `US-046`: `POST /auth/change-pin` existe en el código y aparecía 0 veces en `openapi.yaml`. Sin cambios de código — documentar lo que hay.
 
 

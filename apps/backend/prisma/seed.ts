@@ -24,6 +24,7 @@ import { PrismaClient } from '../src/generated/prisma/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
+import { nuncaSeRotoElPin } from '../src/domain/auth/services/BootstrapPinRotation.js';
 
 dotenv.config();
 
@@ -130,9 +131,24 @@ async function seedProductionAdmin(adminRoleId: string): Promise<void> {
 
   const adminName = process.env.SEED_ADMIN_NAME ?? 'Administrador';
   const adminEmail = process.env.SEED_ADMIN_EMAIL ?? 'admin@restostock.com';
+  // TK-164 (US-046 / EXT-002 R-02): la rama `update` de este upsert nunca tocaba
+  // `mustChangePin`, así que una cuenta que quedó con la marca desactivada seguía operando
+  // con el PIN de siembra —publicado en la documentación de despliegue— indefinidamente.
+  // Se reasienta sólo cuando el PIN almacenado TODAVÍA es el de siembra: eso prueba que
+  // nunca se rotó. A quien ya rotó no se le vuelve a exigir en cada despliegue.
+  const existente = await prisma.user.findUnique({
+    where: { id: 'bootstrap-admin' },
+    select: { pinHash: true },
+  });
+  const exigirRotacion = existente ? nuncaSeRotoElPin(existente.pinHash, adminPin) : false;
+
   const admin = await prisma.user.upsert({
     where: { id: 'bootstrap-admin' },
-    update: { roleId: adminRoleId, email: adminEmail },
+    update: {
+      roleId: adminRoleId,
+      email: adminEmail,
+      ...(exigirRotacion ? { mustChangePin: true } : {}),
+    },
     create: {
       id: 'bootstrap-admin',
       name: adminName,
@@ -140,8 +156,16 @@ async function seedProductionAdmin(adminRoleId: string): Promise<void> {
       pinHash: hashPin(adminPin),
       email: adminEmail,
       status: 'ACTIVE',
+      // Explícito aunque la columna ya tenga este valor por defecto: la regla no debe
+      // depender de que nadie cambie el default del esquema más adelante.
+      mustChangePin: true,
     },
   });
+  if (exigirRotacion) {
+    console.log(
+      '🔐 El administrador inicial conserva el PIN de siembra — se exige su rotación antes de operar (TK-164).'
+    );
+  }
   console.log(`✅ Administrador inicial idempotente: ${admin.name} (${admin.id})`);
 }
 
