@@ -1,0 +1,1560 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>momoy como sistema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   momoy — mapa de sistema
+   Retícula y escala derivadas de phi = 1.618
+   Escala tipográfica: pasos de raiz(phi) = 1.272 sobre 16px
+   Espaciado: serie de Fibonacci 5 8 13 21 34 55 89 144
+   Paleta: paramo andino (el momoy es el duende guardian del agua)
+   ============================================================ */
+:root{
+  --phi:1.618;
+  --ground:#F2F4F1; --surface:#FBFCFA; --surface-2:#E7ECE7; --surface-3:#DDE4DD;
+  --ink:#16211C; --ink-2:#3B4A43; --muted:#6B7A72;
+  --line:#CDD6CF; --line-strong:#A4B2AA;
+  --accent:#2E6F5E; --accent-soft:#DDEAE4; --accent-ink:#1E4A3E;
+  --signal:#B8551C; --signal-soft:#F7E2D2;
+  --ok:#3F7D4E; --warn:#8E7118; --crit:#A33A2A;
+  --font-display:"Fraunces",Georgia,"Times New Roman",serif;
+  --font-body:"Karla","Helvetica Neue",Arial,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --s1:5px; --s2:8px; --s3:13px; --s4:21px; --s5:34px; --s6:55px; --s7:89px; --s8:144px;
+  --t-cap:12.6px; --t-bod:16px; --t-h4:20.4px; --t-h3:25.9px; --t-h2:33px; --t-h1:41.9px; --t-dis:53.3px;
+  --wrap:1180px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E1512; --surface:#141D19; --surface-2:#1C2621; --surface-3:#25332C;
+    --ink:#E4EAE4; --ink-2:#BFCAC3; --muted:#8FA096;
+    --line:#2A3833; --line-strong:#43544C;
+    --accent:#6FC0A3; --accent-soft:#17312A; --accent-ink:#9BD8C1;
+    --signal:#E08A4C; --signal-soft:#33241A;
+    --ok:#6FB37C; --warn:#C5A64A; --crit:#D97A68;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E1512; --surface:#141D19; --surface-2:#1C2621; --surface-3:#25332C;
+  --ink:#E4EAE4; --ink-2:#BFCAC3; --muted:#8FA096;
+  --line:#2A3833; --line-strong:#43544C;
+  --accent:#6FC0A3; --accent-soft:#17312A; --accent-ink:#9BD8C1;
+  --signal:#E08A4C; --signal-soft:#33241A;
+  --ok:#6FB37C; --warn:#C5A64A; --crit:#D97A68;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--font-body); font-size:var(--t-bod); line-height:1.55;
+  font-feature-settings:"kern" 1;
+}
+img{max-width:100%}
+::selection{background:var(--accent-soft); color:var(--ink)}
+a{color:var(--accent-ink); text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--signal); outline-offset:2px; border-radius:3px}
+
+/* ---------- barra superior ---------- */
+.bar{
+  position:sticky; top:0; z-index:40; background:color-mix(in srgb,var(--ground) 92%,transparent);
+  backdrop-filter:blur(8px); border-bottom:1px solid var(--line);
+}
+.bar-in{max-width:var(--wrap); margin:0 auto; padding:var(--s3) var(--s4);
+  display:flex; align-items:baseline; gap:var(--s4); flex-wrap:wrap}
+.brand{font-family:var(--font-display); font-size:var(--t-h4); font-weight:600; letter-spacing:-.01em}
+.brand span{color:var(--muted); font-family:var(--font-mono); font-size:var(--t-cap); font-weight:400; margin-left:var(--s2)}
+.bar nav{display:flex; gap:var(--s3); flex-wrap:wrap; margin-left:auto}
+.bar nav a{font-size:var(--t-cap); color:var(--muted); text-decoration:none; letter-spacing:.02em}
+.bar nav a:hover{color:var(--accent-ink)}
+.theme-btn{font:inherit; font-size:var(--t-cap); background:none; border:1px solid var(--line);
+  color:var(--muted); border-radius:99px; padding:2px 10px; cursor:pointer}
+.theme-btn:hover{border-color:var(--accent); color:var(--accent-ink)}
+
+/* ---------- estructura ---------- */
+.wrap{max-width:var(--wrap); margin:0 auto; padding:0 var(--s4)}
+section{padding:var(--s6) 0; border-top:1px solid var(--line)}
+section:first-of-type{border-top:0}
+.eyebrow{font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--muted); display:flex; align-items:baseline; gap:var(--s2)}
+.eyebrow b{color:var(--accent-ink); font-weight:500}
+h1,h2,h3,h4{font-family:var(--font-display); font-weight:600; line-height:1.14; text-wrap:balance; margin:0}
+h1{font-size:var(--t-dis); letter-spacing:-.022em}
+h2{font-size:var(--t-h2); letter-spacing:-.015em; margin-top:var(--s2)}
+h3{font-size:var(--t-h4); letter-spacing:-.008em; margin-top:var(--s5)}
+h4{font-size:var(--t-bod); letter-spacing:0}
+p{margin:var(--s3) 0 0; max-width:66ch; color:var(--ink-2)}
+p.lead{font-size:var(--t-h4); color:var(--ink); line-height:1.42; max-width:60ch}
+code,.mono{font-family:var(--font-mono); font-size:.86em}
+code{background:var(--surface-2); padding:1px 5px; border-radius:3px; color:var(--accent-ink)}
+
+/* ---------- portada ---------- */
+.hero{padding-top:var(--s6); padding-bottom:var(--s5)}
+.hero-grid{display:grid; grid-template-columns:1fr .618fr; gap:var(--s6); align-items:start}
+@media (max-width:900px){.hero-grid{grid-template-columns:1fr; gap:var(--s4)}}
+.thesis{border-left:2px solid var(--accent); padding-left:var(--s4); margin-top:var(--s4)}
+.thesis p{margin-top:var(--s2)}
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line);
+  border:1px solid var(--line); border-radius:4px; overflow:hidden; margin-top:var(--s4)}
+.stat{background:var(--surface); padding:var(--s3) var(--s3) var(--s3)}
+.stat b{display:block; font-family:var(--font-display); font-size:var(--t-h3); font-weight:600;
+  font-variant-numeric:tabular-nums; line-height:1}
+.stat span{display:block; font-size:11px; font-family:var(--font-mono); color:var(--muted);
+  text-transform:uppercase; letter-spacing:.08em; margin-top:var(--s1)}
+
+/* ---------- figuras ---------- */
+figure{margin:var(--s5) 0 0; background:var(--surface); border:1px solid var(--line);
+  border-radius:5px; padding:var(--s4); overflow-x:auto}
+figure svg{display:block; width:100%; height:auto; min-width:640px}
+figcaption{margin-top:var(--s3); font-size:var(--t-cap); color:var(--muted); max-width:78ch;
+  border-top:1px solid var(--line); padding-top:var(--s3)}
+figcaption b{color:var(--ink-2); font-weight:600}
+svg text{font-family:var(--font-body); fill:var(--ink)}
+.t-node{font-size:13px; font-weight:600}
+.t-sub{font-family:var(--font-mono); font-size:10.5px; fill:var(--muted)}
+.t-lbl{font-size:12px; fill:var(--ink-2)}
+.t-eye{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.12em; fill:var(--muted)}
+.t-halo{paint-order:stroke; stroke:var(--surface); stroke-width:5px; stroke-linejoin:round}
+.t-sig{fill:var(--signal); font-weight:600}
+.t-acc{fill:var(--accent-ink)}
+.n-box{fill:var(--surface-2); stroke:var(--line-strong); stroke-width:1.2}
+.n-out{fill:none; stroke:var(--line-strong); stroke-width:1.2; stroke-dasharray:4 3}
+.n-acc{fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.5}
+.n-sig{fill:var(--signal-soft); stroke:var(--signal); stroke-width:1.8}
+.n-plain{fill:var(--surface); stroke:var(--line); stroke-width:1}
+.edge{fill:none; stroke:var(--line-strong); stroke-width:1.3}
+.edge-acc{fill:none; stroke:var(--accent); stroke-width:1.4}
+.edge-neg{fill:none; stroke:var(--accent); stroke-width:1.4; stroke-dasharray:6 4}
+.edge-sig{fill:none; stroke:var(--signal); stroke-width:1.5; stroke-dasharray:2 4}
+.ah{fill:var(--line-strong)} .ah-a{fill:var(--accent)} .ah-s{fill:var(--signal)}
+.rule{stroke:var(--line); stroke-width:1}
+
+/* ---------- tablas ---------- */
+.tbl-wrap{overflow-x:auto; margin-top:var(--s4)}
+table{border-collapse:collapse; width:100%; font-size:var(--t-cap); min-width:520px}
+th,td{text-align:left; padding:var(--s2) var(--s3); border-bottom:1px solid var(--line); vertical-align:top}
+th{font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.1em;
+  color:var(--muted); font-weight:500; border-bottom:1px solid var(--line-strong)}
+td b{font-weight:600; color:var(--ink)}
+td.mono{font-family:var(--font-mono); font-size:11.5px; white-space:nowrap; color:var(--accent-ink)}
+tbody tr:hover{background:var(--surface)}
+
+/* ---------- anillo del ciclo: reticula aurea 1 : 0.618 ---------- */
+.ring-grid{display:grid; grid-template-columns:1fr .618fr; gap:var(--s5); align-items:start; margin-top:var(--s5)}
+@media (max-width:900px){.ring-grid{grid-template-columns:1fr}}
+.ring-box{background:var(--surface); border:1px solid var(--line); border-radius:5px; padding:var(--s3)}
+#ring{display:block; width:100%; height:auto}
+#ring path.sector{cursor:pointer; transition:opacity .12s ease}
+#ring path.sector:hover{opacity:.82}
+#ring .sector-num{font-family:var(--font-mono); font-size:15px; font-weight:500; pointer-events:none}
+.ring-list{list-style:none; margin:0; padding:0; border-top:1px solid var(--line)}
+.ring-list li{border-bottom:1px solid var(--line); padding:var(--s2) var(--s2) var(--s2) 0;
+  display:grid; grid-template-columns:26px 1fr; gap:var(--s2); cursor:pointer}
+.ring-list li:hover,.ring-list li.on{background:var(--surface)}
+.ring-list li.on{box-shadow:inset 3px 0 0 var(--accent)}
+.ring-list .n{font-family:var(--font-mono); font-size:11px; color:var(--muted); padding-top:3px}
+.ring-list .nm{font-weight:600; font-size:14px; line-height:1.3}
+.ring-list .cm{font-family:var(--font-mono); font-size:10.5px; color:var(--accent-ink); line-height:1.5}
+.fase-key{display:flex; gap:var(--s3); flex-wrap:wrap; margin-top:var(--s3); font-size:11px;
+  font-family:var(--font-mono); color:var(--muted)}
+.fase-key i{display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px;
+  vertical-align:-1px; border:1px solid var(--line-strong)}
+
+/* ---------- catalogo ---------- */
+.cat-controls{display:flex; gap:var(--s3); flex-wrap:wrap; align-items:center; margin-top:var(--s4)}
+.cat-controls input,.cat-controls select{font:inherit; font-size:var(--t-cap); padding:6px var(--s3);
+  border:1px solid var(--line-strong); border-radius:4px; background:var(--surface); color:var(--ink)}
+.cat-controls input{min-width:230px; font-family:var(--font-mono); font-size:12px}
+.chips{display:flex; gap:var(--s2); flex-wrap:wrap}
+.chip{font:inherit; font-family:var(--font-mono); font-size:11px; letter-spacing:.04em; cursor:pointer;
+  border:1px solid var(--line-strong); background:var(--surface); color:var(--muted);
+  border-radius:99px; padding:4px 11px}
+.chip[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--ground)}
+.cat-grid{display:grid; grid-template-columns:1fr .618fr; gap:var(--s4); align-items:start; margin-top:var(--s4)}
+@media (max-width:900px){.cat-grid{grid-template-columns:1fr}}
+.mods{display:grid; grid-template-columns:repeat(auto-fill,minmax(178px,1fr)); gap:var(--s2)}
+.mod{text-align:left; font:inherit; cursor:pointer; background:var(--surface);
+  border:1px solid var(--line); border-radius:4px; padding:var(--s2) var(--s3);
+  display:flex; flex-direction:column; gap:2px; min-height:64px}
+.mod:hover{border-color:var(--line-strong)}
+.mod.on{border-color:var(--accent); background:var(--accent-soft)}
+.mod .mid{font-family:var(--font-mono); font-size:11px; color:var(--accent-ink); letter-spacing:.01em}
+.mod .mt{font-size:12.6px; font-weight:600; line-height:1.28; color:var(--ink)}
+/* anomalia de Wong: el modulo con pausa humana rompe la reticula */
+.mod.hitl{border-color:var(--signal); border-width:1.5px; transform:rotate(-.5deg); background:var(--signal-soft)}
+.mod.hitl .mid{color:var(--signal)}
+.panel{position:sticky; top:74px; background:var(--surface); border:1px solid var(--line-strong);
+  border-radius:5px; padding:var(--s4)}
+.panel h4{font-family:var(--font-display); font-size:var(--t-h4); margin:var(--s1) 0 0}
+.panel .pid{font-family:var(--font-mono); font-size:11.5px; color:var(--accent-ink)}
+.panel dl{display:grid; grid-template-columns:auto 1fr; gap:var(--s1) var(--s3); margin:var(--s3) 0 0;
+  font-size:var(--t-cap); border-top:1px solid var(--line); padding-top:var(--s3)}
+.panel dt{font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--muted); padding-top:2px}
+.panel dd{margin:0; overflow-wrap:anywhere}
+.panel dd.mono{font-family:var(--font-mono); font-size:11px}
+.panel .pd{font-size:var(--t-cap); color:var(--ink-2); margin-top:var(--s3); line-height:1.5}
+.count{font-family:var(--font-mono); font-size:11px; color:var(--muted)}
+
+/* ---------- bloques de texto ---------- */
+.cols{display:grid; grid-template-columns:repeat(auto-fit,minmax(272px,1fr)); gap:var(--s4); margin-top:var(--s4)}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:5px; padding:var(--s4)}
+.card h4{margin-bottom:var(--s2)}
+.card p{font-size:var(--t-cap); margin-top:var(--s2)}
+.card .k{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+ol.steps{counter-reset:s; list-style:none; padding:0; margin:var(--s4) 0 0}
+ol.steps li{counter-increment:s; position:relative; padding-left:var(--s5); margin-top:var(--s3);
+  font-size:var(--t-cap); color:var(--ink-2); max-width:72ch}
+ol.steps li::before{content:counter(s,decimal-leading-zero); position:absolute; left:0; top:1px;
+  font-family:var(--font-mono); font-size:11px; color:var(--accent-ink)}
+ol.steps b{color:var(--ink)}
+.note{border-left:2px solid var(--signal); padding:var(--s2) 0 var(--s2) var(--s4); margin-top:var(--s4);
+  font-size:var(--t-cap); color:var(--ink-2); max-width:72ch}
+footer{border-top:1px solid var(--line); padding:var(--s5) 0 var(--s6); font-size:var(--t-cap); color:var(--muted)}
+footer p{font-size:var(--t-cap); color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
+
+/* ---------- anillo: gradacion de un solo tono sobre cuatro fases ---------- */
+#ring .sector{stroke:var(--surface); stroke-width:2}
+#ring .f-descubrir{fill:var(--accent); fill-opacity:.10}
+#ring .f-construir{fill:var(--accent); fill-opacity:.22}
+#ring .f-operar{fill:var(--accent); fill-opacity:.36}
+#ring .f-aprender{fill:var(--accent); fill-opacity:.52}
+#ring .sector.on{stroke:var(--accent); stroke-width:2.5}
+#ring .bead-bg{fill:var(--surface); stroke:var(--line-strong); stroke-width:1}
+#ring .sector-num{fill:var(--ink)}
+#ring .hub{fill:var(--surface); stroke:var(--signal); stroke-width:1.4; stroke-dasharray:5 5}
+#ring .hub-t{font-family:var(--font-display); font-size:25px; font-weight:600; fill:var(--ink)}
+.fase-key i.k-descubrir{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.fase-key i.k-construir{background:color-mix(in srgb,var(--accent) 22%,var(--surface))}
+.fase-key i.k-operar{background:color-mix(in srgb,var(--accent) 36%,var(--surface))}
+.fase-key i.k-aprender{background:color-mix(in srgb,var(--accent) 52%,var(--surface))}
+.fase-key span{display:inline-flex; align-items:center}
+
+/* ---------- arbol de artefactos ---------- */
+.art-controls{display:flex; gap:var(--s3); flex-wrap:wrap; align-items:center; margin-top:var(--s4)}
+.ej-aviso{border:1px dashed var(--line-strong); background:var(--surface-2); border-radius:5px;
+  padding:var(--s3) var(--s4); font-size:var(--t-cap); max-width:none; margin-top:var(--s3)}
+.ej-badge{font-family:var(--font-mono); font-size:10px; letter-spacing:.06em; border:1px dashed var(--line-strong);
+  color:var(--muted); border-radius:99px; padding:1px 6px; white-space:nowrap}
+.art-tree{margin-top:var(--s3); display:grid; gap:var(--s2)}
+.art-tree details{border:1px solid var(--line); border-radius:5px; background:var(--surface)}
+.art-tree details[open]{border-color:var(--line-strong)}
+.art-tree summary{cursor:pointer; padding:var(--s3); list-style:none;
+  display:grid; grid-template-columns:18px 26px 1fr auto auto; gap:var(--s3); align-items:center}
+.art-tree summary::-webkit-details-marker{display:none}
+.art-tree summary:hover{background:var(--surface-2)}
+.sm-tw{font-family:var(--font-mono); font-size:13px; color:var(--muted); text-align:center}
+details[open] .sm-tw{color:var(--accent-ink)}
+.et-n{font-family:var(--font-mono); font-size:11px; color:var(--muted)}
+.et-nm{font-weight:600; font-size:14px}
+.et-c{font-family:var(--font-mono); font-size:11px; color:var(--muted); white-space:nowrap}
+.minibar{display:flex; width:132px; height:9px; border-radius:99px; overflow:hidden; border:1px solid var(--line)}
+.minibar i{display:block; height:100%}
+.mb-ruta{background:var(--accent)}
+.mb-prosa{background:color-mix(in srgb,var(--accent) 34%,var(--surface))}
+.mb-humo{background:var(--surface-3)}
+.sk-blk{border-top:1px solid var(--line); padding:var(--s3) var(--s4)}
+.sk-h{display:flex; gap:var(--s2); align-items:baseline; flex-wrap:wrap}
+.sk-id{font-family:var(--font-mono); font-size:11px; color:var(--accent-ink)}
+.sk-t{font-weight:600; font-size:13px}
+ul.outs{list-style:none; margin:var(--s2) 0 0; padding:0; display:grid; gap:5px}
+ul.outs li{display:grid; grid-template-columns:12px 1fr 84px; gap:var(--s3); align-items:start; font-size:12.6px}
+.mk{width:9px; height:9px; margin-top:5px}
+.mk-ruta{background:var(--accent); border:1px solid var(--accent); border-radius:2px}
+.mk-prosa{background:transparent; border:1px solid var(--accent); border-radius:2px}
+.mk-humo{background:transparent; border-top:1px dashed var(--line-strong); height:1px; margin-top:9px}
+.ot{color:var(--ink-2); line-height:1.4}
+li.o-humo .ot{color:var(--muted)}
+.ot .p{font-family:var(--font-mono); font-size:11.5px; color:var(--accent-ink)}
+.ot.ruta{font-family:var(--font-mono); font-size:11.5px; color:var(--accent-ink); overflow-wrap:anywhere}
+.tag{font-family:var(--font-mono); font-size:10px; letter-spacing:.06em; color:var(--muted);
+  text-align:right; padding-top:2px; white-space:nowrap}
+.traza{margin-top:var(--s4); display:grid; gap:var(--s2)}
+.traza-row{display:grid; grid-template-columns:26px 190px 1fr 56px; gap:var(--s3); align-items:center; font-size:var(--t-cap)}
+.traza-bar{display:flex; height:14px; border-radius:3px; overflow:hidden; border:1px solid var(--line)}
+.traza-bar i{display:block; height:100%}
+.traza-pct{font-family:var(--font-mono); font-size:11.5px; text-align:right; font-variant-numeric:tabular-nums}
+.traza-row.baja .traza-pct{color:var(--signal)}
+.traza-row.vacia{opacity:.72}
+.traza-row.vacia .traza-pct{color:var(--muted)}
+@media (max-width:760px){
+  .traza-row{grid-template-columns:24px 1fr 46px}
+  .traza-row .traza-bar{grid-column:1 / -1}
+  ul.outs li{grid-template-columns:12px 1fr; }
+  ul.outs li .tag{grid-column:2; text-align:left}
+  .art-tree summary{grid-template-columns:18px 26px 1fr; row-gap:var(--s2)}
+}
+
+/* ---------- simulacion de paradas ---------- */
+.sim-controls{display:flex; gap:var(--s3); flex-wrap:wrap; align-items:center; margin-top:var(--s4)}
+.chip-go{background:var(--accent); border-color:var(--accent); color:var(--ground); font-weight:600}
+.chip-go:hover{filter:brightness(1.08)}
+.chip-go[disabled]{opacity:.45; cursor:default}
+.sim-grid{display:grid; grid-template-columns:1fr .618fr; gap:var(--s4); align-items:start; margin-top:var(--s4)}
+@media (max-width:900px){.sim-grid{grid-template-columns:1fr}}
+ol.sim{list-style:none; margin:0; padding:0; display:grid; gap:0}
+ol.sim li{display:grid; grid-template-columns:34px 1fr; gap:var(--s3); position:relative; padding-bottom:var(--s3)}
+ol.sim li::before{content:""; position:absolute; left:16px; top:26px; bottom:0; width:1px; background:var(--line)}
+ol.sim li:last-child::before{display:none}
+.sim-dot{width:34px; height:26px; display:flex; align-items:center; justify-content:center;
+  font-family:var(--font-mono); font-size:11px; color:var(--muted)}
+.sim-dot b{display:block; width:11px; height:11px; border-radius:50%; border:1.5px solid var(--line-strong);
+  background:var(--surface); position:relative; z-index:1}
+.sim-card{border:1px solid var(--line); border-radius:5px; background:var(--surface);
+  padding:var(--s2) var(--s3); transition:border-color .15s ease, opacity .15s ease}
+.sim-fase{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.06em; color:var(--muted)}
+.sim-tit{font-weight:600; font-size:13.5px; line-height:1.3; margin-top:1px}
+.sim-det{font-size:var(--t-cap); color:var(--ink-2); margin-top:3px; line-height:1.45}
+.sim-art{font-family:var(--font-mono); font-size:10.5px; color:var(--accent-ink); margin-top:4px; overflow-wrap:anywhere}
+li.s-pendiente .sim-card{opacity:.45}
+li.s-inerte .sim-dot b{border-style:dotted}
+li.s-corriendo .sim-card{border-color:var(--accent)}
+li.s-corriendo .sim-dot b{background:var(--accent); border-color:var(--accent)}
+li.s-ok .sim-dot b{background:var(--accent); border-color:var(--accent)}
+li.s-gate.s-ok .sim-dot b{background:var(--surface); border-color:var(--accent); box-shadow:inset 0 0 0 2px var(--accent)}
+li.s-parado .sim-card{border-color:var(--signal); border-width:1.5px; background:var(--signal-soft)}
+li.s-parado .sim-dot b{background:var(--signal); border-color:var(--signal)}
+li.s-rechazado .sim-card{border-color:var(--signal); border-style:dashed; background:var(--surface)}
+li.s-omitido .sim-card{opacity:.32}
+li.s-omitido .sim-dot b{border-style:dashed}
+.sim-hitl-tag{display:inline-block; font-family:var(--font-mono); font-size:10px; letter-spacing:.06em;
+  color:var(--signal); border:1px solid var(--signal); border-radius:99px; padding:0 6px; margin-left:var(--s2)}
+.sim-gate-tag{display:inline-block; font-family:var(--font-mono); font-size:10px; letter-spacing:.06em;
+  color:var(--accent-ink); border:1px solid var(--accent); border-radius:99px; padding:0 6px; margin-left:var(--s2)}
+.sim-ask{margin-top:var(--s3); border-top:1px dashed var(--signal); padding-top:var(--s2);
+  display:flex; gap:var(--s2); flex-wrap:wrap; align-items:center}
+.sim-ask .q{font-size:var(--t-cap); color:var(--ink); flex:1 1 220px; line-height:1.4}
+.sim-btn{font:inherit; font-size:var(--t-cap); font-weight:600; cursor:pointer; border-radius:4px;
+  padding:5px 14px; border:1px solid var(--signal); background:var(--signal); color:var(--ground)}
+.sim-btn.no{background:transparent; color:var(--signal)}
+.sim-btn:hover{filter:brightness(1.08)}
+.sim-out{font-size:var(--t-cap); color:var(--ink-2); margin-top:var(--s2); border-left:2px solid var(--signal);
+  padding-left:var(--s3); line-height:1.45}
+.sim-side{position:sticky; top:74px}
+.sim-panel .sim-estado{font-family:var(--font-display); font-size:var(--t-h4); font-weight:600; margin-top:var(--s2)}
+.sim-panel dl{display:grid; grid-template-columns:auto 1fr; gap:var(--s1) var(--s3); margin:var(--s3) 0 0;
+  font-size:var(--t-cap); border-top:1px solid var(--line); padding-top:var(--s3)}
+.sim-panel dt{font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em;
+  color:var(--muted); padding-top:2px}
+.sim-panel dd{margin:0; font-variant-numeric:tabular-nums}
+.sim-panel dd.sig{color:var(--signal); font-weight:600}
+
+/* ---------- caso de ejemplo (secciones 7 y 8) ---------- */
+.caso{border:1px dashed var(--line-strong); border-radius:5px; background:var(--surface);
+  padding:var(--s4); margin-top:var(--s3)}
+.caso-h{margin-bottom:var(--s3)}
+.caso-in{display:grid; grid-template-columns:76px 1fr; gap:var(--s3); align-items:baseline; margin-bottom:var(--s2)}
+.caso-k{font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.caso-cmd{font-family:var(--font-mono); font-size:12px; background:var(--surface-2); color:var(--accent-ink);
+  border-radius:3px; padding:4px 8px; display:inline-block; overflow-wrap:anywhere}
+.caso-stack{font-family:var(--font-mono); font-size:11px; color:var(--ink-2)}
+.caso-cols{display:grid; grid-template-columns:1fr .618fr; gap:var(--s4); margin-top:var(--s4)}
+@media (max-width:820px){.caso-cols{grid-template-columns:1fr}}
+.caso-dec,.caso-cad{list-style:none; margin:var(--s2) 0 0; padding:0; display:grid; gap:var(--s2)}
+.caso-dec li{font-size:var(--t-cap); color:var(--ink-2); line-height:1.45;
+  border-left:2px solid var(--signal); padding-left:var(--s3)}
+.caso-f{display:block; font-family:var(--font-mono); font-size:10px; letter-spacing:.06em;
+  color:var(--signal); margin-bottom:1px}
+.caso-cad li{display:grid; grid-template-columns:104px 1fr; gap:var(--s2); font-size:var(--t-cap)}
+.caso-e{font-family:var(--font-mono); font-size:10.5px; color:var(--muted)}
+.caso-a{font-family:var(--font-mono); font-size:10.5px; color:var(--accent-ink); overflow-wrap:anywhere; line-height:1.5}
+.caso-p{font-size:var(--t-cap); color:var(--ink-2); margin-top:var(--s3); max-width:74ch}
+.caso-mini{margin-top:var(--s3); padding:var(--s3) var(--s4)}
+.caso-tag{font-family:var(--font-mono); font-size:9.5px; letter-spacing:.06em; color:var(--muted);
+  border:1px dashed var(--line-strong); border-radius:99px; padding:0 6px; white-space:nowrap}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="bar-in">
+    <div class="brand">momoy <span>2.30.0</span></div>
+    <nav>
+      <a href="#mapa">1 Mapa</a>
+      <a href="#capas">2 Capas</a>
+      <a href="#ciclo">3 Ciclo</a>
+      <a href="#lazos">4 Lazos</a>
+      <a href="#frontera">5 Frontera</a>
+      <a href="#catalogo">6 Catálogo</a>
+      <a href="#artefactos">7 Artefactos</a>
+      <a href="#paradas">8 Paradas</a>
+      <a href="#crecer">9 Crecer</a>
+      <a href="#diseno">10 Diseño</a>
+    </nav>
+    <button class="theme-btn" id="theme" type="button" aria-label="Cambiar tema">tema</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ====================== PORTADA ====================== -->
+<section class="hero">
+  <div class="eyebrow"><b>Teoría general de sistemas</b> · aplicada a un arnés de gobernanza para agentes de IA</div>
+  <div class="hero-grid">
+    <div>
+      <h1>momoy como sistema</h1>
+      <p class="lead">momoy no es una colección de documentos: es un <b>regulador</b>. Toma entradas desordenadas —una idea, código heredado, una incidencia—, las hace pasar por una cadena de transformación con gates, y devuelve un estado verificable. Este mapa existe para poder razonar sobre el conjunto sin tener que leerlo entero.</p>
+      <div class="thesis">
+        <p><b>Tres afirmaciones que el resto de la página sostiene.</b></p>
+        <p><b>1. Tiene frontera.</b> <code>.agents/</code> es el regulador, agnóstico y portátil; <code>docs/</code> es el estado del sistema regulado. Sólo tres artefactos cruzan esa membrana, y cuatro guardias la vigilan.</p>
+        <p><b>2. Se sostiene por realimentación, no por disciplina.</b> Cuatro lazos de longitudes muy distintas —de minutos a un trimestre— devuelven señal a la entrada. Un sistema sin el lazo largo no aprende: sólo produce.</p>
+        <p><b>3. El humano es el regulador externo.</b> Ningún comando arranca solo. La pausa humana no es una cortesía del proceso: es lo que impide que el lazo se cierre sobre sí mismo — y se puede recorrer paso a paso en <a href="#paradas">Dónde se detiene</a>.</p>
+      </div>
+    </div>
+    <aside>
+      <div class="eyebrow">Variedad del regulador</div>
+      <div class="stats">
+        <div class="stat"><b>25</b><span>comandos</span></div>
+        <div class="stat"><b>14</b><span>workflows</span></div>
+        <div class="stat"><b>42</b><span>skills SK-NN</span></div>
+        <div class="stat"><b>12</b><span>gates de spec</span></div>
+        <div class="stat"><b>6</b><span>estándares</span></div>
+        <div class="stat"><b>4</b><span>guardias</span></div>
+      </div>
+      <p style="font-size:var(--t-cap)"><b>Ley de la variedad requerida (Ashby):</b> sólo una variedad puede absorber a otra. Estas cifras no son un inventario de orgullo — son la medida de cuánta complejidad de proyecto puede regular momoy antes de romperse.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ====================== 1. MAPA DE SISTEMA ====================== -->
+<section id="mapa">
+  <div class="eyebrow"><b>01</b> · Sistema abierto: entrada, transformación, salida, realimentación</div>
+  <h2>El lazo completo</h2>
+  <p>Un sistema abierto se define por lo que deja entrar, lo que transforma y lo que devuelve al entorno. En momoy las entradas no son una: son <b>cinco puertos distintos</b>, y cada uno tiene su propio comando de admisión. Lo que las une es que ninguna llega directamente al código.</p>
+
+  <figure>
+    <svg viewBox="0 0 1200 500" role="img" aria-label="Cinco entradas atraviesan una cadena de transformación de cinco pasos y producen tres salidas; dos lazos de realimentación devuelven señal a las entradas y un lazo corto devuelve el rechazo de los gates al desarrollo. El humano regula desde fuera.">
+      <defs>
+        <marker id="a1" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse"><polygon class="ah" points="0,0 10,4 0,8"/></marker>
+        <marker id="a1a" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse"><polygon class="ah-a" points="0,0 10,4 0,8"/></marker>
+        <marker id="a1s" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse"><polygon class="ah-s" points="0,0 10,4 0,8"/></marker>
+      </defs>
+
+      <!-- regulador externo -->
+      <rect class="n-sig" x="452" y="8" width="296" height="44" rx="6"/>
+      <text class="t-node t-sig" x="600" y="27" text-anchor="middle">Regulador externo: el humano</text>
+      <text class="t-sub" x="600" y="43" text-anchor="middle">aprobación previa — ninguna cascada avanza sola</text>
+      <path class="edge-sig" marker-end="url(#a1s)" d="M520 52 C 520 130, 354 140, 354 196"/>
+      <path class="edge-sig" marker-end="url(#a1s)" d="M600 52 L 600 196"/>
+      <path class="edge-sig" marker-end="url(#a1s)" d="M680 52 C 680 130, 922 140, 922 196"/>
+
+      <!-- eyebrows -->
+      <text class="t-eye" x="56" y="86">ENTRADAS</text>
+      <text class="t-eye" x="290" y="86">TRANSFORMACION</text>
+      <text class="t-eye" x="1010" y="86">SALIDAS</text>
+
+      <!-- entradas -->
+      <rect class="n-box" x="56" y="100" width="180" height="46" rx="4"/><text class="t-lbl" x="146" y="128" text-anchor="middle">Idea o funcionalidad</text>
+      <rect class="n-box" x="56" y="158" width="180" height="46" rx="4"/><text class="t-lbl" x="146" y="186" text-anchor="middle">Código existente</text>
+      <rect class="n-box" x="56" y="216" width="180" height="46" rx="4"/><text class="t-lbl" x="146" y="244" text-anchor="middle">Incidencia en producción</text>
+      <rect class="n-box" x="56" y="274" width="180" height="46" rx="4"/><text class="t-lbl" x="146" y="302" text-anchor="middle">Informe externo</text>
+      <rect class="n-box" x="56" y="332" width="180" height="46" rx="4"/><text class="t-lbl" x="146" y="360" text-anchor="middle">KPI con revisión vencida</text>
+
+      <path class="edge" marker-end="url(#a1)" d="M236 123 C 264 123, 262 238, 286 238"/>
+      <path class="edge" marker-end="url(#a1)" d="M236 181 C 264 181, 262 238, 286 238"/>
+      <path class="edge" marker-end="url(#a1)" d="M236 239 L 286 238"/>
+      <path class="edge" marker-end="url(#a1)" d="M236 297 C 264 297, 262 238, 286 238"/>
+      <path class="edge" marker-end="url(#a1)" d="M236 355 C 264 355, 262 238, 286 238"/>
+
+      <!-- cadena -->
+      <rect class="n-acc" x="290" y="202" width="128" height="72" rx="5"/>
+      <text class="t-node" x="354" y="232" text-anchor="middle">Especificación</text>
+      <text class="t-sub" x="354" y="250" text-anchor="middle">W01 · SK-01..SK-15</text>
+      <rect class="n-acc" x="432" y="202" width="128" height="72" rx="5"/>
+      <text class="t-node" x="496" y="232" text-anchor="middle">Reglas</text>
+      <text class="t-sub" x="496" y="250" text-anchor="middle">SK-27</text>
+      <rect class="n-acc" x="574" y="202" width="128" height="72" rx="5"/>
+      <text class="t-node" x="638" y="232" text-anchor="middle">Desarrollo TDD</text>
+      <text class="t-sub" x="638" y="250" text-anchor="middle">W02 · SK-16..SK-19</text>
+      <rect class="n-acc" x="716" y="202" width="128" height="72" rx="5"/>
+      <text class="t-node" x="780" y="232" text-anchor="middle">Gates</text>
+      <text class="t-sub" x="780" y="250" text-anchor="middle">12 gates · W03/W04</text>
+      <rect class="n-acc" x="858" y="202" width="128" height="72" rx="5"/>
+      <text class="t-node" x="922" y="232" text-anchor="middle">Commit</text>
+      <text class="t-sub" x="922" y="250" text-anchor="middle">1 ticket = 1 commit</text>
+
+      <path class="edge-acc" marker-end="url(#a1a)" d="M418 238 L 428 238"/>
+      <path class="edge-acc" marker-end="url(#a1a)" d="M560 238 L 570 238"/>
+      <path class="edge-acc" marker-end="url(#a1a)" d="M702 238 L 712 238"/>
+      <path class="edge-acc" marker-end="url(#a1a)" d="M844 238 L 854 238"/>
+
+      <!-- salidas -->
+      <rect class="n-box" x="1010" y="156" width="176" height="46" rx="4"/><text class="t-lbl" x="1098" y="184" text-anchor="middle">docs/ actualizado</text>
+      <rect class="n-box" x="1010" y="214" width="176" height="46" rx="4"/><text class="t-lbl" x="1098" y="242" text-anchor="middle">commit trazable a TK-XXX</text>
+      <rect class="n-box" x="1010" y="272" width="176" height="46" rx="4"/><text class="t-lbl" x="1098" y="300" text-anchor="middle">release desplegado</text>
+      <path class="edge" marker-end="url(#a1)" d="M986 238 C 1000 238, 994 179, 1006 179"/>
+      <path class="edge" marker-end="url(#a1)" d="M986 238 L 1006 237"/>
+      <path class="edge" marker-end="url(#a1)" d="M986 238 C 1000 238, 994 295, 1006 295"/>
+
+      <!-- lazo corto: el gate rechaza -->
+      <path class="edge-neg" marker-end="url(#a1a)" d="M780 274 C 780 320, 638 320, 638 278"/>
+      <text class="t-lbl t-halo t-acc" x="709" y="338" text-anchor="middle">rechaza — vuelve al desarrollo · minutos</text>
+
+      <!-- lazo medio: incidencia -->
+      <path class="edge" marker-end="url(#a1)" d="M1098 318 L 1098 420 L 22 420 L 22 239 L 50 239"/>
+      <text class="t-lbl t-halo" x="600" y="414" text-anchor="middle">lo que falla en producción vuelve como entrada gobernada — horas a días (W07, SK-38)</text>
+
+      <!-- lazo largo: aprendizaje -->
+      <path class="edge" marker-end="url(#a1)" d="M1140 318 L 1140 466 L 40 466 L 40 355 L 50 355"/>
+      <text class="t-lbl t-halo" x="600" y="460" text-anchor="middle">lo que el producto demuestra vuelve a cuestionar el problema — semanas a trimestres (SK-39, SK-41)</text>
+    </svg>
+    <figcaption><b>El lazo completo.</b> Los cinco puertos de entrada existen porque el trabajo no siempre nace de una idea: nace igual de una incidencia, de una auditoría ajena o de un KPI que no se cumplió. La cadena de transformación es siempre la misma; lo que cambia es por dónde se entra. Los dos lazos inferiores son lo que separa un sistema que aprende de uno que sólo produce.</figcaption>
+  </figure>
+</section>
+
+<!-- ====================== 2. CAPAS ====================== -->
+<section id="capas">
+  <div class="eyebrow"><b>02</b> · Jerarquía y recursividad: cada nivel regula al de abajo</div>
+  <h2>Cuatro capas, una sola dirección</h2>
+  <p>La jerarquía no es organizativa, es de <b>acoplamiento</b>: un comando puede cambiar sin tocar el procedimiento, y el procedimiento sin tocar el proyecto. La gradación tonal del diagrama es la profundidad: cuanto más abajo, más específico y menos portátil.</p>
+
+  <figure>
+    <svg viewBox="0 0 1200 450" role="img" aria-label="Cuatro capas apiladas: comandos, workflows, skills y gobernanza viva. Las tres primeras viven dentro de .agents y son portátiles; la cuarta vive en el proyecto. Una flecha de retorno indica que el estado del proyecto determina qué comando toca.">
+      <defs>
+        <marker id="a2" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse"><polygon class="ah" points="0,0 10,4 0,8"/></marker>
+        <marker id="a2a" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse"><polygon class="ah-a" points="0,0 10,4 0,8"/></marker>
+      </defs>
+      <rect class="n-out" x="150" y="4" width="920" height="300" rx="10"/>
+      <text class="t-eye" x="1058" y="24" text-anchor="end">.agents/ — SE COPIA VERBATIM A CUALQUIER PROYECTO</text>
+
+      <rect x="190" y="34" width="840" height="76" rx="5" style="fill:var(--surface); stroke:var(--line-strong); stroke-width:1.2"/>
+      <text class="t-sub" x="212" y="60">CAPA 0 — ENTRADA</text>
+      <text class="t-node" x="212" y="82">25 comandos <tspan class="t-sub">/momoy-*</tspan></text>
+      <text class="t-lbl" x="1008" y="82" text-anchor="end">puntos de entrada delgados · sólo los lanza el humano</text>
+
+      <rect x="190" y="134" width="840" height="76" rx="5" style="fill:var(--surface-2); stroke:var(--line-strong); stroke-width:1.2"/>
+      <text class="t-sub" x="212" y="160">CAPA 1 — ORQUESTACION</text>
+      <text class="t-node" x="212" y="182">14 workflows</text>
+      <text class="t-lbl" x="1008" y="182" text-anchor="end">deciden el orden y las fases; no contienen procedimiento</text>
+
+      <rect x="190" y="234" width="840" height="76" rx="5" style="fill:var(--surface-3); stroke:var(--line-strong); stroke-width:1.2"/>
+      <text class="t-sub" x="212" y="260">CAPA 2 — PROCEDIMIENTO</text>
+      <text class="t-node" x="212" y="282">42 skills <tspan class="t-sub">SK-01..SK-42</tspan></text>
+      <text class="t-lbl" x="1008" y="282" text-anchor="end">única fuente de verdad de cómo se hace cada cosa</text>
+
+      <rect class="n-acc" x="190" y="342" width="840" height="76" rx="5"/>
+      <text class="t-sub" x="212" y="368">CAPA 3 — GOBERNANZA VIVA</text>
+      <text class="t-node" x="212" y="390">docs/ y AGENTS.md <tspan class="t-sub">del proyecto</tspan></text>
+      <text class="t-lbl" x="1008" y="390" text-anchor="end">generado, nunca escrito a mano · específico y no portátil</text>
+
+      <path class="edge" marker-end="url(#a2)" d="M610 110 L 610 130"/>
+      <path class="edge" marker-end="url(#a2)" d="M610 210 L 610 230"/>
+      <path class="edge" marker-end="url(#a2)" d="M610 310 L 610 338"/>
+      <path class="edge-acc" marker-end="url(#a2a)" d="M1030 380 C 1120 380, 1120 72, 1034 72"/>
+      <text class="t-eye t-acc" transform="rotate(-90 1160 226)" x="1160" y="226" text-anchor="middle">EL ESTADO DECIDE QUE COMANDO TOCA</text>
+    </svg>
+    <figcaption><b>La capa 3 está fuera del recinto portátil.</b> Ahí vive todo lo que un proyecto no comparte con otro. La flecha de retorno es lo que hace al conjunto un sistema y no una pila: <code>/momoy</code> lee el estado de la capa 3 para decidir qué comando de la capa 0 corresponde.</figcaption>
+  </figure>
+</section>
+
+<!-- ====================== 3. CICLO ====================== -->
+<section id="ciclo">
+  <div class="eyebrow"><b>03</b> · Radiación: doce etapas alrededor de un único centro</div>
+  <h2>El ciclo de vida</h2>
+  <p>El ciclo se dibuja como anillo y no como línea por una razón concreta: no tiene final. La etapa 12 no entrega nada — devuelve el sistema a la etapa 1 con evidencia. En el centro no hay un orquestador automático: hay una persona.</p>
+
+  <div class="ring-grid">
+    <div class="ring-box">
+      <svg id="ring" viewBox="0 0 760 760" role="img" aria-label="Anillo de doce etapas del ciclo de vida de momoy, agrupadas en cuatro fases: descubrir, construir, operar y aprender. En el centro, la pausa humana."></svg>
+      <div class="fase-key" id="faseKey"></div>
+    </div>
+    <div>
+      <div class="eyebrow">Etapa · comandos que la cubren</div>
+      <ul class="ring-list" id="ringList"></ul>
+      <p style="font-size:var(--t-cap)">Las cuatro fases son olas de madurez, no un orden rígido: un proyecto puede llevar meses girando entre <b>construir</b> y <b>operar</b> sin volver a <b>descubrir</b>. Lo que el anillo hace visible es cuándo esa quietud deja de ser foco y empieza a ser un lazo abierto.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== 4. LAZOS ====================== -->
+<section id="lazos">
+  <div class="eyebrow"><b>04</b> · Realimentación: cuatro lazos, cuatro constantes de tiempo</div>
+  <h2>Qué corrige qué, y cuándo</h2>
+  <p>Un sistema de control no tiene un lazo: tiene varios, y lo que los distingue es su <b>constante de tiempo</b>. Un lazo rápido corrige ejecución; uno lento corrige propósito. Confundirlos es el error clásico —pedirle a un linter que detecte que el producto no le importa a nadie.</p>
+
+  <figure>
+    <svg viewBox="0 0 1200 400" role="img" aria-label="Cuatro arcos de realimentación de longitud creciente sobre un eje de tiempo: gate de calidad en minutos, auditoría adversarial en horas, mantenimiento cada treinta días y resultados de producto por trimestre.">
+      <defs>
+        <marker id="a4" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse"><polygon class="ah-a" points="0,0 10,4 0,8"/></marker>
+      </defs>
+      <line class="rule" x1="70" y1="340" x2="1150" y2="340"/>
+      <g class="t-sub">
+        <line class="rule" x1="210" y1="336" x2="210" y2="348"/><text x="210" y="364" text-anchor="middle">minutos</text>
+        <line class="rule" x1="430" y1="336" x2="430" y2="348"/><text x="430" y="364" text-anchor="middle">horas</text>
+        <line class="rule" x1="640" y1="336" x2="640" y2="348"/><text x="640" y="364" text-anchor="middle">días</text>
+        <line class="rule" x1="860" y1="336" x2="860" y2="348"/><text x="860" y="364" text-anchor="middle">30 días</text>
+        <line class="rule" x1="1080" y1="336" x2="1080" y2="348"/><text x="1080" y="364" text-anchor="middle">trimestre</text>
+      </g>
+      <text class="t-eye" x="70" y="388">CONSTANTE DE TIEMPO DEL LAZO</text>
+
+      <path class="edge-acc" marker-end="url(#a4)" d="M70 340 C 70 250, 210 250, 210 336"/>
+      <text class="t-node t-halo t-acc" x="140" y="290" text-anchor="middle">Gate de calidad</text>
+      <text class="t-sub t-halo" x="140" y="306" text-anchor="middle">SK-19 · --strict</text>
+      <text class="t-lbl t-halo" x="140" y="324" text-anchor="middle">corrige: ejecución</text>
+
+      <path class="edge-acc" marker-end="url(#a4)" d="M70 340 C 70 180, 430 180, 430 336"/>
+      <text class="t-node t-halo t-acc" x="414" y="202" text-anchor="end">Auditoría adversarial</text>
+      <text class="t-sub t-halo" x="414" y="218" text-anchor="end">W03 specs · W04 código · W06 QA</text>
+      <text class="t-lbl t-halo" x="414" y="236" text-anchor="end">corrige: criterio</text>
+
+      <path class="edge-acc" marker-end="url(#a4)" d="M70 340 C 70 110, 860 110, 860 336"/>
+      <text class="t-node t-halo t-acc" x="844" y="152" text-anchor="end">Mantenimiento e incidentes</text>
+      <text class="t-sub t-halo" x="844" y="168" text-anchor="end">W11 · W07 · SK-38 postmortem</text>
+      <text class="t-lbl t-halo" x="844" y="186" text-anchor="end">corrige: deriva y deuda</text>
+
+      <path class="edge-acc" marker-end="url(#a4)" d="M70 340 C 70 30, 1080 30, 1080 336"/>
+      <text class="t-node t-halo t-acc" x="1064" y="72" text-anchor="end">Resultados de producto</text>
+      <text class="t-sub t-halo" x="1064" y="88" text-anchor="end">SK-39 outcomes · SK-41 retirada · SK-42 externo</text>
+      <text class="t-lbl t-halo" x="1064" y="106" text-anchor="end">corrige: propósito — puede mandar apagar lo construido</text>
+    </svg>
+    <figcaption><b>Cuatro lazos, cuatro cosas distintas que corregir.</b> Los dos rápidos son los que casi todo equipo tiene; los dos lentos son los que casi nadie cierra. momoy los trata igual: cada uno tiene comando, artefacto con identificador y gate que detecta si lleva demasiado tiempo abierto —un KPI con la fecha de revisión vencida y sin informe es un hallazgo, exactamente igual que un test que no pasa.</figcaption>
+  </figure>
+</section>
+
+<!-- ====================== 5. FRONTERA ====================== -->
+<section id="frontera">
+  <div class="eyebrow"><b>05</b> · Frontera del sistema: qué es regulador y qué es regulado</div>
+  <h2>La membrana</h2>
+  <p>Esta es la decisión estructural que sostiene todo lo demás. <code>.agents/</code> se copia tal cual a cualquier repositorio: si una sola regla suya conociera el stack de un proyecto, dejaría de ser portátil. Por eso lo específico no se escribe dentro: <b>se genera hacia fuera</b>.</p>
+
+  <figure>
+    <svg viewBox="0 0 1200 440" role="img" aria-label="Dos columnas separadas por una membrana: a la izquierda .agents portátil dibujado sólo con contorno, a la derecha el proyecto consumidor con relleno. Tres skills cruzan generando artefactos, una flecha vuelve trayendo docs como datos, y cuatro guardias vigilan la membrana.">
+      <defs>
+        <marker id="a5" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse"><polygon class="ah-a" points="0,0 10,4 0,8"/></marker>
+        <marker id="a5b" viewBox="0 0 10 8" refX="9" refY="4" markerWidth="8" markerHeight="7" orient="auto-start-reverse"><polygon class="ah" points="0,0 10,4 0,8"/></marker>
+      </defs>
+
+      <text class="t-eye" x="60" y="34">.agents/ — REGULADOR AGNOSTICO Y PORTATIL</text>
+      <rect class="n-out" x="60" y="46" width="460" height="332" rx="8"/>
+      <rect class="n-out" x="84" y="70" width="412" height="44" rx="4"/><text class="t-lbl" x="104" y="97">workflows/ · skills/ · rules/</text>
+      <rect class="n-out" x="84" y="130" width="412" height="44" rx="4"/><text class="t-lbl" x="104" y="157">scripts/ — sólo tooling universal</text>
+      <rect class="n-out" x="84" y="190" width="412" height="44" rx="4"/><text class="t-lbl" x="104" y="217">examples/ — patrones de referencia</text>
+      <rect class="n-out" x="84" y="250" width="412" height="44" rx="4"/><text class="t-lbl" x="104" y="277">README · CONTRIBUTING · VERSIONING</text>
+      <text class="t-sub" x="104" y="330">0 rutas de proyecto · 0 gestores de paquetes · 0 nombres de framework</text>
+      <text class="t-sub" x="104" y="350">sólo .sh / .py / .md bajo scripts/</text>
+
+      <text class="t-eye" x="680" y="34">PROYECTO CONSUMIDOR — ESPECIFICO, NO PORTATIL</text>
+      <rect class="n-box" x="680" y="46" width="460" height="332" rx="8"/>
+      <rect class="n-plain" x="704" y="70" width="412" height="44" rx="4"/><text class="t-lbl" x="724" y="97">AGENTS.md — contrato operativo raíz</text>
+      <rect class="n-plain" x="704" y="130" width="412" height="44" rx="4"/><text class="t-lbl" x="724" y="157">docs/00_stack_manifest.md — stack aprobado</text>
+      <rect class="n-plain" x="704" y="190" width="412" height="44" rx="4"/><text class="t-lbl" x="724" y="217">docs/04_governance_and_quality/rules/</text>
+      <rect class="n-plain" x="704" y="250" width="412" height="44" rx="4"/><text class="t-lbl" x="724" y="277">docs/01..06 · código · tests · CI</text>
+      <text class="t-sub" x="724" y="330">todo esto es generado, y se regenera cuando la spec cambia</text>
+
+      <line class="edge-acc" x1="596" y1="20" x2="596" y2="410" stroke-dasharray="7 5"/>
+      <line class="edge-acc" x1="604" y1="20" x2="604" y2="410" stroke-dasharray="7 5"/>
+      <text class="t-eye t-acc t-halo" x="600" y="14" text-anchor="middle">FRONTERA</text>
+
+      <path class="edge-acc" marker-end="url(#a5)" d="M500 92 L 700 92"/>
+      <text class="t-sub t-halo t-acc" x="600" y="84" text-anchor="middle">SK-35 genera</text>
+      <path class="edge-acc" marker-end="url(#a5)" d="M500 152 L 700 152"/>
+      <text class="t-sub t-halo t-acc" x="600" y="144" text-anchor="middle">SK-04 genera</text>
+      <path class="edge-acc" marker-end="url(#a5)" d="M500 212 L 700 212"/>
+      <text class="t-sub t-halo t-acc" x="600" y="204" text-anchor="middle">SK-27 genera</text>
+      <path class="edge" marker-end="url(#a5b)" d="M700 272 L 500 272"/>
+      <text class="t-sub t-halo" x="600" y="264" text-anchor="middle">vuelve como datos, nunca como orden</text>
+
+      <rect class="n-acc" x="330" y="392" width="540" height="36" rx="18"/>
+      <text class="t-sub t-acc" x="600" y="415" text-anchor="middle">check_agnosticism · check_links · check_emoji_policy · check_skill_standard</text>
+    </svg>
+    <figcaption><b>Sólo tres artefactos cruzan la membrana hacia dentro del proyecto</b> —el contrato raíz, el manifiesto de stack y las reglas— y todos son generados por una skill, nunca escritos a mano. En sentido contrario, lo que vuelve es contenido de <code>docs/</code>, y se trata como <b>datos, no como instrucciones</b>: es la misma defensa que se aplica a cualquier entrada no confiable. La cápsula inferior son los cuatro guardias que verifican que la membrana sigue sellada; todos corren en <code>validate_agents.sh</code>.</figcaption>
+  </figure>
+</section>
+
+<!-- ====================== 6. CATALOGO ====================== -->
+<section id="catalogo">
+  <div class="eyebrow"><b>06</b> · Variedad requerida: el inventario completo del regulador</div>
+  <h2>Los 81 elementos, en un sitio</h2>
+  <p>Todo lo invocable de momoy, con su ruta real y su versión. El módulo se repite idéntico —misma caja, mismo interlineado— para que el conjunto se lea como un sistema y no como una lista. Los que <b>rompen la retícula</b> son los que contienen una pausa humana explícita: se ven antes de leerlos.</p>
+
+  <div class="cat-controls">
+    <input id="q" type="search" placeholder="buscar: SK-27, release, dependencias..." aria-label="Buscar en el catálogo">
+    <div class="chips" id="tipoChips">
+      <button class="chip" type="button" data-tipo="comando" aria-pressed="true">comandos</button>
+      <button class="chip" type="button" data-tipo="workflow" aria-pressed="true">workflows</button>
+      <button class="chip" type="button" data-tipo="skill" aria-pressed="true">skills</button>
+    </div>
+    <select id="etapaSel" aria-label="Filtrar por etapa"></select>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div class="cat-grid">
+    <div class="mods" id="mods"></div>
+    <div class="panel" id="panel"></div>
+  </div>
+
+  <h3>Los doce gates de especificación</h3>
+  <p>Son la realimentación mecánica del sistema: propiedades que se comprueban con un script (<code>check_spec_artifacts.py</code>), no con criterio. Sin argumentos informan; con <code>--strict</code>, <code>--changed</code> o <code>--ticket</code> bloquean.</p>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Gate</th><th>Etapa</th><th>Qué exige, en una línea</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">kpi</td><td>Problema</td><td>Cada KPI con fuente, línea base, umbral, ventana y fecha de revisión</td></tr>
+        <tr><td class="mono">experimento</td><td>Validación</td><td>Criterio de éxito fijado <b>antes</b> del resultado, y decisión coherente con la muestra</td></tr>
+        <tr><td class="mono">historia</td><td>Requisitos</td><td>Al menos 3 escenarios Given/When/Then, precondiciones, NFRs y riesgo de valor declarado</td></tr>
+        <tr><td class="mono">ready</td><td>Planificación</td><td>Definition of Ready: estado, puntos 1/2/3/5, tipo, historia existente</td></tr>
+        <tr><td class="mono">trazabilidad</td><td>Requisitos y diseño</td><td>Cada historia, ticket, ADR e invariante enlazada desde la matriz y resolviendo</td></tr>
+        <tr><td class="mono">release</td><td>Release</td><td>Tickets cerrados, notas, rollback ensayado, migraciones clasificadas, etiqueta git</td></tr>
+        <tr><td class="mono">operacion</td><td>Operación</td><td>SLOs con alerta y runbook ensayado; backup con RPO/RTO y restauración probada &lt; 90 días</td></tr>
+        <tr><td class="mono">postmortem</td><td>Incidentes</td><td>Línea de tiempo, por qué ningún gate lo detectó, acciones trazadas a tickets</td></tr>
+        <tr><td class="mono">resultado</td><td>Resultados</td><td>Veredicto por KPI sostenido por datos del repo y recomendación coherente</td></tr>
+        <tr><td class="mono">mantenimiento</td><td>Mantenimiento</td><td>Hallazgos trazados a tickets o <code>sin acción — motivo</code>; 30 días sin revisión es hallazgo</td></tr>
+        <tr><td class="mono">retirada</td><td>Mantenimiento</td><td>Aviso de 30 días, tickets de eliminación cerrados, datos anonimizados o borrados</td></tr>
+        <tr><td class="mono">externo</td><td>Transversal</td><td>Cada recomendación clasificada con evidencia y seguimiento en vocabulario cerrado</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">Cuatro de estos gates (<code>resultado</code>, <code>operacion</code>, <code>mantenimiento</code>, <code>retirada</code>) sólo pueden fallar por <b>silencio</b>: nadie hizo nada y el plazo venció. Son los únicos que detectan que un lazo se quedó abierto, y por eso son los que hacen de momoy un ciclo y no una cascada.</div>
+</section>
+
+<!-- ====================== 7. ARTEFACTOS ====================== -->
+<section id="artefactos">
+  <div class="eyebrow"><b>07</b> · Salida del sistema: qué queda escrito y qué sólo se afirma</div>
+  <h2>Lo que deja en el disco</h2>
+  <p>Las 42 skills declaran <b>90 salidas</b> en su frontmatter. Desplegadas aquí por etapa, con la ruta tal y como está escrita en el repositorio. Lo que el árbol hace visible no es el inventario: es <b>cuáles de esas salidas se pueden comprobar</b> y cuáles hay que creerse.</p>
+
+  <div class="art-controls">
+    <div class="chips" id="stackChips">
+      <button class="chip" type="button" data-stack="agno" aria-pressed="true">momoy, agnóstico</button>
+      <button class="chip" type="button" data-stack="node" aria-pressed="false">ejemplo: proyecto Node</button>
+    </div>
+    <button class="chip" type="button" id="expandAll">abrir todas</button>
+    <span class="count" id="artCount"></span>
+  </div>
+  <p class="ej-aviso" id="ejAviso" hidden><b>Esto es una ilustración, no forma parte de momoy.</b> Las rutas marcadas <span class="ej-badge">ej.</span> son cómo se verían esas salidas si el stack aprobado fuese Node con TypeScript, Prisma, Vitest, Playwright y GitHub Actions. momoy no las conoce: las deduciría de <code>docs/00_stack_manifest.md</code> del proyecto. Con otro stack, cambian esas líneas y sólo esas. El mismo interruptor enciende el caso de ejemplo en <a href="#paradas">la sección 8</a>: es una sola historia, no dos.</p>
+
+  <div id="ejCaso" hidden></div>
+
+  <div class="art-tree" id="artTree"></div>
+
+  <h3>Trazabilidad por etapa</h3>
+  <p>Proporción de salidas que dejan un archivo localizable frente a las que sólo son una afirmación del agente. La barra es la misma cuenta del árbol, ordenada por etapa del ciclo.</p>
+  <div class="traza" id="trazaBars"></div>
+
+  <div class="note" id="artDiag"></div>
+
+  <div class="cols">
+    <div class="card">
+      <div class="k">Lo que enseña el interruptor</div>
+      <h4>El rastro existe; la declaración no</h4>
+      <p>Al concretar el stack, casi todas las salidas <b>sin rastro</b> se vuelven archivos con nombre: un esquema, una migración, un fichero de configuración. No es que el desarrollo no deje huella — es que la skill no declara <b>dónde</b>. Esa es la diferencia entre un output verificable y una promesa.</p>
+    </div>
+    <div class="card">
+      <div class="k">Por qué importa</div>
+      <h4>Un gate sólo puede mirar rutas</h4>
+      <p>Los doce gates comprueban propiedades de archivos que existen. Una salida sin ruta declarada queda fuera de su alcance por construcción: ningún script puede verificar <i>"suite TDD en verde"</i> leyendo el repositorio, sólo puede creerlo.</p>
+    </div>
+    <div class="card">
+      <div class="k">Qué haría falta</div>
+      <h4>Derivar la ruta, no inventarla</h4>
+      <p>El campo <code>outputs:</code> no puede traer rutas de Node, porque momoy no sabe en qué stack se instalará. Sí puede exigir que la skill <b>resuelva</b> su ruta contra <code>docs/00_stack_manifest.md</code> y la deje escrita en el reporte del ticket. Ahí la salida vuelve a ser comprobable sin acoplar nada.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== 8. SIMULACION HITL ====================== -->
+<section id="paradas">
+  <div class="eyebrow"><b>08</b> · Control: el sistema se detiene solo donde alguien tiene que decidir</div>
+  <h2>Dónde se detiene</h2>
+  <p>Un regulador que nunca cede el control no es gobernanza, es automatización. Esta es una <b>simulación</b> —no ejecuta nada— de cinco cascadas reales, paso a paso, para ver exactamente en qué punto momoy deja de avanzar y espera una decisión. Los pasos y las paradas están tomados de los workflows tal y como están escritos.</p>
+
+  <div class="sim-controls">
+    <div class="chips" id="flujoChips"></div>
+    <button class="chip chip-go" type="button" id="simRun">ejecutar</button>
+    <button class="chip" type="button" id="simReset">reiniciar</button>
+    <button class="chip" type="button" id="simEj" aria-pressed="false">con el caso de ejemplo</button>
+    <span class="count" id="simCount"></span>
+  </div>
+  <div id="simIdea" hidden></div>
+
+  <div class="sim-grid">
+    <ol class="sim" id="simSteps"></ol>
+    <aside class="sim-side">
+      <div class="panel sim-panel">
+        <div class="eyebrow">Estado de la cascada</div>
+        <div class="sim-estado" id="simEstado" role="status" aria-live="polite">Sin ejecutar</div>
+        <dl id="simMeta"></dl>
+        <p class="pd" id="simNota"></p>
+      </div>
+    </aside>
+  </div>
+
+  <div class="note">La simulación no llama a nada ni escribe nada: reproduce el orden de fases y las paradas declaradas en <code>00_greenfield_bootstrap</code>, <code>01_cascading_spec</code>, <code>SK-05</code>, <code>02_cascading_dev</code> y <code>10_release</code>. Si un workflow cambia sus fases, esto deja de ser fiel — como todo lo demás de esta página.</div>
+</section>
+
+<!-- ====================== 9. CRECER ====================== -->
+<section id="crecer">
+  <div class="eyebrow"><b>09</b> · Entropía: por qué un sistema así se degrada, y qué lo frena</div>
+  <h2>Cómo crece sin deshacerse</h2>
+  <p>El modo de fallo de un framework como este no es que deje de funcionar: es que crezca hasta que nadie sepa qué contiene, y entonces sus reglas se ignoren. Las tres defensas son estructurales —un sitio único para cada cosa, un filtro para admitir cosas nuevas, y un guardia que verifica lo que las reglas prometen.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Quieres añadir</th><th>Va en</th><th>Y entonces</th></tr></thead>
+      <tbody>
+        <tr><td><b>Un procedimiento nuevo</b></td><td class="mono">skills/specs/… o skills/development/…</td><td>Siguiente <code>SK-NN</code> libre, con <code>required_rules</code> verificables y un <code>output</code> concreto</td></tr>
+        <tr><td><b>Una etapa nueva del ciclo</b></td><td class="mono">workflows/NN_*.md</td><td>Siguiente número libre y actualizar el diagrama del trazo maestro</td></tr>
+        <tr><td><b>Un comando</b></td><td class="mono">skills/momoy-*/SKILL.md</td><td>Sólo si pasa el filtro de cuatro preguntas de abajo; envoltorio delgado, nunca procedimiento</td></tr>
+        <tr><td><b>Una regla universal</b></td><td class="mono">rules/NN_*.md</td><td>Debe valer en cualquier proyecto; si depende del stack, no es una regla: es una skill que genera</td></tr>
+        <tr><td><b>Tooling</b></td><td class="mono">scripts/*.sh · *.py</td><td>Sólo estructura de <code>.agents/</code> o taxonomía fija de <code>docs/</code>; con su test en <code>scripts/tests/</code></td></tr>
+        <tr><td><b>Algo que conoce el stack</b></td><td class="mono">lo genera una skill hacia docs/</td><td>Nunca vive en <code>.agents/</code> — eso es exactamente lo que rompe la portabilidad</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>El filtro antes de crear un comando</h3>
+  <ol class="steps">
+    <li><b>¿Tiene un disparador humano propio?</b> Si sólo lo lanza otro workflow, no es un comando: es un paso.</li>
+    <li><b>¿Se usa fuera de un workflow?</b> Si siempre ocurre dentro de una cascada, ya está cubierto.</li>
+    <li><b>¿Ningún comando existente lo cubre?</b> Extender el que hay es preferible a crear uno paralelo.</li>
+    <li><b>¿El procedimiento que ejecuta ya existe?</b> Si sólo falla esta, el comando se crea junto con su <code>SK-NN</code>, nunca antes.</li>
+  </ol>
+  <div class="note">Si una skill <code>SK-NN</code> no la invoca ningún workflow y tampoco tiene uso independiente, lo que falta no es un comando: es cablearla. Un comando huérfano es entropía disfrazada de funcionalidad.</div>
+
+  <div class="cols">
+    <div class="card">
+      <div class="k">Versionado</div>
+      <h4>Cada pieza versiona sola</h4>
+      <p>Skills y comandos llevan SemVer propio; el framework completo versiona aparte. <b>MAJOR</b> es romper el contrato —quitar un <code>output</code>, renombrar un comando, reordenar fases—; <b>MINOR</b> es añadir sin romper.</p>
+    </div>
+    <div class="card">
+      <div class="k">Compatibilidad</div>
+      <h4>No hay matriz, y es deliberado</h4>
+      <p>Un workflow nunca fija la versión de las skills que invoca. La alternativa —declarar rangos— produciría una matriz que miente por abandono, peor que no tenerla. La disciplina es manual y está escrita.</p>
+    </div>
+    <div class="card">
+      <div class="k">Confianza</div>
+      <h4>Ni el propio momoy se aprueba solo</h4>
+      <p>Un cambio a <code>.agents/</code> que pase los cuatro guardias en verde <b>sigue sin gobernar nada</b> hasta que una persona confirmó el diff. La regla de aprobación previa se aplica al regulador igual que a lo regulado.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== 10. DISENO ====================== -->
+<section id="diseno">
+  <div class="eyebrow"><b>10</b> · Notas de diseño: la forma también codifica</div>
+  <h2>Cómo leer los diagramas</h2>
+  <p>Los principios de composición de esta página no son ornamento: cada uno codifica algo que se puede verificar contra el repositorio. Si el sistema cambia y el dibujo no, el dibujo miente.</p>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Principio</th><th>Qué significa aquí</th></tr></thead>
+      <tbody>
+        <tr><td><b>Punto, línea, plano</b></td><td>Punto = una skill <code>SK-NN</code>. Línea = una invocación. Plano = una capa del arnés.</td></tr>
+        <tr><td><b>Módulo y repetición</b></td><td>Los 81 elementos del catálogo usan una única caja idéntica: la uniformidad es la afirmación de que son un sistema, no una colección.</td></tr>
+        <tr><td><b>Estructura formal</b></td><td>La retícula del catálogo y del anillo es estricta y regular, como el ciclo que representa.</td></tr>
+        <tr><td><b>Anomalía</b></td><td>Los módulos con <b>pausa humana explícita</b> rompen la retícula: ocre reservado, borde más grueso, inclinación. Es lo único de la página que se sale del patrón, porque es lo único del sistema que no es automático. El ocre no aparece en ningún otro sitio — ni siquiera en el ejemplo de stack de la sección 7, que usa trazo discontinuo neutro precisamente para no gastarlo.</td></tr>
+        <tr><td><b>Gradación</b></td><td>El tono de las cuatro capas y de las cuatro fases del anillo crece con la profundidad y la madurez. Un solo tono, cuatro valores.</td></tr>
+        <tr><td><b>Movimiento</b></td><td>La única animación de la página es la simulación de la sección 8, y avanza a un paso por vez para que se vea dónde se para. Con <code>prefers-reduced-motion</code> se resuelve al instante, sin perder ninguna parada.</td></tr>
+        <tr><td><b>Radiación</b></td><td>El ciclo se dibuja radial porque no tiene principio ni fin; el centro está ocupado por el regulador humano.</td></tr>
+        <tr><td><b>Contraste</b></td><td>Lo portátil se dibuja sólo con contorno; lo específico del proyecto, con relleno. La frontera se ve sin leer la etiqueta.</td></tr>
+        <tr><td><b>Concentración</b></td><td>La densidad de módulos por etapa es una medida real: donde hay pocos nodos, momoy tiene poca variedad para regular esa etapa.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <div class="k">Proporción</div>
+      <h4>&phi; = 1.618</h4>
+      <p>Retícula principal 1 : 0.618 (mapa frente a panel, anillo frente a leyenda). Radios del anillo en razón áurea: interior 150, exterior 243. Escala tipográfica en pasos de &radic;&phi; = 1.272 sobre 16 px. Espaciado en serie de Fibonacci: 5 8 13 21 34 55 89.</p>
+    </div>
+    <div class="card">
+      <div class="k">Color</div>
+      <h4>Páramo andino</h4>
+      <p>El momoy es, en la tradición de los Andes venezolanos, el duende guardián de las aguas. De ahí sale la paleta: piedra de río, verde de páramo, y un único ocre de frailejón seco <b>reservado en exclusiva a la intervención humana</b>. Ningún otro elemento puede usarlo.</p>
+    </div>
+    <div class="card">
+      <div class="k">Tipografía</div>
+      <h4>Tres voces</h4>
+      <p>Fraunces para los títulos —una serif con eje óptico, de trazo orgánico—, Karla para el texto corrido y JetBrains Mono para todo lo que es literal del repositorio: identificadores, rutas y comandos. Si está en monoespaciada, existe en disco.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p><b>Fuente de este mapa.</b> Los 81 nodos del catálogo y las 90 salidas del árbol de artefactos se extrajeron del árbol real de <code>.agents/</code> —ruta, versión de frontmatter, procedimiento al que delega cada comando y campo <code>outputs:</code> de cada skill—, no de una lista escrita a mano. Las cifras de portada y los doce gates provienen de <code>README.md</code> y <code>check_spec_artifacts.py</code>.</p>
+  <p><b>Cuando momoy cambie, este archivo no se entera solo.</b> Es un documento, no un guardia: si añades una skill o un comando, actualiza la constante <code>NODOS</code> (y <code>ARTEFACTOS</code>, si cambian las salidas declaradas) de este archivo, o el mapa empezará a mentir. La verdad sigue estando en <code>.agents/README.md</code> y en <code>validate_agents.sh</code>.</p>
+</footer>
+
+</main>
+
+<script>
+/* NODOS: extraido del arbol real de .agents/ (25 comandos, 14 workflows, 42 skills) */
+const NODOS = [{"id":"SK-18","tipo":"skill","capa":2,"titulo":"Migraciones de base de datos","etapa":"desarrollo","ruta":"skills/development/04_persistence_and_db/SK-18_execute_db_migration.md","version":"2.1.1","grupo":"development / 04_persistence_and_db","desc":"Guía el proceso de modificación de esquemas de datos, ejecución de migraciones y actualización del cliente de persistencia de forma segura y agnóstica."},{"id":"SK-28","tipo":"skill","capa":2,"titulo":"Seeding idempotente","etapa":"desarrollo","ruta":"skills/development/04_persistence_and_db/SK-28_manage_database_seeding.md","version":"1.0.2","grupo":"development / 04_persistence_and_db","desc":"Guía procedimental agnóstica para crear, auditar y ejecutar estrategias de sembrado de datos (seeding) bajo los 5 pilares profesionales de ingeniería."},{"id":"SK-27","tipo":"skill","capa":2,"titulo":"Extracción de reglas del proyecto","etapa":"desarrollo","ruta":"skills/development/01_rules_extraction/SK-27_extract_project_rules.md","version":"1.7.0","grupo":"development / 01_rules_extraction","desc":"Analiza la documentación técnica del proyecto (PRDs, Arquitectura, Esquemas, ADRs) y deduce/genera automáticamente las reglas de gobernanza y codificación del proyecto en docs/04_governance_and_quality/rules/."},{"id":"SK-30","tipo":"skill","capa":2,"titulo":"Extractor de diagramas legacy","etapa":"problema","ruta":"skills/development/01_rules_extraction/SK-30_legacy_diagram_extractor.md","version":"1.0.1","grupo":"development / 01_rules_extraction","desc":"Extrae y genera diagramas Mermaid de arquitectura (C4) y relación de entidades (ERD) a partir de código legacy de forma 100% agnóstica."},{"id":"SK-31","tipo":"skill","capa":2,"titulo":"Indexador de deuda técnica","etapa":"problema","ruta":"skills/development/01_rules_extraction/SK-31_technical_debt_indexer.md","version":"1.0.1","grupo":"development / 01_rules_extraction","desc":"Indexa, prioriza y cataloga la deuda técnica, vulnerabilidades y antipatrones de código legacy en docs/05_agile_planning/technical_debt.md de forma agnóstica."},{"id":"SK-33","tipo":"skill","capa":2,"titulo":"Auditoría de configuración de entorno","etapa":"problema","ruta":"skills/development/01_rules_extraction/SK-33_environment_configuration_auditor.md","version":"1.0.1","grupo":"development / 01_rules_extraction","desc":"Guía procedimental agnóstica para auditar, validar y forzar esquemas de configuración de entorno Fail-Fast y desinfectar plantillas .env.example."},{"id":"SK-34","tipo":"skill","capa":2,"titulo":"Diseño de model-based testing","etapa":"calidad","ruta":"skills/development/08_testing/SK-34_model_based_testing_designer.md","version":"1.0.1","grupo":"development / 08_testing","desc":"Diseña modelos de prueba basados en comportamiento (Model-Based Testing - MBT) definiendo Estados, Transiciones, Guards, Invariantes y Oráculos Multi-Capa antes de escribir código de prueba."},{"id":"SK-19","tipo":"skill","capa":2,"titulo":"Refactor y quality gate","etapa":"calidad","ruta":"skills/development/05_quality_and_lint/SK-19_refactor_and_lint.md","version":"2.4.2","grupo":"development / 05_quality_and_lint","desc":"Guía el proceso de refactorización de código, resolución de advertencias de compilación, alineación con SOLID y limpieza de errores del linter."},{"id":"SK-22","tipo":"skill","capa":2,"titulo":"Análisis de logs y troubleshooting","etapa":"incidentes","ruta":"skills/development/05_quality_and_lint/SK-22_agent_troubleshooting.md","version":"1.0.1","grupo":"development / 05_quality_and_lint","desc":"Guía procedimental de autorrecuperación para diagnosticar y resolver fallos de compilación, bloqueos de migraciones o errores de dependencias de forma agnóstica."},{"id":"SK-23","tipo":"skill","capa":2,"titulo":"Seguridad de dependencias","etapa":"calidad","ruta":"skills/development/05_quality_and_lint/SK-23_audit_dependency_security.md","version":"1.2.3","grupo":"development / 05_quality_and_lint","desc":"Guía de seguridad para prevenir alucinaciones de paquetes (Slopsquatting), auditar dependencias vulnerables (paquete y, si aplica, imagen de contenedor), re-verificar tras upgrades mayores, y bloquear..."},{"id":"SK-24","tipo":"skill","capa":2,"titulo":"Tests de caracterización","etapa":"desarrollo","ruta":"skills/development/05_quality_and_lint/SK-24_execute_characterization_testing.md","version":"1.3.0","grupo":"development / 05_quality_and_lint","desc":"Ejecuta Pruebas de Caracterización (Characterization Testing) sobre código legacy o existente sin tests para congelar su comportamiento actual en verde antes de refactorizar hacia la Arquitectura Hexagonal."},{"id":"SK-25","tipo":"skill","capa":2,"titulo":"Auditoría de validación de contratos","etapa":"calidad","ruta":"skills/development/05_quality_and_lint/SK-25_audit_contract_validation.md","version":"1.3.1","grupo":"development / 05_quality_and_lint","desc":"Ejecuta una auditoría diferencial adversarial entre el Contrato de API (ej. OpenAPI, AsyncAPI, GraphQL) y los validadores de runtime DTO/Schema, clasificando y ordenando las discrepancias por nivel de gravedad..."},{"id":"SK-26","tipo":"skill","capa":2,"titulo":"Recuperador few-shot","etapa":"desarrollo","ruta":"skills/development/05_quality_and_lint/SK-26_retrieve_few_shot_context.md","version":"1.2.1","grupo":"development / 05_quality_and_lint","desc":"Realiza una búsqueda semántica de patrones de código reales en el repositorio actual para inyectar ejemplos Few-Shot dinámicos antes de la fase de codificación."},{"id":"SK-32","tipo":"skill","capa":2,"titulo":"Constructor de fixtures","etapa":"desarrollo","ruta":"skills/development/05_quality_and_lint/SK-32_test_fixture_builder.md","version":"1.0.2","grupo":"development / 05_quality_and_lint","desc":"Genera constructores de datos de prueba deterministas (Object Mother / Builder Pattern) para simplificar la fase Arrange en suites de testing de forma 100% agnóstica."},{"id":"SK-17","tipo":"skill","capa":2,"titulo":"Desarrollo frontend","etapa":"desarrollo","ruta":"skills/development/03_frontend_development/SK-17_develop_frontend_ticket.md","version":"4.6.3","grupo":"development / 03_frontend_development","desc":"Guía el desarrollo atómico de tickets de Frontend aplicando Clean Architecture en cliente, SOLID (<150 líneas por componente), WCAG 2.2, Core Web Vitals (INP/LCP/CLS) y seguridad defensiva."},{"id":"SK-20","tipo":"skill","capa":2,"titulo":"QA visual en navegador","etapa":"calidad","ruta":"skills/development/06_visual_qa/SK-20_execute_browser_qa.md","version":"1.1.2","grupo":"development / 06_visual_qa","desc":"Guía al subagente de navegación de la IA para ejecutar pruebas visuales, de accesibilidad táctil y funcionales sobre la interfaz de usuario local."},{"id":"SK-21","tipo":"skill","capa":2,"titulo":"Auditoría de accesibilidad","etapa":"calidad","ruta":"skills/development/06_visual_qa/SK-21_audit_ui_accessibility.md","version":"1.3.3","grupo":"development / 06_visual_qa","desc":"Guía procedimental para auditar la accesibilidad WCAG 2.2 AA/AAA, contraste HSL, foco visible, tamaños táctiles ergonómicos y regresión visual (screenshot diffing) de la interfaz de usuario."},{"id":"SK-29","tipo":"skill","capa":2,"titulo":"Carga y rendimiento","etapa":"operacion","ruta":"skills/development/07_performance_and_observability/SK-29_load_and_performance_testing.md","version":"1.2.3","grupo":"development / 07_performance_and_observability","desc":"Diseña, genera y ejecuta pruebas no-funcionales de carga y rendimiento de forma agnóstica a la pila tecnológica."},{"id":"SK-38","tipo":"skill","capa":2,"titulo":"Postmortem sin culpa","etapa":"incidentes","ruta":"skills/development/07_performance_and_observability/SK-38_write_blameless_postmortem.md","version":"1.0.0","grupo":"development / 07_performance_and_observability","desc":"Analiza una incidencia ya resuelta con un postmortem sin culpa: reconstruye la línea de tiempo con fuentes verificables, mide el impacto, busca las causas en el sistema y no en las personas, responde por qué..."},{"id":"SK-16","tipo":"skill","capa":2,"titulo":"Desarrollo backend","etapa":"desarrollo","ruta":"skills/development/02_backend_development/SK-16_develop_backend_ticket.md","version":"3.11.3","grupo":"development / 02_backend_development","desc":"Guía el desarrollo atómico de un ticket backend respetando la Arquitectura Hexagonal en Vertical Slices, TDD, sanitización activa de DTOs, precisión matemática de punto fijo, Eager Loading (Anti-N+1), CRUDs de..."},{"id":"SK-11","tipo":"skill","capa":2,"titulo":"Historias de usuario INVEST","etapa":"requisitos","ruta":"skills/specs/05_agile_planning/SK-11_generate_user_stories.md","version":"3.6.0","grupo":"specs / 05_agile_planning","desc":"Redacta el backlog de Historias de Usuario bajo la estructura de las 4 Preguntas Clave (Como/Cuando/Quiero/Para), Precondiciones, BDD Gherkin (Happy Path, Error Path, QA Edge Case), NFRs y checklist INVEST."},{"id":"SK-12","tipo":"skill","capa":2,"titulo":"Planificación de tickets","etapa":"planificacion","ruta":"skills/specs/05_agile_planning/SK-12_generate_backlog_tickets.md","version":"3.4.0","grupo":"specs / 05_agile_planning","desc":"Desglosa las Historias de Usuario en tickets técnicos atómicos de backend y frontend (máximo 5 SP), Definition of Done (DoD), Matriz Multidimensional de Priorización Cualitativa e instrucciones de ejecución..."},{"id":"SK-13","tipo":"skill","capa":2,"titulo":"Matriz de trazabilidad","etapa":"planificacion","ruta":"skills/specs/05_agile_planning/SK-13_generate_traceability_matrix.md","version":"3.4.0","grupo":"specs / 05_agile_planning","desc":"Audita la trazabilidad biyectiva End-to-End del sistema (regla de cero orfandad) y autogenera la Matriz de Trazabilidad SDD."},{"id":"SK-14","tipo":"skill","capa":2,"titulo":"Mapa del backlog","etapa":"planificacion","ruta":"skills/specs/05_agile_planning/SK-14_generate_backlog_map.md","version":"3.1.1","grupo":"specs / 05_agile_planning","desc":"Genera el Mapa Jerárquico del Backlog en formato de diagrama Mermaid (graph TD) conectando Roadmap, Épicas, Historias de Usuario y Tickets Técnicos."},{"id":"SK-15","tipo":"skill","capa":2,"titulo":"Registro de Pull Requests","etapa":"planificacion","ruta":"skills/specs/05_agile_planning/SK-15_document_pull_requests.md","version":"3.1.1","grupo":"specs / 05_agile_planning","desc":"Documenta e inspecciona el historial veraz de Pull Requests, commits y Quality Gates (DoD) de CI/CD sin invención de metadatos, actualizando README.md y 15_history.md."},{"id":"SK-41","tipo":"skill","capa":2,"titulo":"Retirada de una funcionalidad","etapa":"mantenimiento","ruta":"skills/specs/05_agile_planning/SK-41_retire_capability.md","version":"1.0.1","grupo":"specs / 05_agile_planning","desc":"Retira una funcionalidad como cascada inversa: analiza su impacto hacia atrás (historias, tickets, endpoints, datos, flags, documentación), avisa a los usuarios con al menos 30 días de antelación, conserva los..."},{"id":"SK-08","tipo":"skill","capa":2,"titulo":"Estrategia de seguridad","etapa":"diseno","ruta":"skills/specs/04_governance_and_quality/SK-08_define_security_strategy.md","version":"3.5.0","grupo":"specs / 04_governance_and_quality","desc":"Define la estrategia de ciberseguridad Enterprise OWASP Top 10, validación Zero Trust con esquemas tipados, cifrado PII, hardening CORS/CSP, rotación JWT, anti-fuerza bruta, logs de auditoría inmutables y..."},{"id":"SK-09","tipo":"skill","capa":2,"titulo":"Estrategia de pruebas","etapa":"diseno","ruta":"skills/specs/04_governance_and_quality/SK-09_define_testing_strategy.md","version":"3.3.1","grupo":"specs / 04_governance_and_quality","desc":"Establece la directiva de pruebas TDD Test-First (Red-Green-Refactor), la pirámide de testing (Unitario, Integración, E2E), la política anti-Test Theater, el uso de fakes InMemory y la meta de Mutation Score..."},{"id":"SK-10","tipo":"skill","capa":2,"titulo":"Pipeline CI/CD e IaC","etapa":"diseno","ruta":"skills/specs/04_governance_and_quality/SK-10_configure_cicd_pipeline.md","version":"4.0.0","grupo":"specs / 04_governance_and_quality","desc":"Genera la automatización del pipeline de CI/CD con la plataforma, el runtime, los comandos y el IaC Engine que declara docs/00_stack_manifest.md (OIDC sin llaves estáticas obligatorio): lint, auditoría de..."},{"id":"SK-35","tipo":"skill","capa":2,"titulo":"Contrato operativo raíz","etapa":"diseno","ruta":"skills/specs/04_governance_and_quality/SK-35_generate_root_contract.md","version":"1.0.2","grupo":"specs / 04_governance_and_quality","desc":"Genera o actualiza el contrato operativo raíz AGENTS.md siguiendo el blueprint de 6 secciones, y los archivos de entrypoint por herramienta de IA (CLAUDE.md, GEMINI.md) que garantizan que AGENTS.md se lea..."},{"id":"SK-40","tipo":"skill","capa":2,"titulo":"Operación del servicio","etapa":"operacion","ruta":"skills/specs/04_governance_and_quality/SK-40_design_service_operations.md","version":"1.2.0","grupo":"specs / 04_governance_and_quality","desc":"Diseña y verifica la operación de un servicio desplegado: SLIs y SLOs de disponibilidad y latencia derivados de los requisitos no funcionales, política de presupuesto de error, una alerta sobre síntomas con su..."},{"id":"SK-42","tipo":"skill","capa":2,"titulo":"Ingesta de revisión externa","etapa":"mantenimiento","ruta":"skills/specs/04_governance_and_quality/SK-42_intake_external_review.md","version":"1.1.0","grupo":"specs / 04_governance_and_quality","desc":"Convierte un informe externo (auditoría UX, revisión de seguridad, consultoría, feedback de un cliente) en decisiones trazables: contrasta cada recomendación contra el producto real y la clasifica como..."},{"id":"SK-01","tipo":"skill","capa":2,"titulo":"Descubrimiento de producto","etapa":"problema","ruta":"skills/specs/01_product_definition/SK-01_discover_product_vision.md","version":"2.9.0","grupo":"specs / 01_product_definition","desc":"Guía la fase de Descubrimiento de Producto (Product Discovery), investigación de mercado web activa, análisis Buy vs Build, graduación de incertidumbre, evaluación de oportunidades IA, Lean Canvas Mermaid..."},{"id":"SK-02","tipo":"skill","capa":2,"titulo":"Generación del PRD","etapa":"requisitos","ruta":"skills/specs/01_product_definition/SK-02_generate_prd.md","version":"2.5.0","grupo":"specs / 01_product_definition","desc":"Genera el Documento de Requisitos de Producto (PRD) agnóstico de alta fidelidad con ejecuciones secuenciales por fases, Naming Strategy, Historias INVEST, BDD Gherkin con códigos HTTP y políticas TDD."},{"id":"SK-37","tipo":"skill","capa":2,"titulo":"Experimento de validación","etapa":"validacion","ruta":"skills/specs/01_product_definition/SK-37_design_validation_experiment.md","version":"1.0.1","grupo":"specs / 01_product_definition","desc":"Pone a prueba una hipótesis de producto antes de especificarla: diseña el experimento más barato que la confirme o la refute, fija el criterio de éxito antes de ver los datos, registra la evidencia real..."},{"id":"SK-39","tipo":"skill","capa":2,"titulo":"Medición de resultados","etapa":"resultados","ruta":"skills/specs/01_product_definition/SK-39_measure_product_outcomes.md","version":"1.0.0","grupo":"specs / 01_product_definition","desc":"Cierra el ciclo del producto: cuando llega la fecha de revisión de los KPIs, los mide con datos reales exportados, emite un veredicto por KPI contra el umbral y la línea base declarados (cumplido, no cumplido..."},{"id":"SK-03","tipo":"skill","capa":2,"titulo":"Modelo de dominio","etapa":"diseno","ruta":"skills/specs/02_architecture_design/SK-03_design_domain_model.md","version":"3.1.1","grupo":"specs / 02_architecture_design","desc":"Diseña el Modelo Conceptual de Dominio Agnóstico (DDD Aggregates, Bounded Contexts, Value Objects, Domain Events, Transiciones de Estado y Diagrama de Clases Mermaid) antes de la arquitectura física."},{"id":"SK-04","tipo":"skill","capa":2,"titulo":"Diseño técnico y stack","etapa":"diseno","ruta":"skills/specs/02_architecture_design/SK-04_design_technical_architecture.md","version":"3.5.0","grupo":"specs / 02_architecture_design","desc":"Diseña la especificación completa de Arquitectura de Sistema (Modelo C4 con sus 4 Niveles: Contexto Nivel 1, Contenedores Nivel 2, Componentes Nivel 3 y Código Nivel 4, Screaming Architecture, Vertical Slices..."},{"id":"SK-05","tipo":"skill","capa":2,"titulo":"Sistema UI/UX","etapa":"diseno","ruta":"skills/specs/02_architecture_design/SK-05_design_ui_ux_system.md","version":"3.13.2","grupo":"specs / 02_architecture_design","desc":"Detecta la plataforma objetivo (Web/Mobile/Desktop) desde el stack real antes de nada, define la Arquitectura de Información (inventario, sitemap, user flows, wireframes) antes de cualquier decisión visual..."},{"id":"SK-36","tipo":"skill","capa":2,"titulo":"Registro de decisiones (ADR)","etapa":"diseno","ruta":"skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md","version":"1.1.0","grupo":"specs / 02_architecture_design","desc":"Registra una decisión arquitectónicamente significativa como ADR (Architecture Decision Record): enmarca el problema y sus fuerzas, genera un mínimo de 3 opciones defendibles con matriz comparativa, somete la..."},{"id":"SK-06","tipo":"skill","capa":2,"titulo":"Esquema de base de datos","etapa":"diseno","ruta":"skills/specs/03_persistence_and_api/SK-06_design_database_schema.md","version":"4.3.0","grupo":"specs / 03_persistence_and_api","desc":"Diseña el modelo de datos físico/lógico (3NF/NoSQL) en Mermaid erDiagram, diccionario de entidades con tipo Decimal(12,4), políticas ON DELETE de integridad referencial, datos semilla, restricciones CHECK..."},{"id":"SK-07","tipo":"skill","capa":2,"titulo":"Especificación de API","etapa":"diseno","ruta":"skills/specs/03_persistence_and_api/SK-07_design_api_specification.md","version":"3.4.0","grupo":"specs / 03_persistence_and_api","desc":"Diseña la especificación OpenAPI 3.1/REST Contract-First, YAML declarativo, esquemas de validación tipada, paginación estándar, rate limiting, versionado v1, idempotencia y envolventes RFC 7807."},{"id":"00_brownfield_adoption","tipo":"workflow","capa":1,"titulo":"Adopción brownfield","etapa":"problema","ruta":"workflows/00_brownfield_adoption_workflow.md","version":"","grupo":"workflows","desc":"Instrucción para el Agente de IA: Adopción de Proyecto Brownfield (Código Existente → `.agents/` Operativo)"},{"id":"00_greenfield_bootstrap","tipo":"workflow","capa":1,"titulo":"Bootstrap greenfield","etapa":"problema","ruta":"workflows/00_greenfield_bootstrap_workflow.md","version":"","grupo":"workflows","desc":"Instrucción para el Agente de IA: Bootstrap de Proyecto Greenfield (Idea → Repositorio Operativo)"},{"id":"00_master_vsdd","tipo":"workflow","capa":1,"titulo":"Trazo maestro VSDD","etapa":"problema","ruta":"workflows/00_master_vsdd_workflow.md","version":"","grupo":"workflows","desc":"Trazo Maestro del Ciclo de Vida VSDD (Idea → Specs → Rules → Code → Commit)"},{"id":"01_cascading_spec","tipo":"workflow","capa":1,"titulo":"Cascada de especificación","etapa":"requisitos","ruta":"workflows/01_cascading_spec_workflow.md","version":"","grupo":"workflows","desc":"Instrucción para el Agente de IA: Propagación de Nuevas Ideas o Funcionalidades"},{"id":"02_cascading_dev","tipo":"workflow","capa":1,"titulo":"Cascada de desarrollo","etapa":"desarrollo","ruta":"workflows/02_cascading_dev_workflow.md","version":"","grupo":"workflows","desc":"Instrucción para el Agente de IA: Protocolo de Desarrollo en Cascada"},{"id":"03_spec_audit","tipo":"workflow","capa":1,"titulo":"Auditoría de especificaciones","etapa":"calidad","ruta":"workflows/03_spec_audit_workflow.md","version":"","grupo":"workflows","desc":"Prompt de auditoría de specs (solo documentación)"},{"id":"04_dev_audit","tipo":"workflow","capa":1,"titulo":"Auditoría adversarial de código","etapa":"calidad","ruta":"workflows/04_dev_audit_workflow.md","version":"","grupo":"workflows","desc":"Meta-Prompt de Auditoría de Código y Calidad (VSDD Dev Quality Audit)"},{"id":"05_test_runner","tipo":"workflow","capa":1,"titulo":"Bucle TDD autónomo","etapa":"desarrollo","ruta":"workflows/05_test_runner_workflow.md","version":"","grupo":"workflows","desc":"Subagente Especializado `@test-runner`"},{"id":"06_full_qa_pipeline","tipo":"workflow","capa":1,"titulo":"Pipeline QA completo","etapa":"calidad","ruta":"workflows/06_full_qa_pipeline.md","version":"","grupo":"workflows","desc":"Full QA Pipeline (v2.2.0)"},{"id":"07_production_observability","tipo":"workflow","capa":1,"titulo":"Observabilidad en producción","etapa":"incidentes","ruta":"workflows/07_production_observability_workflow.md","version":"","grupo":"workflows","desc":"Workflow de Observabilidad Shift-Right (v2.2.1)"},{"id":"08_smoke_test_deploy_validation","tipo":"workflow","capa":1,"titulo":"Validación post-despliegue","etapa":"release","ruta":"workflows/08_smoke_test_deploy_validation.md","version":"","grupo":"workflows","desc":"Workflow 08: Smoke Test & Deploy Validation (v2.0.1)"},{"id":"09_live_stack_verification","tipo":"workflow","capa":1,"titulo":"Verificación del stack en vivo","etapa":"release","ruta":"workflows/09_live_stack_verification_workflow.md","version":"","grupo":"workflows","desc":"Workflow 09: Verificación en Vivo del Stack Completo (v1.0.2)"},{"id":"10_release","tipo":"workflow","capa":1,"titulo":"Release a producción","etapa":"release","ruta":"workflows/10_release_workflow.md","version":"","grupo":"workflows","desc":"Workflow 10: Release (v1.1.1)"},{"id":"11_maintenance","tipo":"workflow","capa":1,"titulo":"Revisión de mantenimiento","etapa":"mantenimiento","ruta":"workflows/11_maintenance_workflow.md","version":"","grupo":"workflows","desc":"Workflow 11: Revisión de Mantenimiento (v1.0.2)"},{"id":"/momoy","tipo":"comando","capa":0,"titulo":"Diagnóstico y siguiente paso","etapa":"problema","ruta":"skills/momoy/SKILL.md","version":"1.1.1","grupo":"comandos","delega":"workflows/00_master_vsdd_workflow.md","desc":"Punto de entrada de momoy: diagnostica en qué etapa del ciclo VSDD está el proyecto (sin bootstrapear, sin specs, con tickets pendientes) y recomienda el siguiente comando /momoy-*, sin modificar ningún..."},{"id":"/momoy-adr [decisión]","tipo":"comando","capa":0,"titulo":"Decisión de arquitectura","etapa":"diseno","ruta":"skills/momoy-adr/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md","desc":"Registra una decisión de arquitectura significativa como ADR: enmarca el problema, compara al menos tres opciones defendibles con su coste de reversión y deja la elección al humano."},{"id":"/momoy-audit-dev TK-XXX","tipo":"comando","capa":0,"titulo":"Revisión adversarial","etapa":"calidad","ruta":"skills/momoy-audit-dev/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"workflows/04_dev_audit_workflow.md","desc":"Revisión adversarial de un Reviewer Independiente sobre el código de un ticket TK-XXX antes del commit: arquitectura, seguridad, accesibilidad, tests y quality gates, con veredicto explícito."},{"id":"/momoy-audit-spec [carpeta]","tipo":"comando","capa":0,"titulo":"Auditoría de specs","etapa":"calidad","ruta":"skills/momoy-audit-spec/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"workflows/03_spec_audit_workflow.md","desc":"Audita la suficiencia de las especificaciones vivas de docs/ antes de codificar, en 7 fases y sin tocar código."},{"id":"/momoy-brownfield [ruta]","tipo":"comando","capa":0,"titulo":"Adopción en código existente","etapa":"problema","ruta":"skills/momoy-brownfield/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"workflows/00_brownfield_adoption_workflow.md","desc":"Adopta momoy en un código existente sin docs/ previo: reconstruye producto, dominio y stack por ingeniería inversa con entrevista humana obligatoria y cataloga la deuda técnica."},{"id":"/momoy-characterize [módulo]","tipo":"comando","capa":0,"titulo":"Congelar y refactorizar legado","etapa":"desarrollo","ruta":"skills/momoy-characterize/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"skills/development/05_quality_and_lint/SK-24_execute_characterization_testing.md","desc":"Congela con pruebas de caracterización el comportamiento actual de un módulo legado sin tests, incluidos sus bugs, y solo después lo refactoriza con esa red de seguridad en verde."},{"id":"/momoy-deps [paquete]","tipo":"comando","capa":0,"titulo":"Seguridad de dependencias","etapa":"calidad","ruta":"skills/momoy-deps/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"skills/development/05_quality_and_lint/SK-23_audit_dependency_security.md","desc":"Audita la seguridad de las dependencias del proyecto: árbol completo de paquetes, imagen de contenedor si existe, alucinaciones de paquetes y re-verificación tras upgrades mayores, con dictamen por hallazgo..."},{"id":"/momoy-dev TK-XXX","tipo":"comando","capa":0,"titulo":"Ticket de punta a punta","etapa":"desarrollo","ruta":"skills/momoy-dev/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"workflows/02_cascading_dev_workflow.md","desc":"Implementa un ticket técnico TK-XXX de momoy de punta a punta: extracción de reglas, migraciones, TDD, build, lint, QA visual y commit atómico."},{"id":"/momoy-experiment [hipótesis]","tipo":"comando","capa":0,"titulo":"Experimento de validación","etapa":"validacion","ruta":"skills/momoy-experiment/SKILL.md","version":"1.0.0","grupo":"comandos","delega":"skills/specs/01_product_definition/SK-37_design_validation_experiment.md","desc":"Pone a prueba una hipótesis de producto antes de especificarla: diseña el experimento más barato con criterio de éxito fijado de antemano, o registra la evidencia real de uno ya ejecutado y propone la..."},{"id":"/momoy-external [informe]","tipo":"comando","capa":0,"titulo":"Ingesta de informe externo","etapa":"mantenimiento","ruta":"skills/momoy-external/SKILL.md","version":"1.0.0","grupo":"comandos","delega":"skills/specs/04_governance_and_quality/SK-42_intake_external_review.md","desc":"Convierte un informe externo (auditoría UX, revisión de seguridad, consultoría o feedback de un cliente) en decisiones trazables: clasifica cada recomendación como implementada, gap, conflicto con una decisión..."},{"id":"/momoy-greenfield [idea]","tipo":"comando","capa":0,"titulo":"Bootstrap de proyecto nuevo","etapa":"problema","ruta":"skills/momoy-greenfield/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"workflows/00_greenfield_bootstrap_workflow.md","desc":"Arranca un proyecto nuevo desde cero con momoy: decide el stack con el humano, genera docs/00_stack_manifest.md, el esqueleto de docs/ y el AGENTS.md real."},{"id":"/momoy-incident [stacktrace]","tipo":"comando","capa":0,"titulo":"Incidencia a ticket gobernado","etapa":"incidentes","ruta":"skills/momoy-incident/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"workflows/07_production_observability_workflow.md","desc":"Convierte una incidencia de producción en trabajo gobernado: analiza el log o stacktrace, lo traduce a escenarios BDD, genera pruebas de regresión en borrador con checkpoint humano y crea el ticket TK-XXX en..."},{"id":"/momoy-maintain","tipo":"comando","capa":0,"titulo":"Revisión cada 30 días","etapa":"mantenimiento","ruta":"skills/momoy-maintain/SKILL.md","version":"1.0.0","grupo":"comandos","delega":"workflows/11_maintenance_workflow.md","desc":"Revisión periódica de mantenimiento cada 30 días: dependencias y vulnerabilidades, deuda técnica, feature flags pendientes de retirar, salud de la operación y deuda de especificaciones, con candidatos a..."},{"id":"/momoy-operate [diseñar|ensayar]","tipo":"comando","capa":0,"titulo":"SLOs, alertas y backups","etapa":"operacion","ruta":"skills/momoy-operate/SKILL.md","version":"1.0.0","grupo":"comandos","delega":"skills/specs/04_governance_and_quality/SK-40_design_service_operations.md","desc":"Diseña la operación de un servicio desplegado (SLOs de disponibilidad y latencia, alertas sobre síntomas con runbook, backups con RPO y RTO, política de presupuesto de error) o ensaya un simulacro de..."},{"id":"/momoy-outcomes [KPIs]","tipo":"comando","capa":0,"titulo":"Medición de KPIs vencidos","etapa":"resultados","ruta":"skills/momoy-outcomes/SKILL.md","version":"1.0.0","grupo":"comandos","delega":"skills/specs/01_product_definition/SK-39_measure_product_outcomes.md","desc":"Cierra el ciclo del producto: mide los KPIs cuya fecha de revisión venció con datos reales exportados, emite un veredicto por KPI contra su umbral y propone mantener, iterar, pivotar o retirar."},{"id":"/momoy-postmortem [PM-NNN]","tipo":"comando","capa":0,"titulo":"Postmortem sin culpa","etapa":"incidentes","ruta":"skills/momoy-postmortem/SKILL.md","version":"1.0.0","grupo":"comandos","delega":"skills/development/07_performance_and_observability/SK-38_write_blameless_postmortem.md","desc":"Analiza una incidencia ya resuelta con un postmortem sin culpa: línea de tiempo con fuentes, impacto, causas del sistema, por qué ningún gate la detectó y acciones trazadas a tickets."},{"id":"/momoy-pr [PR o rama]","tipo":"comando","capa":0,"titulo":"Documentación de PRs","etapa":"planificacion","ruta":"skills/momoy-pr/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"skills/specs/05_agile_planning/SK-15_document_pull_requests.md","desc":"Documenta con veracidad un Pull Request o el historial de entregas: ramas, commits, tickets TK-XXX vinculados y quality gates, sin inventar metadatos, y actualiza el histórico del proyecto."},{"id":"/momoy-qa [objetivo]","tipo":"comando","capa":0,"titulo":"Pipeline QA con mutación","etapa":"calidad","ruta":"skills/momoy-qa/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"workflows/06_full_qa_pipeline.md","desc":"Pipeline QA completo de momoy: pre-flight, análisis de riesgos, anti N+1 y mass-assignment, diseño de tests, mutation testing con umbral y veredicto en JSON estricto, con pausas de aprobación entre pasos."},{"id":"/momoy-release [X.Y.Z]","tipo":"comando","capa":0,"titulo":"Release con gates y rollback","etapa":"release","ruta":"skills/momoy-release/SKILL.md","version":"1.0.0","grupo":"comandos","delega":"workflows/10_release_workflow.md","desc":"Lleva a producción un conjunto de tickets cerrados sin riesgo: fija la versión SemVer, pasa los gates previos, declara la estrategia de liberación, clasifica migraciones, verifica la configuración de..."},{"id":"/momoy-retire [funcionalidad]","tipo":"comando","capa":0,"titulo":"Retirada de funcionalidad","etapa":"mantenimiento","ruta":"skills/momoy-retire/SKILL.md","version":"1.0.0","grupo":"comandos","delega":"skills/specs/05_agile_planning/SK-41_retire_capability.md","desc":"Retira una funcionalidad como cascada inversa: impacto hacia atrás, aviso a usuarios con al menos 30 días, tratamiento de datos según su retención y tickets de eliminación, con decisión humana."},{"id":"/momoy-smoke [URL]","tipo":"comando","capa":0,"titulo":"Validación post-despliegue","etapa":"release","ruta":"skills/momoy-smoke/SKILL.md","version":"1.1.0","grupo":"comandos","delega":"workflows/08_smoke_test_deploy_validation.md","desc":"Valida un despliegue recién hecho: health check, smoke tests de contratos HTTP con 3 oráculos y cabeceras de seguridad, con veredicto PASS/FAIL."},{"id":"/momoy-spec [idea]","tipo":"comando","capa":0,"titulo":"Cascada de especificaciónes","etapa":"requisitos","ruta":"skills/momoy-spec/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"workflows/01_cascading_spec_workflow.md","desc":"Integra una idea o funcionalidad nueva en las especificaciones de momoy en cascada: PRD, modelo de dominio, esquema de datos, contrato de API, historias de usuario, tickets y trazabilidad, antes de escribir..."},{"id":"/momoy-tdd TK-XXX","tipo":"comando","capa":0,"titulo":"Bucle Red-Green-Refactor","etapa":"desarrollo","ruta":"skills/momoy-tdd/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"workflows/05_test_runner_workflow.md","desc":"Ejecuta el bucle autónomo de TDD (Red-Green-Refactor) de un ticket TK-XXX: lee sus escenarios BDD, genera tests, corre el test runner declarado en AGENTS.md y corrige fallos, con un máximo de 3 intentos."},{"id":"/momoy-validate","tipo":"comando","capa":0,"titulo":"Integridad del propio momoy","etapa":"mantenimiento","ruta":"skills/momoy-validate/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"scripts/validate_agents.sh","desc":"Verifica la integridad del propio framework momoy (.agents/): tests de su tooling, enlaces, IDs de skills, agnosticismo de scripts, política de emojis y conformidad de los comandos con el estándar Agent..."},{"id":"/momoy-verify-live [flujo]","tipo":"comando","capa":0,"titulo":"Prueba en vivo con navegador","etapa":"release","ruta":"skills/momoy-verify-live/SKILL.md","version":"1.0.1","grupo":"comandos","delega":"workflows/09_live_stack_verification_workflow.md","desc":"Prueba la app de punta a punta en local con navegador real: levanta la infraestructura declarada en el stack manifest, recorre el flujo de usuario con el motor E2E declarado, captura evidencia y limpia el..."}];
+
+/* ARTEFACTOS: campo outputs: del frontmatter de las 42 skills (90 salidas) */
+const ARTEFACTOS = {"SK-18":[{"t":"Esquema físico de base de datos actualizado","c":"humo"},{"t":"Migración generada y aplicada con éxito en el entorno local","c":"humo"},{"t":"Cliente del ORM o tipos de datos regenerados","c":"humo"}],"SK-28":[{"t":"Script o módulo de seeding idempotente generado","c":"humo"},{"t":"Verificación de la separación de entornos (Essential vs Fixtures)","c":"humo"},{"t":"Ejecución exitosa y limpia del sembrado","c":"humo"}],"SK-27":[{"t":"Carpeta docs/04_governance_and_quality/rules/ creada y poblada con los estándares de codificación inferidos del proyecto","c":"prosa","p":"docs/04_governance_and_quality/rules/"},{"t":"Diff resumido por archivo de reglas preexistente que fue regenerado, declarado en el reporte de FASE 4","c":"humo"},{"t":"Scripts de gobernanza ejecutables en docs/04_governance_and_quality/scripts/, adaptados al stack real declarado en docs/00_stack_manifest.md","c":"prosa","p":"docs/04_governance_and_quality/scripts/"}],"SK-30":[{"t":"Diagramas Mermaid ERD y C4 generados en docs/02_architecture_design/","c":"prosa","p":"docs/02_architecture_design/"}],"SK-31":[{"t":"Matriz de Deuda Técnica catalogada en docs/05_agile_planning/technical_debt.md","c":"prosa","p":"docs/05_agile_planning/technical_debt.md"}],"SK-33":[{"t":"Esquema de validación Fail-Fast en tiempo de arranque","c":"humo"},{"t":"Plantilla .env.example libre de secretos reales y alineada con OWASP","c":"prosa","p":".env.example"},{"t":"Parametrización de CORS, Rate Limit y Entropía de Secretos","c":"humo"}],"SK-34":[{"t":"Modelo MBT en lenguaje natural conteniendo Estados, Transiciones, Guards e Invariantes","c":"humo"},{"t":"Matriz de Oráculos Multi-Capa (UI, Red, Estado)","c":"humo"}],"SK-19":[{"t":"Código refactorizado sin romper la lógica existente","c":"humo"},{"t":"Cero errores de compilación o análisis estático de tipos","c":"humo"},{"t":"Linter y formateador ejecutados con éxito y con 0 advertencias/errores","c":"humo"},{"t":"Gate de duplicación de código (detector declarado en el stack manifest) en verde; métricas de complejidad/longitud reportadas","c":"humo"}],"SK-22":[{"t":"Diagnóstico de la causa raíz del fallo","c":"humo"},{"t":"Acción de autorrecuperación ejecutada con éxito","c":"humo"},{"t":"Estado del entorno restaurado y suite de pruebas en verde","c":"humo"}],"SK-23":[{"t":"Dictamen de aprobación/rechazo de la dependencia","c":"humo"},{"t":"Reporte de auditoría de seguridad del árbol de dependencias","c":"humo"}],"SK-24":[{"t":"Suite de pruebas de caracterización (*.characterization.test.*) 100% en verde","c":"prosa","p":"*.characterization.test.*"},{"t":"Refactorización segura del código legacy con cero regresiones","c":"humo"}],"SK-25":[{"t":"Reporte de auditoría diferencial (AUDIT-CONTRACT-DISCREPANCIES.md) ordenado por gravedad","c":"prosa","p":"AUDIT-CONTRACT-DISCREPANCIES.md"},{"t":"Corrección automática de validadores para alineación al 100% con la especificación de API","c":"humo"}],"SK-26":[{"t":"Ejemplos dinámicos Few-Shot extraídos directamente de la base de código","c":"humo"}],"SK-32":[{"t":"Clase / función Builder generada en la carpeta de pruebas (ej. tests/builders/ o test/fixtures/)","c":"prosa","p":"tests/builders/"}],"SK-17":[{"t":"Componentes UI modulares (<150 líneas) e integrados","c":"humo"},{"t":"Módulos de estado y adaptadores de repositorio UI desacoplados","c":"humo"},{"t":"Verificación de compilación, CWV preventivos y seguridad aprobada","c":"humo"},{"t":"Gate ticket-scoped de complejidad/longitud/profundidad y gate de duplicación (detector declarado en el stack manifest) en verde","c":"humo"}],"SK-20":[{"t":"Reporte de verificación visual de la interfaz","c":"humo"},{"t":"Grabaciones de video/capturas de pantalla de los estados verificados","c":"humo"},{"t":"Verificación del cumplimiento de accesibilidad y ergonomía táctil","c":"humo"}],"SK-21":[{"t":"Reporte de auditoría de accesibilidad WCAG y contraste HSL","c":"humo"},{"t":"Matriz de cumplimiento de dimensiones táctiles","c":"humo"},{"t":"Lista de correcciones CSS recomendadas para tokens fuera de norma","c":"humo"},{"t":"Veredicto de regresión visual (screenshot diffing) contra baseline versionado en visual-baselines/ del directorio E2E declarado","c":"prosa","p":"visual-baselines/"}],"SK-29":[{"t":"Scripts de carga en k6/Artillery en e2e/performance/ o tests/load/","c":"prosa","p":"e2e/performance/"},{"t":"Reporte de SLAs de latencia (p95 < 200ms, p99 < 500ms, tasa de error 0%)","c":"humo"}],"SK-38":[{"t":"docs/06_release_and_operations/postmortems/PM-NNN-{slug}.md","c":"ruta"}],"SK-16":[{"t":"Código backend implementado y verificado (Dominio, Aplicación e Infraestructura)","c":"humo"},{"t":"Contrato de API de proyecto actualizado y validado según directivas de backend_rules.md","c":"humo"},{"t":"Suite TDD en verde con Mutation Score >= 70%","c":"humo"},{"t":"Auditorías Anti-N+1, Anti-Mass-Assignment y Transacciones de BD aprobadas","c":"humo"},{"t":"Gate ticket-scoped de complejidad/longitud/profundidad y gate de duplicación (detector declarado en el stack manifest) en verde","c":"humo"}],"SK-11":[{"t":"docs/05_agile_planning/11_user_stories/{modulo}/US-XXX.md","c":"ruta"},{"t":"docs/05_agile_planning/11_user_stories/indice_user_stories.md","c":"ruta"}],"SK-12":[{"t":"docs/05_agile_planning/12_tickets/{modulo}/backend/TK-XXX.md","c":"ruta"},{"t":"docs/05_agile_planning/12_tickets/{modulo}/frontend/TK-XXX-FE.md","c":"ruta"},{"t":"docs/05_agile_planning/12_tickets/indice_tickets.md","c":"ruta"}],"SK-13":[{"t":"docs/05_agile_planning/13_matriz_trazabilidad.md","c":"ruta"}],"SK-14":[{"t":"docs/05_agile_planning/14_backlog_map.md","c":"ruta"}],"SK-15":[{"t":"README.md","c":"ruta"},{"t":"docs/05_agile_planning/15_history.md","c":"ruta"}],"SK-41":[{"t":"docs/06_release_and_operations/retirements/RET-NNN-{slug}.md","c":"ruta"}],"SK-08":[{"t":"docs/04_governance_and_quality/08_security_strategy.md","c":"ruta"}],"SK-09":[{"t":"docs/04_governance_and_quality/09_testing_strategy.md","c":"ruta"}],"SK-10":[{"t":"Pipeline de CI en la ruta y sintaxis de la plataforma declarada en docs/00_stack_manifest.md §6","c":"prosa","p":"docs/00_stack_manifest.md"},{"t":"Módulos de IaC en el directorio y la sintaxis del IaC Engine declarado en docs/00_stack_manifest.md §6","c":"prosa","p":"docs/00_stack_manifest.md"},{"t":"docs/04_governance_and_quality/10_cicd_pipeline.md","c":"ruta"}],"SK-35":[{"t":"AGENTS.md","c":"ruta"},{"t":"CLAUDE.md","c":"ruta"},{"t":"GEMINI.md","c":"ruta"}],"SK-40":[{"t":"docs/06_release_and_operations/slos.md","c":"ruta"},{"t":"docs/06_release_and_operations/runbooks/RB-NNN-{slug}.md","c":"ruta"},{"t":"docs/06_release_and_operations/backup_and_recovery.md","c":"ruta"},{"t":"docs/06_release_and_operations/drills/DRILL-NNN-{slug}.md","c":"ruta"}],"SK-42":[{"t":"docs/04_governance_and_quality/external_reviews/EXT-NNN-{slug}.md","c":"ruta"}],"SK-01":[{"t":"docs/01_product_definition/01_product_discovery.md","c":"ruta"},{"t":"docs/01_product_definition/01_glosario_y_reglas_negocio.md","c":"ruta"}],"SK-02":[{"t":"docs/01_product_definition/02_prd.md","c":"ruta"}],"SK-37":[{"t":"docs/01_product_definition/experiments/EXP-NNN-{slug}.md","c":"ruta"},{"t":"docs/01_product_definition/experiments/evidence/EXP-NNN/","c":"ruta"}],"SK-39":[{"t":"docs/01_product_definition/outcomes/OUT-NNN-{slug}.md","c":"ruta"},{"t":"docs/01_product_definition/outcomes/data/OUT-NNN/","c":"ruta"}],"SK-03":[{"t":"docs/02_architecture_design/03_domain_model.md","c":"ruta"}],"SK-04":[{"t":"docs/02_architecture_design/04_technical_design.md","c":"ruta"},{"t":"docs/00_stack_manifest.md","c":"ruta"}],"SK-05":[{"t":"docs/02_architecture_design/05_ui_ux_design_system.md","c":"ruta"},{"t":"docs/04_governance_and_quality/rules/frontend_rules.md","c":"ruta"},{"t":"DESIGN.md","c":"ruta"}],"SK-36":[{"t":"docs/02_architecture_design/adr/ADR-XXX-{slug}.md","c":"ruta"}],"SK-06":[{"t":"docs/03_persistence_and_api/06_database_schema.md","c":"ruta"}],"SK-07":[{"t":"docs/03_persistence_and_api/07_api_specification.md","c":"ruta"},{"t":"docs/03_persistence_and_api/openapi.yaml (u openapi.json si el stack no lee YAML)","c":"ruta"}]};
+/* ---------- etapas del ciclo (12) ---------- */
+const ETAPAS = [
+  {n:1,  id:"problema",      nombre:"Problema",              fase:"descubrir"},
+  {n:2,  id:"validacion",    nombre:"Validación",            fase:"descubrir"},
+  {n:3,  id:"requisitos",    nombre:"Requisitos",            fase:"descubrir"},
+  {n:4,  id:"diseno",        nombre:"Diseño",                fase:"construir"},
+  {n:5,  id:"planificacion", nombre:"Planificación",         fase:"construir"},
+  {n:6,  id:"desarrollo",    nombre:"Desarrollo",            fase:"construir"},
+  {n:7,  id:"calidad",       nombre:"Calidad",               fase:"construir"},
+  {n:8,  id:"release",       nombre:"Release",               fase:"operar"},
+  {n:9,  id:"operacion",     nombre:"Operación",             fase:"operar"},
+  {n:10, id:"incidentes",    nombre:"Incidentes",            fase:"operar"},
+  {n:11, id:"resultados",    nombre:"Resultados",            fase:"aprender"},
+  {n:12, id:"mantenimiento", nombre:"Mantenimiento y retirada", fase:"aprender"}
+];
+const FASES = [
+  {id:"descubrir", nombre:"descubrir"},
+  {id:"construir", nombre:"construir"},
+  {id:"operar",    nombre:"operar"},
+  {id:"aprender",  nombre:"aprender"}
+];
+const ETAPA_NOM = Object.fromEntries(ETAPAS.map(e => [e.id, e.nombre]));
+
+/* pausa humana explícita — la anomalía de Wong */
+const HITL = new Set([
+  "/momoy-greenfield [idea]", "/momoy-brownfield [ruta]", "/momoy-spec [idea]",
+  "/momoy-adr [decisión]", "/momoy-characterize [módulo]", "/momoy-release [X.Y.Z]",
+  "/momoy-smoke [URL]", "/momoy-retire [funcionalidad]", "/momoy-experiment [hipótesis]",
+  "SK-01", "SK-04", "SK-18", "SK-24", "SK-36", "SK-41"
+]);
+const HITL_RUTA = ["00_greenfield", "00_brownfield", "08_smoke", "10_release"];
+const esHitl = n => HITL.has(n.id) || HITL_RUTA.some(r => n.ruta.includes(r));
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- tema ---------- */
+$("#theme").addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme");
+  const oscuro = cur ? cur === "dark"
+    : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  document.documentElement.setAttribute("data-theme", oscuro ? "light" : "dark");
+});
+
+/* ---------- anillo del ciclo ---------- */
+const CX = 310, CY = 310, R_OUT = 243, R_IN = 150, R_BEAD = 196.5;
+const NS = "http://www.w3.org/2000/svg";
+const pt = (r, deg) => {
+  const a = (deg - 90) * Math.PI / 180;
+  return [ (CX + r * Math.cos(a)).toFixed(2), (CY + r * Math.sin(a)).toFixed(2) ];
+};
+const el = (t, attrs, txt) => {
+  const e = document.createElementNS(NS, t);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (txt != null) e.textContent = txt;
+  return e;
+};
+
+function dibujarAnillo() {
+  const svg = $("#ring");
+  ETAPAS.forEach((et, i) => {
+    const d1 = i * 30 + 0.8, d2 = (i + 1) * 30 - 0.8;
+    const [ax, ay] = pt(R_OUT, d1), [bx, by] = pt(R_OUT, d2);
+    const [cx, cy] = pt(R_IN, d2),  [dx, dy] = pt(R_IN, d1);
+    const p = el("path", {
+      d: `M${ax} ${ay} A${R_OUT} ${R_OUT} 0 0 1 ${bx} ${by} L${cx} ${cy} A${R_IN} ${R_IN} 0 0 0 ${dx} ${dy} Z`,
+      class: `sector f-${et.fase}`, tabindex: "0", role: "button"
+    });
+    p.setAttribute("aria-label", `Etapa ${et.n}: ${et.nombre}`);
+    p.dataset.i = i;
+    svg.appendChild(p);
+  });
+  ETAPAS.forEach((et, i) => {
+    const [x, y] = pt(R_BEAD, i * 30 + 15);
+    const g = el("g", { class: "bead", "data-i": i });
+    g.appendChild(el("circle", { cx: x, cy: y, r: 14, class: "bead-bg" }));
+    g.appendChild(el("text", { x: x, y: (+y + 5).toFixed(2), "text-anchor": "middle", class: "sector-num" }, et.n));
+    svg.appendChild(g);
+  });
+  svg.appendChild(el("circle", { cx: CX, cy: CY, r: R_IN - 10, class: "hub" }));
+  svg.appendChild(el("text", { x: CX, y: CY - 34, "text-anchor": "middle", class: "t-eye t-sig" }, "EL REGULADOR"));
+  svg.appendChild(el("text", { x: CX, y: CY - 4,  "text-anchor": "middle", class: "hub-t" }, "El humano"));
+  svg.appendChild(el("text", { x: CX, y: CY + 26, "text-anchor": "middle", class: "t-lbl" }, "toda cascada empieza aquí"));
+  svg.appendChild(el("text", { x: CX, y: CY + 46, "text-anchor": "middle", class: "t-lbl" }, "y puede detenerse aquí"));
+  svg.appendChild(el("text", { x: CX, y: CY + 74, "text-anchor": "middle", class: "t-sub" }, "ningún comando se lanza solo"));
+
+  $("#faseKey").innerHTML = FASES.map(f =>
+    `<span><i class="k-${f.id}"></i>${esc(f.nombre)}</span>`).join("");
+
+  $("#ringList").innerHTML = ETAPAS.map((et, i) => {
+    const cmds = NODOS.filter(n => n.tipo === "comando" && n.etapa === et.id).map(n => n.id.split(" ")[0]);
+    return `<li data-i="${i}" tabindex="0"><span class="n">${String(et.n).padStart(2,"0")}</span>
+      <span><span class="nm">${esc(et.nombre)}</span><br><span class="cm">${esc(cmds.join("  "))}</span></span></li>`;
+  }).join("");
+
+  const marcar = i => {
+    document.querySelectorAll("#ring .sector").forEach(s => s.classList.toggle("on", s.dataset.i === String(i)));
+    document.querySelectorAll("#ringList li").forEach(s => s.classList.toggle("on", s.dataset.i === String(i)));
+  };
+  document.querySelectorAll("#ring .sector").forEach(s => {
+    s.addEventListener("mouseenter", () => marcar(s.dataset.i));
+    s.addEventListener("focus", () => marcar(s.dataset.i));
+  });
+  document.querySelectorAll("#ringList li").forEach(s => {
+    s.addEventListener("mouseenter", () => marcar(s.dataset.i));
+    s.addEventListener("focus", () => marcar(s.dataset.i));
+  });
+}
+
+/* ---------- catálogo ---------- */
+const ORDEN = { comando: 0, workflow: 1, skill: 2 };
+let seleccion = NODOS.find(n => n.id.startsWith("/momoy-dev")) || NODOS[0];
+
+function pintarPanel(n) {
+  seleccion = n;
+  const filas = [
+    ["tipo", n.tipo + " · capa " + n.capa, false],
+    ["etapa", ETAPA_NOM[n.etapa] || n.etapa, false],
+    ["ruta", ".agents/" + n.ruta, true],
+    n.version ? ["versión", n.version, true] : null,
+    n.delega ? ["delega en", n.delega, true] : null,
+    esHitl(n) ? ["pausa", "contiene una pausa humana explícita", false] : null
+  ].filter(Boolean);
+  $("#panel").innerHTML =
+    `<div class="pid">${esc(n.id)}</div><h4>${esc(n.titulo)}</h4>
+     <dl>${filas.map(([k, v, m]) => `<dt>${esc(k)}</dt><dd class="${m ? "mono" : ""}">${esc(v)}</dd>`).join("")}</dl>
+     <p class="pd">${esc(n.desc)}</p>`;
+}
+
+function pintarMods() {
+  const q = $("#q").value.trim().toLowerCase();
+  const tipos = [...document.querySelectorAll("#tipoChips .chip")]
+    .filter(c => c.getAttribute("aria-pressed") === "true").map(c => c.dataset.tipo);
+  const et = $("#etapaSel").value;
+  const vis = NODOS.filter(n =>
+    tipos.includes(n.tipo) &&
+    (et === "*" || n.etapa === et) &&
+    (!q || (n.id + " " + n.titulo + " " + n.ruta + " " + (n.desc || "")).toLowerCase().includes(q))
+  ).sort((a, b) => (ORDEN[a.tipo] - ORDEN[b.tipo]) || a.id.localeCompare(b.id, "es"));
+
+  $("#count").textContent = vis.length + " de " + NODOS.length;
+  $("#mods").innerHTML = vis.map((n, i) =>
+    `<button class="mod${esHitl(n) ? " hitl" : ""}${n.id === seleccion.id ? " on" : ""}" type="button" data-id="${esc(n.id)}">
+       <span class="mid">${esc(n.id)}</span><span class="mt">${esc(n.titulo)}</span></button>`).join("")
+    || `<p class="count">Nada coincide con ese filtro.</p>`;
+
+  document.querySelectorAll("#mods .mod").forEach(b => b.addEventListener("click", () => {
+    const n = NODOS.find(x => x.id === b.dataset.id);
+    if (!n) return;
+    pintarPanel(n);
+    document.querySelectorAll("#mods .mod").forEach(o => o.classList.toggle("on", o === b));
+  }));
+}
+
+function arrancar() {
+  dibujarAnillo();
+  $("#etapaSel").innerHTML = `<option value="*">todas las etapas</option>` +
+    ETAPAS.map(e => `<option value="${e.id}">${String(e.n).padStart(2,"0")} · ${esc(e.nombre)}</option>`).join("");
+  $("#q").addEventListener("input", pintarMods);
+  $("#etapaSel").addEventListener("change", pintarMods);
+  document.querySelectorAll("#tipoChips .chip").forEach(c => c.addEventListener("click", () => {
+    c.setAttribute("aria-pressed", c.getAttribute("aria-pressed") === "true" ? "false" : "true");
+    pintarMods();
+  }));
+  pintarPanel(seleccion);
+  pintarMods();
+}
+arrancar();
+
+/* ---------- caso de ejemplo compartido por las secciones 7 y 8 ----------
+   Una sola idea recorriendo el ciclo entero. Es ilustracion: ni el proyecto
+   ni el stack existen, y momoy no conoce ninguno de los dos. */
+const MODO = { ej: false, subs: [] };
+MODO.set = function (v) { MODO.ej = v; MODO.subs.forEach(f => f()); };
+
+const EJEMPLO = {
+  comando: "/momoy-greenfield Quiero una app para apuntar mis tareas y marcarlas como hechas",
+  stack: "decidido en la FASE 2 del bootstrap, no por defecto — Node · TypeScript · Express · Prisma · PostgreSQL · Vitest · Playwright · GitHub Actions",
+  decisiones: [
+    { f: "FASE 0 · greenfield", t: "El repositorio se llamará tareas. Hasta responder esto no se ha escrito ni un archivo." },
+    { f: "FASE 2 · greenfield", t: "Stack elegido entre tres opciones con sus trade-offs: Node con TypeScript, Express, Prisma y PostgreSQL. Descartado serverless por el coste de arranque en frío y el móvil nativo por alcance." },
+    { f: "FASE 1.5 · spec", t: "Una tarea se marca como hecha, no se borra: el historial se conserva. Sin fechas de vencimiento en el MVP. Dos reglas de negocio que no estaban en el enunciado." },
+    { f: "Regla innegociable · spec", t: "Aprobado el borrador completo antes de escribir nada: PRD, entidad Tarea, tabla, tres endpoints y dos tickets." },
+    { f: "FASE 1 · diseño", t: "Aprobada la arquitectura de información antes que nada visual: tres pantallas —lista, alta y detalle— con el estado vacío como pantalla de primera clase." },
+    { f: "FASE 2 · diseño", t: "Personalidad visual fijada en entrevista: una columna, tipografía del sistema y un único acento reservado a la acción de completar. Sin librería de componentes." },
+    { f: "FASE 2 · dev", t: "Migración autorizada: crea la tabla tarea y no reescribe ninguna migración ya aplicada." },
+    { f: "FASE 5.C · dev", t: "Promovida a guarda permanente: el identificador de la tarea lo genera el servidor, nunca se acepta del cuerpo de la petición." },
+    { f: "PASO 9 · release", t: "Go para 1.0.0. Despliegue directo: producto nuevo, todavía sin usuarios que perder." }
+  ],
+  cadena: [
+    ["00 Bootstrap", "docs/00_stack_manifest.md · readme.md"],
+    ["01 Problema", "docs/01_product_definition/01_glosario_y_reglas_negocio.md"],
+    ["03 Requisitos", "docs/01_product_definition/02_prd.md"],
+    ["04 Diseño", "docs/02_architecture_design/03_domain_model.md (Tarea) · openapi.yaml (GET, POST y PATCH /tareas)"],
+    ["04 Diseño · UI", "docs/02_architecture_design/05_ui_ux_design_system.md · DESIGN.md · rules/frontend_rules.md"],
+    ["05 Planificación", "docs/05_agile_planning/11_user_stories/tareas/US-001.md · 12_tickets/tareas/backend/TK-001.md · frontend/TK-002-FE.md"],
+    ["06 Desarrollo", "prisma/schema.prisma (model Tarea) · prisma/migrations/20260118_tarea/ · src/application/crear-tarea.ts · src/components/lista-tareas.tsx"],
+    ["07 Calidad", "tests/application/crear-tarea.test.ts · e2e/tareas.spec.ts"],
+    ["08 Release", "docs/06_release_and_operations/releases/v1.0.0.md"]
+  ]
+};
+const EJ_RESP = {
+  "greenfield#1": "El repositorio se llamará tareas. Hasta esta respuesta no se ha escrito ningún archivo.",
+  "greenfield#3": "Producto confirmado: Tareas. MVP: apuntar, listar y marcar como hecha. Fuera del MVP: etiquetas, recordatorios y compartir listas.",
+  "greenfield#5": "Aprobada la opción B de tres: Node con TypeScript, Express, Prisma y PostgreSQL. Aquí es donde el stack de este ejemplo deja de ser un supuesto y pasa a ser una decisión.",
+  "greenfield#8": "Seguimos. La primera cascada usa el propio PRD como idea y genera US-001 y el ticket TK-001.",
+  "spec#2": "Una tarea se marca como hecha, no se borra, y el MVP no lleva fechas de vencimiento. Dos reglas de negocio que el agente no podía deducir del enunciado.",
+  "spec#3": "Borrador aprobado entero: PRD, entidad Tarea, tabla, tres endpoints y dos tickets. Sólo ahora se escribe en disco.",
+  "design#2": "Aprobada la arquitectura: tres pantallas —lista, alta y detalle— y el estado vacío tratado como pantalla de primera clase, no como caso borde. Todavía sin un solo color decidido.",
+  "design#4": "Una columna, tipografía del sistema, un único acento reservado a la acción de completar y sin librería de componentes. Decidido en entrevista, no deducido de las capturas.",
+  "dev#3": "Autorizada: crea la tabla tarea, ninguna migración aplicada se reescribe.",
+  "dev#8": "Promovida a guarda de AGENTS.md: el identificador de la tarea lo genera el servidor; nunca se acepta del cuerpo de la petición.",
+  "release#1": "Confirmado 1.0.0: primera versión del producto, sin contrato previo que romper.",
+  "release#4": "Sólo crea tabla, no transforma datos. Volver atrás es borrarla, sin pérdida.",
+  "release#9": "Go. Despliegue directo: producto nuevo, todavía sin usuarios que perder."
+};
+/* ---------- seccion 7: artefactos por etapa ----------
+   NODE_EJ es SOLO ilustracion: como se verian las salidas dependientes del stack
+   si el manifiesto declarase Node + TypeScript + Prisma + Vitest + Playwright.
+   momoy no conoce estas rutas; las resolveria contra docs/00_stack_manifest.md. */
+const NODE_EJ = {
+  "SK-10#0": ".github/workflows/ci.yml",
+  "SK-10#1": "infra/docker-compose.yml · Dockerfile",
+  "SK-16#0": "src/domain/ · src/application/ · src/infrastructure/",
+  "SK-16#1": "docs/03_persistence_and_api/openapi.yaml",
+  "SK-16#2": "vitest run --coverage · stryker.config.json",
+  "SK-16#3": "tests/integration/tareas.test.ts",
+  "SK-16#4": "eslint.config.js · jscpd.json",
+  "SK-17#0": "src/components/*.tsx",
+  "SK-17#1": "src/state/*.store.ts · src/adapters/*.repo.ts",
+  "SK-17#2": "vite build · tsc --noEmit",
+  "SK-17#3": "eslint.config.js · jscpd.json",
+  "SK-18#0": "prisma/schema.prisma",
+  "SK-18#1": "prisma/migrations/20260118_tarea/migration.sql",
+  "SK-18#2": "node_modules/.prisma/client",
+  "SK-19#0": "src/**/*.ts",
+  "SK-19#1": "tsc --noEmit",
+  "SK-19#2": "eslint . --max-warnings 0 · prettier --check",
+  "SK-19#3": "jscpd.json",
+  "SK-20#0": "e2e/*.spec.ts",
+  "SK-20#1": "test-results/**/video.webm",
+  "SK-20#2": "e2e/a11y.spec.ts",
+  "SK-21#0": "reports/a11y/axe-report.html",
+  "SK-21#1": "e2e/touch-targets.spec.ts",
+  "SK-21#2": "src/styles/tokens.css",
+  "SK-21#3": "e2e/visual-baselines/*.png",
+  "SK-24#0": "tests/**/*.characterization.test.ts",
+  "SK-24#1": "src/legacy/**",
+  "SK-25#0": "reports/AUDIT-CONTRACT-DISCREPANCIES.md",
+  "SK-25#1": "src/schemas/*.zod.ts",
+  "SK-26#0": "src/**/*.ts citados en el prompt",
+  "SK-27#2": "docs/04_governance_and_quality/scripts/check_*.sh",
+  "SK-28#0": "prisma/seed.ts",
+  "SK-28#1": "prisma/seed/essential.ts · prisma/seed/fixtures.ts",
+  "SK-28#2": "pnpm prisma db seed",
+  "SK-29#0": "tests/load/tareas.k6.js",
+  "SK-29#1": "reports/load/summary.json",
+  "SK-32#0": "tests/builders/tarea.builder.ts",
+  "SK-33#0": "src/config/env.ts",
+  "SK-33#1": ".env.example",
+  "SK-33#2": "src/config/security.ts",
+  "SK-34#0": "tests/model/tarea.model.ts",
+  "SK-34#1": "tests/model/oracles.md"
+};
+const TAG = { ruta: "ruta", prosa: "prosa", humo: "sin rastro" };
+
+(function artefactos() {
+  const SKT = Object.fromEntries(NODOS.filter(n => n.tipo === "skill").map(n => [n.id, n.titulo]));
+
+  const filas = ETAPAS.map(et => {
+    const sks = NODOS.filter(n => n.tipo === "skill" && n.etapa === et.id)
+      .sort((a, b) => a.id.localeCompare(b.id, "es"));
+    const outs = [];
+    sks.forEach(s => (ARTEFACTOS[s.id] || []).forEach((o, i) => outs.push({ sk: s.id, i, o })));
+    return { et, sks, outs };
+  });
+
+  const clase = (sk, i, o) => (MODO.ej && NODE_EJ[sk + "#" + i]) ? "ruta" : o.c;
+  const cuenta = outs => outs.reduce((a, x) => (a[clase(x.sk, x.i, x.o)]++, a), { ruta: 0, prosa: 0, humo: 0 });
+
+  function barra(c, tot, cls) {
+    const w = k => tot ? (c[k] / tot * 100).toFixed(1) : 0;
+    return `<span class="${cls}"><i class="mb-ruta" style="width:${w("ruta")}%"></i>` +
+           `<i class="mb-prosa" style="width:${w("prosa")}%"></i>` +
+           `<i class="mb-humo" style="width:${w("humo")}%"></i></span>`;
+  }
+
+  function fila(o, sk, i) {
+    const ej = MODO.ej && NODE_EJ[sk + "#" + i];
+    const c = clase(sk, i, o);
+    if (ej) {
+      return `<li class="o-ruta"><span class="mk mk-ruta"></span>
+        <span class="ot ruta">${esc(ej)} <span class="ej-badge">ej.</span></span>
+        <span class="tag">ruta</span></li>`;
+    }
+    let texto = esc(o.t);
+    if (c === "prosa" && o.p) texto = texto.replace(esc(o.p), `<span class="p">${esc(o.p)}</span>`);
+    else if (c === "ruta") texto = `<span class="p">${texto}</span>`;
+    return `<li class="o-${c}"><span class="mk mk-${c}"></span>
+      <span class="ot${c === "ruta" ? " ruta" : ""}">${texto}</span>
+      <span class="tag">${TAG[c]}</span></li>`;
+  }
+
+  const cajaCaso = () => `
+    <div class="caso">
+      <div class="caso-h"><span class="eyebrow"><b>Caso de ejemplo</b> · una idea recorriendo el ciclo entero</span></div>
+      <div class="caso-in"><span class="caso-k">entrada</span><code class="caso-cmd">${esc(EJEMPLO.comando)}</code></div>
+      <div class="caso-in"><span class="caso-k">stack</span><span class="caso-stack">${esc(EJEMPLO.stack)}</span></div>
+      <div class="caso-cols">
+        <div><div class="caso-k">lo que decidió una persona</div>
+          <ul class="caso-dec">${EJEMPLO.decisiones.map(d =>
+            `<li><span class="caso-f">${esc(d.f)}</span>${esc(d.t)}</li>`).join("")}</ul></div>
+        <div><div class="caso-k">lo que quedó escrito</div>
+          <ul class="caso-cad">${EJEMPLO.cadena.map(([e, a]) =>
+            `<li><span class="caso-e">${esc(e)}</span><span class="caso-a">${esc(a)}</span></li>`).join("")}</ul></div>
+      </div>
+      <p class="caso-p">Nueve decisiones que cambian el producto, desde una idea de una línea hasta producción, y ninguna la podía tomar el agente: dos fijan el nombre y el stack, dos fijan reglas de negocio que no estaban en el enunciado, dos fijan primero la estructura de la interfaz y sólo después su personalidad visual, una autoriza tocar la base de datos, otra convierte un fallo en regla permanente y la última abre producción. El recorrido completo, con todas las paradas de los cinco workflows, está en <a href="#paradas">Dónde se detiene</a>.</p>
+    </div>`;
+
+  function pintar() {
+    const abiertos = new Set([...document.querySelectorAll("#artTree details[open]")].map(d => d.dataset.et));
+    const total = { ruta: 0, prosa: 0, humo: 0 };
+
+    $("#artTree").innerHTML = filas.map(({ et, sks, outs }) => {
+      const c = cuenta(outs);
+      ["ruta", "prosa", "humo"].forEach(k => total[k] += c[k]);
+      const cuerpo = sks.filter(s => (ARTEFACTOS[s.id] || []).length).map(s => `
+        <div class="sk-blk"><div class="sk-h"><span class="sk-id">${esc(s.id)}</span>
+          <span class="sk-t">${esc(SKT[s.id] || "")}</span></div>
+          <ul class="outs">${ARTEFACTOS[s.id].map((o, i) => fila(o, s.id, i)).join("")}</ul>
+        </div>`).join("");
+      return `<details data-et="${et.id}"${abiertos.has(et.id) || et.n === 1 && !abiertos.size ? " open" : ""}>
+        <summary><span class="sm-tw">+</span><span class="et-n">${String(et.n).padStart(2, "0")}</span>
+          <span class="et-nm">${esc(et.nombre)}</span>
+          <span class="et-c">${outs.length ? outs.length + " salidas · " + (c.ruta + c.prosa) + " con archivo" : "ninguna skill declara salidas"}</span>
+          ${barra(c, outs.length, "minibar")}</summary>${cuerpo}</details>`;
+    }).join("");
+
+    const t = total.ruta + total.prosa + total.humo;
+    $("#artCount").textContent = `${t} salidas · ${total.ruta} con ruta · ${total.prosa} con ruta en la prosa · ${total.humo} sin rastro`;
+
+    $("#trazaBars").innerHTML = filas.map(({ et, outs }) => {
+      const c = cuenta(outs), n = outs.length;
+      const pct = n ? Math.round((c.ruta + c.prosa) / n * 100) : null;
+      return `<div class="traza-row${pct !== null && pct < 50 ? " baja" : ""}${n ? "" : " vacia"}">
+        <span class="et-n">${String(et.n).padStart(2, "0")}</span>
+        <span>${esc(et.nombre)} <span class="et-c">${n || "sin declarar"}</span></span>
+        ${barra(c, n, "traza-bar")}
+        <span class="traza-pct">${pct === null ? "n/d" : pct + "%"}</span></div>`;
+    }).join("");
+
+    const opacas = filas.filter(f => f.outs.length && (cuenta(f.outs).humo / f.outs.length) > 0.5)
+      .map(f => f.et.nombre);
+    $("#artDiag").innerHTML = MODO.ej
+      ? `Con un stack concreto, <b>${total.humo} salidas</b> siguen sin rastro y el resto pasa a tener nombre de archivo. La diferencia no la puso momoy: la puso este ejemplo. Mientras la ruta no esté declarada o derivada del manifiesto, ningún gate puede mirarla.`
+      : `Etapas donde más de la mitad de lo producido no deja rastro localizable: <b>${opacas.join(", ") || "ninguna"}</b>. No es casual — son las etapas que ejecutan, no las que especifican. Ahí momoy depende de que el agente informe con veracidad, y ese es el punto exacto por donde un arnés de gobernanza se degrada sin avisar.<br><br><b>Release es el caso extremo: ninguna skill declara salida alguna.</b> Las notas de versión de <code>docs/06_release_and_operations/releases/vX.Y.Z.md</code> las escribe el workflow 10 directamente, y sin embargo el gate <code>release</code> las exige. Un artefacto que un gate verifica y que ningún procedimiento declara producir es, exactamente, una pieza que sólo existe si alguien se acuerda.`;
+
+    $("#ejAviso").hidden = !MODO.ej;
+    $("#ejCaso").hidden = !MODO.ej;
+    if (MODO.ej) $("#ejCaso").innerHTML = cajaCaso();
+    document.querySelectorAll("#stackChips .chip").forEach(o =>
+      o.setAttribute("aria-pressed", String((o.dataset.stack === "node") === MODO.ej)));
+    document.querySelectorAll("#artTree summary").forEach(sm => {
+      const d = sm.parentElement;
+      const tw = sm.querySelector(".sm-tw");
+      const marca = () => tw.textContent = d.open ? "–" : "+";
+      marca(); d.addEventListener("toggle", marca);
+    });
+  }
+
+  document.querySelectorAll("#stackChips .chip").forEach(c => c.addEventListener("click", () =>
+    MODO.set(c.dataset.stack === "node")));
+  MODO.subs.push(pintar);
+  $("#expandAll").addEventListener("click", () => {
+    const ds = [...document.querySelectorAll("#artTree details")];
+    const abrir = ds.some(d => !d.open);
+    ds.forEach(d => d.open = abrir);
+    $("#expandAll").textContent = abrir ? "cerrar todas" : "abrir todas";
+  });
+  pintar();
+})();
+
+/* ---------- seccion 8: simulacion de las paradas humanas ----------
+   No ejecuta nada. Reproduce el orden de fases y las paradas declaradas
+   en los workflows 01, 02 y 10 tal y como estan escritas en disco. */
+const FLUJOS = [
+{ id:"greenfield", cmd:"/momoy-greenfield [idea]", wf:"workflows/00_greenfield_bootstrap_workflow.md",
+  pasos:[
+  {f:"GUARDIA DE ENTRADA", t:"Verificación de precondiciones", k:"gate",
+   d:"Si el manifiesto de stack ya existe, esto no es un proyecto nuevo: se detiene y redirige a la cascada de especificación, para no sobrescribir decisiones ya aprobadas."},
+  {f:"FASE 0", t:"Nombre del repositorio", k:"hitl",
+   d:"Antes de esta respuesta no existe ni el directorio de trabajo.",
+   q:"¿Cómo se llama el directorio de trabajo y el repositorio? No se escribe ningún archivo antes de saberlo.",
+   si:"Confirmado. A partir de aquí ya hay dónde escribir.",
+   no:"Sin nombre confirmado no se crea nada. El bootstrap ni siquiera empieza."},
+  {f:"FASE 1", t:"Descubrimiento de producto", k:"auto",
+   d:"SK-01: investigación, Buy vs Build, graduación de incertidumbre y delimitación del MVP a partir de la idea en bruto.",
+   a:"docs/01_product_definition/01_product_discovery.md"},
+  {f:"FASE 1", t:"PRD y nombre del producto", k:"hitl",
+   d:"SK-02 no cierra el PRD sin que una persona confirme cómo se llama el producto y qué queda fuera del MVP.",
+   q:"¿Se confirma el nombre del producto y el alcance del MVP descrito en el PRD?",
+   si:"Confirmado. El alcance queda escrito, y lo que queda fuera también.",
+   no:"El PRD vuelve a redactarse. Nada de lo que depende de él —dominio, esquema, backlog— se genera mientras tanto."},
+  {f:"FASE 1", t:"Modelo conceptual de dominio", k:"auto",
+   d:"SK-03. Es dependencia explícita de la decisión de stack: sin dominio no hay elección informada.",
+   a:"docs/02_architecture_design/03_domain_model.md"},
+  {f:"FASE 2", t:"Decisión de stack tecnológico", k:"hitl",
+   d:"SK-04 propone dos o tres combinaciones completas con sus trade-offs y su matriz de riesgos. Nunca una sola opción impuesta.",
+   q:"Tres combinaciones de stack con sus trade-offs y riesgos, evaluadas contra el PRD y el dominio. ¿Cuál se aprueba?",
+   si:"Aprobada. Sólo ahora se escribe el manifiesto de stack, y todo lo que venga después se genera contra él.",
+   no:"Sin elección humana explícita no hay manifiesto, y sin manifiesto el workflow no continúa. Prohibido elegir por defecto o por costumbre."},
+  {f:"FASE 3", t:"Scaffolding del repositorio", k:"auto",
+   d:"Usando exclusivamente lo confirmado en el manifiesto. La licencia y el hook de commit se preguntan al humano, no se aplican en silencio.",
+   a:"docs/00_stack_manifest.md · readme.md"},
+  {f:"FASE 4", t:"Esqueleto de docs/", k:"auto",
+   d:"Crea los índices mínimos que la cascada de especificación da por existentes en su FASE 0."},
+  {f:"FASE 5", t:"Traspaso al ciclo estándar", k:"hitl",
+   d:"El bootstrap corre una sola vez por proyecto. A partir de aquí se entra siempre por la cascada normal.",
+   q:"¿Seguimos con la primera cascada de especificación usando el PRD como idea, o paras aquí para revisar?",
+   si:"Seguimos: la primera pasada genera la historia inicial y el ticket TK-001.",
+   no:"El bootstrap queda cerrado y revisable. La cascada se lanza cuando el humano quiera."}
+]},
+{ id:"spec", cmd:"/momoy-spec [idea]", wf:"workflows/01_cascading_spec_workflow.md",
+  pasos:[
+  {f:"FASE 0", t:"Lectura y mapeo de contexto", k:"auto",
+   d:"Lee docs/ y el manifiesto de stack antes de tocar nada. Sin manifiesto aprobado no arranca la cascada.", a:"docs/00_stack_manifest.md"},
+  {f:"FASE 1", t:"Análisis de impacto", k:"auto",
+   d:"Determina qué especificaciones toca la idea: producto, dominio, esquema, contrato de API y backlog."},
+  {f:"FASE 1.5", t:"Interrogatorio de reglas de negocio", k:"hitl",
+   d:"No se satisface presentando un diseño ya cerrado para aprobar. Aquí se exponen las alternativas de negocio y las fuentes técnicas antes de decidirlas.",
+   q:"¿Cuál es el riesgo de valor de esta capacidad? ¿Hay un EXP-NNN que la respalde, o por qué queda exenta?",
+   si:"Riesgo medio con exención motivada. Se registra en value_risk y validation de la historia.",
+   no:"Riesgo alto sin experimento: la cascada se detiene antes de la FASE 2. momoy recomienda /momoy-experiment y no especifica nada hasta tener evidencia."},
+  {f:"REGLA INNEGOCIABLE", t:"Propuesta completa antes de escribir en disco", k:"hitl",
+   d:"Cubre cualquier artefacto de docs/, no sólo el código fuente.",
+   q:"Borrador completo de la cascada: PRD, dominio, esquema, contrato y tickets. ¿Se guarda en disco?",
+   si:"Aprobado. A partir de aquí la escritura es mecánica: cada skill escribe su artefacto.",
+   no:"No se escribe ni un archivo. El borrador se corrige y se vuelve a presentar entero."},
+  {f:"FASE 2", t:"Requisitos, modelo y diseño", k:"auto",
+   d:"SK-02, SK-03, SK-05, SK-06 y SK-07 propagan la idea por las capas de especificación.",
+   a:"docs/01_product_definition/02_prd.md · docs/03_persistence_and_api/openapi.yaml"},
+  {f:"FASE 3", t:"Backlog y trazabilidad", k:"auto",
+   d:"SK-11 a SK-14 generan la historia, los tickets atómicos, la matriz y el mapa del backlog.",
+   a:"docs/05_agile_planning/11_user_stories/US-XXX.md · 12_tickets/TK-XXX.md"},
+  {f:"GATE", t:"check_spec_artifacts.py --changed", k:"gate",
+   d:"Bloqueante sobre lo modificado: historia sin tres escenarios, ticket sin Definition of Ready o fuera de la matriz y la cascada no cierra."},
+  {f:"FASE 4", t:"Consolidación del README y la estructura", k:"auto",
+   d:"Cierra la cascada dejando la documentación navegable y coherente."}
+]},
+{ id:"design", cmd:"/momoy-spec · rama de diseño", wf:"skills/specs/02_architecture_design/SK-05_design_ui_ux_system.md",
+  pasos:[
+  {f:"FASE 1", t:"Detección de la plataforma objetivo", k:"gate",
+   d:"Lee el manifiesto para saber si la superficie es Web, Mobile o Desktop. Si no lo declara o es ambiguo, pregunta: prohibido asumir Web por defecto. De esa detección depende todo el vocabulario posterior."},
+  {f:"FASE 1", t:"Arquitectura de información", k:"auto",
+   d:"Inventario de contenido, sitemap, user flows críticos y wireframes en texto. Sin una sola decisión de color, tipografía ni estilo.",
+   a:"inventario · sitemap · user flows · wireframes ASCII"},
+  {f:"FASE 1", t:"Pausa obligatoria de estructura", k:"hitl",
+   d:"El orden es innegociable: una decisión visual tomada sobre una estructura no validada se retrabaja en cuanto la información cambia.",
+   q:"Plataforma detectada, inventario, sitemap, user flows y wireframes. ¿Se aprueban? Ningún token visual se decide antes de este gate.",
+   si:"Aprobada la estructura. Sólo ahora empieza la conversación visual.",
+   no:"Se corrige la estructura y se vuelve a presentar. Ninguna paleta, tipografía ni componente se propone mientras tanto."},
+  {f:"FASE 2", t:"Ingesta multimodal y especificación externa", k:"auto",
+   d:"Analiza con visión las imágenes de referencia que hayas aportado y lee el .md de especificación si existe. Lo que el documento ya resolvió no se vuelve a preguntar.",
+   a:"docs/02_architecture_design/assets/ui_mockups/"},
+  {f:"FASE 2", t:"Diálogo de personalidad visual", k:"hitl",
+   d:"Sólo para lo que las imágenes o el brief no resolvieron. El agente tiene prohibido asumir una personalidad de interfaz no confirmada.",
+   q:"Para lo que no cubren las referencias: ¿qué personalidad visual tiene este producto?",
+   si:"Dirección visual fijada contigo. A partir de aquí la auditoría no puede proponer otra distinta: juzga rigor, no gusto.",
+   no:"Sin dirección confirmada no se cristaliza nada. El sistema de diseño no se escribe a medias."},
+  {f:"FASE 3", t:"Cristalización del sistema de diseño", k:"auto",
+   d:"Paleta, retícula, escala tipográfica con su ratio explícito, medida de 45 a 75 caracteres, tokens de movimiento, matriz de estados por componente y mapa de ubicación en código. Cada valor no trivial lleva su porqué en una línea.",
+   a:"docs/02_architecture_design/05_ui_ux_design_system.md"},
+  {f:"FASE 3", t:"Reglas de frontend ejecutables", k:"auto",
+   d:"Tokens centralizados, manifiesto de partials en lugar de un archivo monolítico y capa compartida declarada, que SK-17 consulta antes de escribir código nuevo.",
+   a:"docs/04_governance_and_quality/rules/frontend_rules.md"},
+  {f:"FASE 3", t:"DESIGN.md y su validación", k:"gate",
+   d:"Formato Google Labs: cinco nodos YAML, contraste WCAG AA y cero tokens huérfanos. En Web se valida con el linter oficial exigiendo cero errores y cero advertencias.",
+   a:"DESIGN.md"},
+  {f:"FASE 4", t:"Auditoría heurística por ticket de pantalla", k:"gate",
+   d:"Evalúa contra leyes nombradas y falsables, no contra criterio estético. Un hallazgo crítico y el ticket no se cierra; los medios se presentan con el diff propuesto, nunca aplicado en silencio."}
+]},
+{ id:"dev", cmd:"/momoy-dev TK-XXX", wf:"workflows/02_cascading_dev_workflow.md",
+  pasos:[
+  {f:"FASE 0", t:"Lectura del ticket y mapeo del entorno", k:"auto",
+   d:"Si el TK-XXX.md no existe, fail-fast: primero la cascada de especificación. Programar antes de especificar viola el guard aunque se corrija en la misma sesión."},
+  {f:"GATE", t:"Definition of Ready (--ticket)", k:"gate",
+   d:"Ticket que mezcla backend y frontend, más de cinco puntos, historia inexistente o secciones obligatorias ausentes: no está listo y no se escribe código."},
+  {f:"FASE 1", t:"Extracción y sincronización de reglas", k:"auto",
+   d:"SK-27 traduce la documentación viva a reglas de codificación del proyecto.", a:"docs/04_governance_and_quality/rules/"},
+  {f:"FASE 2", t:"Migración de persistencia", k:"hitl",
+   d:"Las migraciones ya aplicadas son zona restringida: se avanza hacia delante, nunca se reescribe el pasado.",
+   q:"El ticket altera un esquema que ya tiene migraciones aplicadas. ¿Se autoriza tocarlas?",
+   si:"Se genera una migración nueva hacia delante y se regenera el cliente del ORM.",
+   no:"No se toca ninguna migración aplicada. El ticket se reespecifica o espera a una ventana de mantenimiento."},
+  {f:"FASE 3", t:"Implementación guiada por pruebas", k:"auto",
+   d:"Rojo, verde, refactor. Primero la prueba que falla, con repositorios en memoria en lugar de mocks frágiles."},
+  {f:"FASE 4", t:"Quality gate e inspección del linter", k:"gate",
+   d:"Cero errores y cero advertencias. No se negocia bajando el umbral del linter."},
+  {f:"FASE 4.B", t:"Reviewer independiente adversarial", k:"gate",
+   d:"Un segundo rol revisa el diff contra la especificación. Todo defecto encontrado vuelve a la FASE 3."},
+  {f:"FASE 5", t:"Verificación visual en navegador", k:"auto",
+   d:"SK-20 comprueba los estados reales de la interfaz y la ergonomía táctil."},
+  {f:"FASE 5.C", t:"Promoción de correcciones a reglas permanentes", k:"hitl",
+   d:"No toda corrección merece una regla: sólo las sistémicas, y sólo con confirmación.",
+   q:"Tres correcciones se repitieron durante el ticket. ¿Se promueven a guarda permanente de AGENTS.md?",
+   si:"Se escribe la guarda con el formato Discovered in TK-XXX y se evalúa si SK-27 debe generarla en adelante.",
+   no:"No se escribe nada. Queda como corrección puntual del ticket."},
+  {f:"FASE 6", t:"Commit atómico", k:"auto",
+   d:"Un ticket, un commit, con TK-XXX en el mensaje. Lo verifica un hook, no la buena voluntad."}
+]},
+{ id:"release", cmd:"/momoy-release X.Y.Z", wf:"workflows/10_release_workflow.md",
+  pasos:[
+  {f:"FASE 0", t:"Lectura del manifiesto de despliegue", k:"gate",
+   d:"Plataforma, entornos, mecanismo de despliegue, vuelta a la versión anterior y feature flags. Si algo no está declarado, se detiene y pregunta."},
+  {f:"PASO 1", t:"Alcance y versión", k:"hitl",
+   d:"La versión no la decide el agente: la propone contra los tickets cerrados.",
+   q:"Catorce tickets cerrados desde la última versión, ninguno rompe contrato. Propuesta: 1.3.0. ¿Se confirma?",
+   si:"Versión fijada. El alcance queda congelado para el resto del workflow.",
+   no:"Sin versión confirmada no hay release. Se ajusta el alcance y se vuelve a proponer."},
+  {f:"PASO 2", t:"Gates previos", k:"gate",
+   d:"QA, dependencias y especificaciones. Con el presupuesto de error agotado, el gate de operación rechaza funcionalidades nuevas."},
+  {f:"PASO 3", t:"Estrategia de liberación", k:"auto",
+   d:"Directa, por fases o tras bandera, justificada contra el riesgo del cambio."},
+  {f:"PASO 4", t:"Clasificación de migraciones", k:"hitl",
+   d:"Una migración de datos no se puede deshacer sola: alguien tiene que decir cómo se recupera.",
+   q:"Una migración es de tipo datos: transforma registros existentes. ¿Cómo se recuperan si hay que volver atrás?",
+   si:"Procedimiento de recuperación documentado y ensayado antes de seguir.",
+   no:"Una migración de datos sin recuperación acordada no entra en este release."},
+  {f:"PASO 5", t:"Verificación previa de la configuración", k:"auto",
+   d:"Variables, secretos y parámetros del entorno de destino, comprobados antes de desplegar."},
+  {f:"PASO 6", t:"Plan de rollback y ensayo", k:"auto",
+   d:"Prohibido plantear como rollback destruir infraestructura o revertir datos sin aprobación."},
+  {f:"PASO 7", t:"Notas de versión", k:"auto",
+   d:"El artefacto que ningún SK-NN declara producir: lo escribe este workflow y el gate release lo exige.",
+   a:"docs/06_release_and_operations/releases/vX.Y.Z.md"},
+  {f:"PASO 8", t:"Registro del release y gate", k:"gate",
+   d:"Tickets cerrados, notas, rollback ensayado, migraciones clasificadas y etiqueta coherente con el CHANGELOG."},
+  {f:"PASO 9", t:"Pausa Go / No-Go", k:"hitl",
+   d:"La parada más dura de momoy: nada llega a producción sin un sí explícito.",
+   q:"Versión, tickets, estrategia, migraciones, rollback ensayado y notas de versión presentados. ¿Se despliega?",
+   si:"Se despliega y se publica la etiqueta vX.Y.Z sobre el commit desplegado.",
+   no:"No se despliega. El release queda registrado como preparado y sin liberar; nada se pierde."},
+  {f:"PASO 10", t:"Despliegue y etiqueta", k:"auto",
+   d:"Ejecuta el mecanismo declarado en el manifiesto, nunca uno improvisado."},
+  {f:"PASO 11", t:"Validación posterior", k:"auto",
+   d:"Encadena el workflow 08: health check y smoke tests. Un rollback también exige aprobación humana."}
+]}
+];
+
+(function simulador() {
+  const lento = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let flujo = FLUJOS[0], est = [], timer = null, decisiones = [], corriendo = false;
+  let ultEstado = "Sin ejecutar", ultNota = "";
+
+  const reset = () => {
+    clearTimeout(timer); corriendo = false; decisiones = [];
+    est = flujo.pasos.map(() => "inerte");
+    $("#simRun").disabled = false; $("#simRun").textContent = "ejecutar";
+    pintar("Sin ejecutar", "La cascada no ha arrancado. Pulsa ejecutar para recorrerla paso a paso.");
+  };
+
+  function avanzar(i) {
+    if (i >= flujo.pasos.length) {
+      corriendo = false; $("#simRun").disabled = false; $("#simRun").textContent = "ejecutar";
+      return pintar("Cascada completada",
+        `Terminó recorriendo ${flujo.pasos.length} pasos y deteniéndose ${decisiones.length} ${decisiones.length === 1 ? "vez" : "veces"} a pedir una decisión. Ninguno de esos puntos lo puede resolver el agente solo.`);
+    }
+    const p = flujo.pasos[i];
+    if (p.k === "hitl") {
+      est[i] = "parado";
+      return pintar("Detenido: espera una decisión",
+        "La cascada no avanza. Es una parada declarada en el workflow, no una cortesía del agente.");
+    }
+    est[i] = "corriendo"; pintar("Ejecutando", "Paso " + (i + 1) + " de " + flujo.pasos.length + ".");
+    timer = setTimeout(() => {
+      est[i] = "ok";
+      avanzar(i + 1);
+    }, lento ? 620 : 0);
+  }
+
+  function decidir(i, ok) {
+    decisiones.push(ok);
+    est[i] = ok ? "ok" : "rechazado";
+    if (ok) return avanzar(i + 1);
+    for (let j = i + 1; j < est.length; j++) est[j] = "omitido";
+    corriendo = false; $("#simRun").disabled = false; $("#simRun").textContent = "ejecutar";
+    pintar("Cascada detenida por decisión humana",
+      `Se detuvo en el paso ${i + 1} de ${flujo.pasos.length}. Los ${est.length - i - 1} pasos restantes no se ejecutan, y nada de lo que habrían escrito llega al disco.`);
+  }
+
+  function pintar(estado, nota) {
+    ultEstado = estado; ultNota = nota;
+    const hitl = flujo.pasos.filter(p => p.k === "hitl").length;
+    const hechos = est.filter(e => e === "ok").length;
+    const parado = est.indexOf("parado");
+
+    $("#simSteps").innerHTML = flujo.pasos.map((p, i) => {
+      const e = est[i];
+      const tag = p.k === "hitl" ? '<span class="sim-hitl-tag">pausa humana</span>'
+                : p.k === "gate" ? '<span class="sim-gate-tag">gate</span>' : "";
+      let extra = "";
+      if (e === "parado") {
+        extra = `<div class="sim-ask"><span class="q">${esc(p.q)}</span>
+          <button class="sim-btn" type="button" data-si="${i}">Aprobar</button>
+          <button class="sim-btn no" type="button" data-no="${i}">Rechazar</button></div>`;
+      } else if (e === "ok" && p.k === "hitl") {
+        const r = MODO.ej && EJ_RESP[flujo.id + "#" + i];
+        extra = r
+          ? `<div class="sim-out"><b>Aprobado.</b> ${esc(r)} <span class="caso-tag">caso de ejemplo</span></div>`
+          : `<div class="sim-out"><b>Aprobado.</b> ${esc(p.si)}</div>`;
+      } else if (e === "rechazado") {
+        extra = `<div class="sim-out"><b>Rechazado.</b> ${esc(p.no)}</div>`;
+      }
+      return `<li class="s-${e} s-${p.k}"><span class="sim-dot"><b></b></span>
+        <div class="sim-card"><div class="sim-fase">${esc(p.f)}${tag}</div>
+          <div class="sim-tit">${esc(p.t)}</div>
+          <div class="sim-det">${esc(p.d)}</div>
+          ${p.a ? `<div class="sim-art">${esc(p.a)}</div>` : ""}
+          ${extra}</div></li>`;
+    }).join("");
+
+    $("#simEstado").textContent = estado;
+    $("#simEstado").className = "sim-estado" + (parado >= 0 || est.includes("rechazado") ? " sig" : "");
+    $("#simMeta").innerHTML = `
+      <dt>comando</dt><dd class="mono">${esc(flujo.cmd)}</dd>
+      <dt>workflow</dt><dd class="mono" style="font-size:11px">${esc(flujo.wf)}</dd>
+      <dt>pasos</dt><dd>${hechos} de ${flujo.pasos.length}</dd>
+      <dt>paradas</dt><dd class="${hitl ? "sig" : ""}">${hitl} en este flujo</dd>
+      <dt>decidido</dt><dd>${decisiones.filter(Boolean).length} aprobado · ${decisiones.filter(d => !d).length} rechazado</dd>`;
+    $("#simNota").textContent = nota;
+    $("#simCount").textContent = `${flujo.pasos.length} pasos · ${hitl} paradas humanas`;
+
+    $("#simEj").setAttribute("aria-pressed", String(MODO.ej));
+    $("#simIdea").hidden = !MODO.ej;
+    if (MODO.ej) $("#simIdea").innerHTML =
+      `<div class="caso caso-mini"><div class="caso-in"><span class="caso-k">idea</span>
+        <code class="caso-cmd">${esc(EJEMPLO.comando)}</code></div>
+        <p class="caso-p">Las cinco cascadas de abajo son la misma idea: arranca el proyecto, se especifica, se diseña la interfaz, se implementa como <b>TK-001</b> y se libera como <b>1.0.0</b>. Al aprobar una parada verás la respuesta concreta que dio la persona, no la genérica.</p></div>`;
+
+    document.querySelectorAll("#simSteps [data-si]").forEach(b =>
+      b.addEventListener("click", () => decidir(+b.dataset.si, true)));
+    document.querySelectorAll("#simSteps [data-no]").forEach(b =>
+      b.addEventListener("click", () => decidir(+b.dataset.no, false)));
+  }
+
+  $("#flujoChips").innerHTML = FLUJOS.map((f, i) =>
+    `<button class="chip" type="button" data-f="${i}" aria-pressed="${i === 0}">${esc(f.cmd)}</button>`).join("");
+  document.querySelectorAll("#flujoChips .chip").forEach(c => c.addEventListener("click", () => {
+    flujo = FLUJOS[+c.dataset.f];
+    document.querySelectorAll("#flujoChips .chip").forEach(o =>
+      o.setAttribute("aria-pressed", String(o === c)));
+    reset();
+  }));
+  $("#simRun").addEventListener("click", () => {
+    if (corriendo) return;
+    corriendo = true; decisiones = [];
+    est = flujo.pasos.map(() => "pendiente");
+    $("#simRun").disabled = true; $("#simRun").textContent = "ejecutando";
+    avanzar(0);
+  });
+  $("#simReset").addEventListener("click", reset);
+  $("#simEj").addEventListener("click", () => MODO.set(!MODO.ej));
+  MODO.subs.push(() => pintar(ultEstado, ultNota));
+  reset();
+})();
+</script>
+</body>
+</html>
