@@ -4,7 +4,7 @@ id: TK-159-FE
 related_story: US-044
 points: 3
 type: frontend
-status: approved
+status: done
 inputs:
   - docs/05_agile_planning/11_user_stories/shared/US-044.md
   - docs/02_architecture_design/adr/ADR-008-superficie-de-operacion-movil.md
@@ -60,6 +60,15 @@ Convertir el cliente en una aplicación instalable: manifiesto de aplicación, s
 1. **TDD Compliance:** el test se escribe y se ve fallar antes de la implementación, con el runner declarado en `docs/00_stack_manifest.md`.
 2. **Precisión Aritmética:** no aplica; este ticket no maneja cantidades.
 3. **Verificación Total:** cero errores en los comandos de test, build y lint declarados en `AGENTS.md`.
+
+---
+
+## Verificación pendiente declarada al cerrar (2026-09-25)
+
+Dos cosas no quedan cubiertas por los tests y se declaran en vez de darse por hechas:
+
+1. **El comportamiento del service worker no tiene test unitario.** `public/sw.js` corre en el ámbito de un worker y no se puede ejercitar de forma fiable en el entorno de pruebas del proyecto. Lo verificado automáticamente es el registro (4 tests) y la salida del build: `sw.js`, `manifest.webmanifest` e `icon.svg` se publican y la versión del paquete queda inyectada en el bundle. Los escenarios 1 a 3 del ticket —abrir sin red, recibir un despliegue nuevo, no servir stock cacheado— exigen un navegador real: corresponden a `/momoy-verify-live` (workflow 09), no a un test de nodo.
+2. **El icono es un marcador de posición.** `public/icon.svg` es una forma geométrica con el color primario declarado en `DESIGN.md`, no una identidad de marca. Android suele exigir PNG de 192 y 512 px para ofrecer la instalación, así que el icono definitivo es un artefacto de diseño pendiente — no se inventa aquí una marca que nadie aprobó.
 
 ---
 

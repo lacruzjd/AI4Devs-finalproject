@@ -13,6 +13,16 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   jsxA11y.flatConfigs.recommended,
+  // TK-159-FE / US-044: `public/sw.js` corre en el ámbito de un service worker, no en el
+  // de una pestaña — `self`, `caches` y el resto de su API no existen en `globals.browser`.
+  // Sin este bloque ESLint lo marca entero como `no-undef`.
+  {
+    files: ['public/sw.js'],
+    languageOptions: {
+      globals: { ...globals.serviceworker },
+      sourceType: 'script',
+    },
+  },
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
