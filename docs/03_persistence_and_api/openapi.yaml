@@ -2,12 +2,32 @@ openapi: 3.1.0
 info:
   title: RestoStock API
   description: REST API specification for RestoStock real-time inventory and FEFO traceability system.
-  version: 7.2.0 # TK-165 / US-046: documenta POST /auth/change-pin, que existia en el codigo y no figuraba aqui. Aditivo: no cambia ningun comportamiento, publica uno que ya estaba. Prior: 7.1.0 = TK-159 / US-044 / ADR-009: consume y discard aceptan operationId (clave de idempotencia) y occurredAt (momento real), ambos opcionales — cambio aditivo, la tablet sin cola sigue siendo compatible. Prior: 7.0.0 = TK-129 / AUDIT-DEV-012 L-3: /settings/ai GET+PUT drop the inert replenishmentOn / anomalyAuditOn fields (no use case ever read them). oasdiff-confirmed removal of required response properties; deliberate. Single consumer is this repo's own frontend (TK-129-FE). Prior: 6.0.0 = TK-128 / US-035: RescueRecipeProposal.preventedWasteEstimate (physical quantity, meaningless — summed heterogeneous units, AUDIT-DEV-007 F-1) -> preventedWasteCost (nullable monetary string). oasdiff-confirmed breaking change, deliberate: the previous metric was wrong by construction. Single consumer is this monorepo's own frontend, updated in TK-128-FE. Prior: 5.0.0 = TK-108/ADR-004 (POST /kitchen/remanentes/{id}/consume requires reasonId).
+  version: 7.2.1 # TK-166 / US-047: declara el bloque `tags` global que faltaba; sin cambios de forma ni de comportamiento. Prior: 7.2.0 = TK-165 / US-046: documenta POST /auth/change-pin, que existia en el codigo y no figuraba aqui. Aditivo: no cambia ningun comportamiento, publica uno que ya estaba. Prior: 7.1.0 = TK-159 / US-044 / ADR-009: consume y discard aceptan operationId (clave de idempotencia) y occurredAt (momento real), ambos opcionales — cambio aditivo, la tablet sin cola sigue siendo compatible. Prior: 7.0.0 = TK-129 / AUDIT-DEV-012 L-3: /settings/ai GET+PUT drop the inert replenishmentOn / anomalyAuditOn fields (no use case ever read them). oasdiff-confirmed removal of required response properties; deliberate. Single consumer is this repo's own frontend (TK-129-FE). Prior: 6.0.0 = TK-128 / US-035: RescueRecipeProposal.preventedWasteEstimate (physical quantity, meaningless — summed heterogeneous units, AUDIT-DEV-007 F-1) -> preventedWasteCost (nullable monetary string). oasdiff-confirmed breaking change, deliberate: the previous metric was wrong by construction. Single consumer is this monorepo's own frontend, updated in TK-128-FE. Prior: 5.0.0 = TK-108/ADR-004 (POST /kitchen/remanentes/{id}/consume requires reasonId).
 servers:
   - url: http://localhost:3000
     description: Local Development Server
   - url: https://api.restostock.internal
     description: Production Server
+
+# TK-166 / US-047 / EXT-002 R-01: las 44 operaciones usaban etiquetas que el documento
+# nunca declaraba, de modo que todas arrastraban el mismo aviso del linter. Declararlas
+# aquí las cierra de una vez y, de paso, da a quien lee el contrato un índice de sus
+# áreas funcionales en lugar de siete nombres sueltos repartidos por el archivo.
+tags:
+  - name: Authentication
+    description: Acceso por PIN táctil, rotación obligatoria del PIN inicial y recuperación por correo.
+  - name: Stock & Warehouse
+    description: Catálogo de insumos, reabastecimiento, sub-sectores de bodega y extracción hacia cocina.
+  - name: Kitchen Operations
+    description: Remanentes activos, consumo, descarte, preparaciones de receta y registro de temperatura.
+  - name: Recipes
+    description: Recetario, disponibilidad por receta y sugerencias de aprovechamiento.
+  - name: Shift & Audit
+    description: Cierre de turno con conciliación física e historial de movimientos de stock.
+  - name: Reports & Analytics
+    description: Informes de merma, rotación y desperdicio de preparaciones.
+  - name: Settings
+    description: Configuración del sistema y de la integración de IA.
 
 paths:
   /api/v1/auth/login-pin:

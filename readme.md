@@ -462,7 +462,11 @@ erDiagram
 
 ## 4. Especificación de la API
 
-La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan los 4 endpoints críticos de negocio del MVP original (el contrato completo, incluyendo los endpoints añadidos en la entrega 2, vive en [`docs/03_persistence_and_api/openapi.yaml`](docs/03_persistence_and_api/openapi.yaml)):
+La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan los endpoints críticos de negocio a modo de guía rápida.
+
+> **La fuente de verdad es [`docs/03_persistence_and_api/openapi.yaml`](docs/03_persistence_and_api/openapi.yaml), no esta sección.** Ahí viven el contrato completo, los campos obligatorios y los códigos de error de cada operación, y es lo que se valida en integración continua. Esta guía se resume a partir de él: ante cualquier discrepancia, manda el contrato.
+>
+> Corregido en `TK-166` (`US-047`) tras la revisión externa `EXT-002`: una ruta apuntaba a `/catalog/recipes`, que devuelve 404, y tres ejemplos omitían campos obligatorios o usaban un campo inexistente. Se corrigieron uno a uno contra el contrato.
 
 ### **4.1. POST `/api/v1/auth/login-pin` (Autenticación)**
 *   **Propósito:** Valida el PIN de 4-6 dígitos de un operario y genera un token JWT temporal.
@@ -493,7 +497,8 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
     {
       "insumoId": "e2298c5d-6c17-4886-9a2d-4f1b80e8efea",
       "quantity": "2.0000",
-      "toLocation": "KITCHEN_FRIDGE"
+      "fromStorageLocationId": "9d2b7c41-5ea3-4f18-8b77-1c0d9e4a6b52",
+      "toStorageLocationId": "3f7a1e58-64bc-4d09-9a2e-7b5c8d1f0342"
     }
     ```
 *   **Response Success (`201 Created`):**
@@ -616,14 +621,14 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 *   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
 *   **Request Body** (`unitOfMeasure` es lista cerrada: `KG` | `L` | `UNITS`):
     ```json
-    { "name": "Harina 000", "unitOfMeasure": "KG" }
+    { "name": "Harina 000", "unitOfMeasure": "KG", "storageLocationId": "9d2b7c41-5ea3-4f18-8b77-1c0d9e4a6b52" }
     ```
 *   **Response Success (`201 Created`):**
     ```json
     { "id": "f3a1c2e0-1234-4abc-9def-0123456789ab", "name": "Harina 000", "unitOfMeasure": "KG", "warehouseStock": "0.000" }
     ```
 
-### **4.9. POST `/api/v1/catalog/recipes` (Alta de Receta — Rol `ADMIN`)**
+### **4.9. POST `/api/v1/recipes` (Alta de Receta — Rol `ADMIN`)**
 *   **Propósito:** Crea una receta nueva con sus ingredientes, validando que cada `insumoId` exista en el catálogo (`GET /api/v1/stock/insumos`).
 *   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
 *   **Request Body:**
@@ -645,7 +650,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 *   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
 *   **Request Body:**
     ```json
-    { "quantity": 20 }
+    { "quantity": 20, "storageLocationId": "9d2b7c41-5ea3-4f18-8b77-1c0d9e4a6b52" }
     ```
 *   **Response Success (`200 OK`):**
     ```json

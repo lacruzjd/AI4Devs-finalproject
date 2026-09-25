@@ -515,7 +515,7 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 *   **[TK-164: El Arranque Reasienta la Rotación Obligatoria del PIN Inicial](auth/backend/TK-164.md)** (Backend) — ✅ Done. `US-046` / `EXT-002` R-02: el bootstrap crea el administrador con un `upsert` directo que se salta el dominio y nunca reasienta `mustChangePin`. Se corrige comparando el PIN almacenado con el de siembra: si todavía coincide, nunca se rotó.
 *   **[TK-165: Documentar el Endpoint de Cambio de PIN en el Contrato](auth/backend/TK-165.md)** (Backend) — ✅ Done. `US-046`: `POST /auth/change-pin` existe en el código y aparecía 0 veces en `openapi.yaml`. Sin cambios de código — documentar lo que hay.
 
-*   **[TK-166: Alinear la Documentación de API con el Contrato Publicado](shared/backend/TK-166.md)** (Backend) — ⏳ Approved. `US-047` / `EXT-002` R-01: §4 del README documenta una ruta que devuelve 404 y ejemplos sin campos obligatorios. Se corrige contra `openapi.yaml`, y se declaran las etiquetas globales que faltan a sus 44 operaciones.
+*   **[TK-166: Alinear la Documentación de API con el Contrato Publicado](shared/backend/TK-166.md)** (Backend) — ✅ Done. `US-047` / `EXT-002` R-01: §4 del README documenta una ruta que devuelve 404 y ejemplos sin campos obligatorios. Se corrige contra `openapi.yaml`, y se declaran las etiquetas globales que faltan a sus 44 operaciones.
 *   **[TK-167: Higiene del Repositorio — Artefactos Huérfanos y Notas Caducadas](shared/backend/TK-167.md)** (Backend) — ✅ Done. `US-047` / `EXT-002` R-05/R-08/R-11/R-12: borrar el esquema Prisma huérfano de la raíz, corregir la nota caducada de despliegue, declarar el gestor de paquetes y completar los pasos de prueba del README.
 
 
