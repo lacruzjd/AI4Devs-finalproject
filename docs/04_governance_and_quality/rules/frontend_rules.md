@@ -22,6 +22,9 @@ Esta directiva rige el desarrollo de la interfaz cliente para terminales táctil
 
 ## 📱 1. Ergonomía Táctil y Layout
 * **Objetivos Táctiles:** Botones e inputs interactivos deben medir mínimo **48px x 48px** con **8px** de margen alrededor. Teclado de PIN: **64px x 64px**. (El piso normativo de WCAG 2.2 SC 2.5.8 es 24×24 CSS px con excepción de espaciado — el 48px de este proyecto es más estricto y prevalece.)
+* **Tramos responsivos (`US-045`):** los tramos declarados son `xs` (`<480px`, teléfono), `sm` (`480–767px`), `md` (`768px`), `lg` (`1024px`) y `xl` (`1280px`). **Prohibido introducir un ancho de corte ad-hoc** en un componente sin declararlo antes en la matriz de `docs/02_architecture_design/05_ui_ux_design_system.md` §6.
+* **Reglas del tramo de teléfono (obligatorias en `xs`):** una ficha por fila, nunca rejilla; modales a hoja completa en lugar de ventana centrada; todo contenedor más ancho que la pantalla (filtros, tablas) se desplaza **dentro de su propio contenedor** con `overflow-x`, y **el cuerpo de la página nunca se desplaza en horizontal**; un bloque sin contenido no ocupa alto.
+* **La ergonomía táctil no se relaja por tramo:** el mínimo de 48 × 48 px rige igual a 390px que a 1280px. Un tramo más estrecho reduce densidad, nunca el objetivo táctil. Toda excepción es un hallazgo de la Fase 4 de `SK-05`.
 * **Tokens de Diseño (Sistema FEFO, `US-022`/`US-023`):** Usar exclusivamente las variables CSS de `apps/frontend/src/styles/variables/` (turno Día por defecto en `:root`, turno Noche en `:root[data-theme="dark"]`) — nunca hardcodear un valor que ya existe como token. Encabezados de tarjeta con badge circular a la izquierda y separador de 2px `dashed var(--rule)`; esquinas rectas (`border-radius: 0`) salvo el botón de acción circular de la lámina "Aplicación".
 
 ---

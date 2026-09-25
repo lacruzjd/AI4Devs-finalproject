@@ -338,4 +338,4 @@ graph TD
 | [US-042](11_user_stories/catalog/US-042.md) | [TK-157-FE](12_tickets/catalog/frontend/TK-157-FE.md) |
 | [US-043](11_user_stories/shared/US-043.md) | [TK-158-FE](12_tickets/shared/frontend/TK-158-FE.md) |
 | [US-044](11_user_stories/shared/US-044.md) | [TK-159](12_tickets/shared/backend/TK-159.md), [TK-160](12_tickets/shared/backend/TK-160.md), [TK-159-FE](12_tickets/shared/frontend/TK-159-FE.md), [TK-160-FE](12_tickets/shared/frontend/TK-160-FE.md) |
-| [US-045](11_user_stories/shared/US-045.md) | Pendientes de la pasada de `SK-05` |
+| [US-045](11_user_stories/shared/US-045.md) | [TK-161-FE](12_tickets/shared/frontend/TK-161-FE.md), [TK-162-FE](12_tickets/shared/frontend/TK-162-FE.md), [TK-163-FE](12_tickets/shared/frontend/TK-163-FE.md) |

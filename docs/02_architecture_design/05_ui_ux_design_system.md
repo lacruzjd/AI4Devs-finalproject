@@ -1,6 +1,6 @@
 ---
 document: ui_ux_design_system
-version: 5.9.1
+version: 5.10.0
 status: approved
 inputs:
   - docs/00_stack_manifest.md
@@ -77,7 +77,7 @@ Operario en "/" → tap "Extraer de Bodega" (ActionButton)
 │ R  │                                              │
 └────┴──────────────────────────────────────────────┘
 ```
-Grid `88px 1fr`; en `sm` (<640px) la barra lateral colapsa a franja superior de 44px.
+Grid `88px 1fr`; por debajo de `640px` la barra lateral colapsa a franja superior. **Corrección `US-045`:** la versión previa de este documento declaraba una franja de 44px que el código nunca fijó — `AppShell.module.css` no establece esa altura y todo átomo interactivo conserva `min-height`/`min-width` de 48px. El dato era deriva documental y contradecía la regla innegociable de ergonomía táctil del propio proyecto.
 
 ---
 
@@ -201,12 +201,24 @@ Ambos son animaciones de "relleno de ancho" con propósito casi idéntico pero d
 
 ## 6. 📱 Breakpoints y Layout Responsivo
 
-| Breakpoint | Ancho Mínimo | Layout Dominante | Comportamiento del Shell y Tablero |
+| Breakpoint | Ancho | Layout Dominante | Comportamiento del Shell y Tablero |
 | :--- | :--- | :--- | :--- |
-| **`sm`** | `<640px` | 1 Columna Apilada (Full Touch) | Barra lateral colapsa a franja superior de 44px; paneles apilados. |
+| **`xs`** | `<480px` | 1 Columna, densidad de teléfono (`US-045`) | Barra lateral colapsa a franja superior; una ficha por fila; modales a hoja completa; filtro de áreas con desplazamiento horizontal propio. |
+| **`sm`** | `480px` – `767px` | 1 Columna Apilada (Full Touch) | Igual estructura que `xs`, con densidad de tablet vertical: la lista puede pasar a dos columnas si el contenido lo justifica. |
 | **`md`** | `768px` | Grid de 2 Columnas (KDS Terminal) | Sidebar de 88px fija; grid `Acciones (minmax(260px, 0.85fr)) \| Estado (1fr)`. |
 | **`lg`** | `1024px` | Dashboard Grid Backoffice | Shell completo, catálogos en tabla/grilla de alta densidad. |
 | **`xl`** | `1280px` | Ultra-Wide Monitor Grid | Pantalla de supervisión central de múltiples áreas. |
+
+### Reglas estructurales del tramo de teléfono (`US-045`, decisiones humanas 2026-09-25)
+
+Aplican a las rutas en alcance: tablero de cocina, bodega e historial de movimientos. El recetario, los informes y ajustes quedan fuera y se siguen operando desde tablet o escritorio.
+
+1. **La navegación principal se queda en la franja superior.** Cambiar de ruta es poco frecuente durante un turno, y la acción frecuente ya está al alcance del pulgar con el botón de acción circular. Se descarta la barra inferior para no divergir el shell de tablet del de teléfono ni competir por el espacio del botón circular. *Por qué: coste de divergencia frente a una ganancia ergonómica que el botón circular ya cubre.*
+2. **Una ficha por fila**, nunca rejilla. *Por qué: a 390px una rejilla de dos columnas deja cada ficha por debajo del ancho legible y obliga a truncar el nombre del insumo, que es el dato que identifica la acción.*
+3. **El bloque de urgentes es colapsable y sólo ocupa alto si contiene algo.** *Por qué: en una pantalla corta, un encabezado vacío desplaza fuera de vista la lista que sí se opera.*
+4. **Los modales se presentan a hoja completa**, no como ventana centrada. *Por qué: una ventana centrada con formulario en 390px deja márgenes inútiles y sitúa el botón de confirmación en zona de difícil alcance.*
+5. **El filtro de áreas se desplaza en horizontal dentro de su propio contenedor**, nunca el cuerpo de la página. *Por qué: el desplazamiento horizontal del documento rompe la lectura vertical y es la causa clásica de contenido inalcanzable en móvil.*
+6. **La ergonomía táctil no se relaja en ningún tramo:** 48 × 48 px sigue siendo el mínimo también a 390px. Un tramo más estrecho reduce densidad, nunca el objetivo táctil.
 
 ---
 

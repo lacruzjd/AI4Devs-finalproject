@@ -59,12 +59,14 @@ authority: "Fuente Única de Verdad (SSoT) para decisiones tecnológicas de agen
 
 | Componente | Tecnología | Versión | Notas |
 |:-----------|:-----------|:-------:|:------|
+| **Superficie Objetivo** | Web | — | **Única superficie del producto**: el mismo cliente en el navegador de la tablet de cocina y en el del teléfono personal del operario. Sin cliente nativo ni híbrido. Decidido en [`ADR-008`](02_architecture_design/adr/ADR-008-superficie-de-operacion-movil.md); `SK-05` lee este campo para fijar su vocabulario de diseño y no debe preguntarlo |
+| **Instalabilidad** | Manifiesto de aplicación + Service Worker | — | `ADR-008` / `US-044`: la aplicación se instala en el dispositivo y su bundle se cachea. **Aún no implementado** — `TK-159-FE`. La herramienta concreta se declara aquí al implementarlo, no se asume |
 | **Framework UI** | React | **18** | Hooks + Functional Components |
 | **Bundler** | Vite | **5.x** | Dev server + production build |
 | **Routing** | react-router-dom | **7.18.3** | Data router (`createBrowserRouter` + `RouterProvider`). Pin exacto, dist-tag `version-7`, `peerDependencies.react >=18` — **`react-router` v8.x exige React 19 → prohibido** hasta un bump de React aprobado (Guard 24). Shell de rutas de nivel superior + `<ProtectedRoute>` por rol (`US-023`/`TK-085-FE`) |
 | **Estilos** | Vanilla CSS + CSS Modules | — | Sin Tailwind ni CSS-in-JS. Tokens y utilidades compartidas en `index.css`; estilos de un solo componente en `Componente.module.css` colocado junto al `.tsx` |
 | **Touch Targets** | — | — | Mínimo **48px** (WCAG 2.1 AAA) |
-| **Offline Queue** | IndexedDB | — | Para operaciones sin conexión |
+| **Offline Queue** | IndexedDB | — | Para operaciones sin conexión. **Decidido y aún no implementado**: `ADR-002` lo aceptó, el repositorio solo tiene detección de conexión (`useOnlineStatus`) y aviso. Lo cierra `TK-160-FE` (`US-044`), con la resolución de conflictos de [`ADR-009`](02_architecture_design/adr/ADR-009-conflictos-de-la-cola-sin-conexion.md). La librería concreta se declara aquí al implementarlo |
 | **Escaneo de Código de Barras** | @zxing/browser | **0.2.1** | Peer `@zxing/library@^0.23.0`. MIT. Decodifica vía `getUserMedia`+`canvas` (EAN-13/UPC-A/Code128) — funciona igual en Chrome, Safari y Firefox, sin depender de la `BarcodeDetector` nativa (soporte parcial, ausente en Safari/iOS). Un único camino de código, sin fallback que mantener (`US-032`/`TK-119-FE`, decisión humana 2026-09-05, Guard 24) |
 
 ---

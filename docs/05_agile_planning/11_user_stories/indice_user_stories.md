@@ -100,4 +100,4 @@ Este documento contiene las especificaciones detalladas de las historias de usua
 *   **[US-042: Consultar la ficha de un insumo con su historial](catalog/US-042.md)** — ⏳ Approved. Épica de usabilidad `EXT-001` (revisión externa UX/UI).
 *   **[US-043: Ver el error junto al campo que lo causa](shared/US-043.md)** — ⏳ Approved. Épica de usabilidad `EXT-001` (revisión externa UX/UI).
 *   **[US-044: Seguir registrando consumo y descarte cuando se cae la red](shared/US-044.md)** — ⏳ Approved. Épica de operación en dispositivo personal (`ADR-008` / `ADR-009`).
-*   **[US-045: Usar las pantallas de cocina desde la pantalla de un teléfono](shared/US-045.md)** — 📋 Backlog. Épica de operación en dispositivo personal; sus tickets dependen de la matriz de breakpoints que produce `SK-05`.
+*   **[US-045: Usar las pantallas de cocina desde la pantalla de un teléfono](shared/US-045.md)** — ⏳ Approved. Épica de operación en dispositivo personal; desglosada tras la pasada de `SK-05` que añadió el tramo `xs` al sistema de diseño.
