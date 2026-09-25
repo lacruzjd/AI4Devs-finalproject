@@ -508,7 +508,7 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 *   **[TK-159-FE: Shell Instalable y Caché de la Aplicación](shared/frontend/TK-159-FE.md)** (Frontend) — ✅ Done. `US-044` / `ADR-008`: manifiesto, service worker e invalidación del caché atada a la versión del release. Cachea el bundle, nunca datos de inventario.
 *   **[TK-160-FE: Cola Local de Consumo y Descarte](shared/frontend/TK-160-FE.md)** (Frontend) — ✅ Done. `US-044` / `ADR-009`: encolado local, sincronización operación a operación al recuperar la red y estado visible por operación (pendiente, aplicada, con varianza, rechazada).
 
-*   **[TK-161-FE: Tramo de Teléfono en el Shell y el Tablero de Cocina](shared/frontend/TK-161-FE.md)** (Frontend) — ⏳ Approved. `US-045` / `SK-05`: tramo `xs` en el shell y la ruta raíz — franja superior, una ficha por fila, urgentes colapsable y filtro de áreas con desplazamiento propio.
+*   **[TK-161-FE: Tramo de Teléfono en el Shell y el Tablero de Cocina](shared/frontend/TK-161-FE.md)** (Frontend) — ✅ Done. `US-045` / `SK-05`: tramo `xs` en el shell y la ruta raíz — franja superior, una ficha por fila, urgentes colapsable y filtro de áreas con desplazamiento propio.
 *   **[TK-162-FE: Tramo de Teléfono en Bodega e Historial](shared/frontend/TK-162-FE.md)** (Frontend) — ⏳ Approved. `US-045` / `SK-05`: las tablas anchas se desplazan dentro de su contenedor; el cuerpo de la página nunca en horizontal.
 *   **[TK-163-FE: Modales a Hoja Completa en Teléfono](shared/frontend/TK-163-FE.md)** (Frontend) — ⏳ Approved. `US-045` / `SK-05`: en `xs` los modales pasan a hoja completa, con el botón de confirmación al alcance del pulgar.
 

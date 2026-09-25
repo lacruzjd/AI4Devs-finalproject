@@ -4,7 +4,7 @@ id: TK-161-FE
 related_story: US-045
 points: 3
 type: frontend
-status: approved
+status: done
 inputs:
   - docs/05_agile_planning/11_user_stories/shared/US-045.md
   - docs/02_architecture_design/05_ui_ux_design_system.md
@@ -61,6 +61,16 @@ Aplicar el tramo `xs` (`<480px`) declarado en el sistema de diseño §6 a el she
 1. **TDD Compliance:** el test se escribe y se ve fallar antes de la implementación, con el runner declarado en `docs/00_stack_manifest.md`.
 2. **Precisión Aritmética:** no aplica; este ticket no maneja cantidades.
 3. **Verificación Total:** cero errores en los comandos de test, build y lint declarados en `AGENTS.md`, y auditoría de la Fase 4 de `SK-05` sin hallazgos críticos.
+
+---
+
+## Hallazgo al implementar (2026-09-25)
+
+El filtro de áreas declaraba `height: 40px`, por debajo del mínimo táctil de 48 px que el proyecto declara **innegociable** en todos los tramos. La barra del catálogo de bodega tenía el mismo defecto (`min-height: 40px`). Ambos corregidos aquí, porque la regla es global y no del tramo de teléfono.
+
+Se añadió `src/tests/touchTargets.test.ts` como guardián: lee los ficheros de estilo de los componentes interactivos y falla si alguno declara una altura menor de 48 px. No es un test de estilo — es la única forma determinista de vigilar esa regla, porque el entorno de pruebas no aplica CSS y un test de render no la ve.
+
+**Verificación visual pendiente:** que a 390 px el contenido se lea sin desplazamiento horizontal del cuerpo exige un navegador real (workflow 09). Lo comprobable aquí es la estructura y el cumplimiento del objetivo táctil.
 
 ---
 

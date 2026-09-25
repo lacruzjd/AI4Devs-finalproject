@@ -8,10 +8,34 @@
 
 .location-tabs-bar { margin-bottom: var(--space-4); }
 .location-tabs-label { font-size: var(--fs-sm); color: var(--text-secondary); margin-right: var(--space-1); }
-.location-tab-btn { height: 40px; padding: 0 14px; font-size: var(--fs-sm); }
+.location-tab-btn {
+  /* TK-161-FE / US-045: eran 40px. La ergonomía táctil de 48px rige en todos los tramos;
+     un filtro que se usa de pie y con guantes es el último sitio donde relajarla. */
+  min-height: 48px;
+  padding: 0 14px;
+  font-size: var(--fs-sm);
+  /* En el tramo de teléfono la barra se desplaza: las pestañas no se encogen. */
+  flex-shrink: 0;
+}
 /* US-026 / TK-112-FE: el nombre del área es dinámico (lo elige el admin) — ya no hay
    una etiqueta corta fija que acortar a mano; se trunca visualmente y el nombre
    completo queda en el atributo `title` del botón. */
 .location-tab-label-text { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .badge-count--active { background-color: var(--color-primary-on); color: var(--color-primary); }
 .badge-count--inactive { background-color: var(--bg-card); color: var(--text-secondary); }
+
+/* TK-161-FE / US-045: en el tramo de teléfono (`xs`) el filtro de áreas se desplaza en
+   horizontal DENTRO de su propia barra. Envolviéndolo, con muchas áreas la barra crecía
+   en alto y empujaba la lista de remanentes fuera de la pantalla — y el desplazamiento
+   horizontal nunca debe llegar al cuerpo de la página. */
+@media (max-width: 479px) {
+  .location-tabs-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+  .location-tabs-label {
+    flex-shrink: 0;
+  }
+}

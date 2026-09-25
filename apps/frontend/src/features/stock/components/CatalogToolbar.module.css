@@ -18,7 +18,8 @@
 
 .view-toggle-btn {
   min-width: 40px;
-  min-height: 40px;
+  /* TK-161-FE / US-045: eran 40px, por debajo del mínimo táctil innegociable de 48px. */
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
