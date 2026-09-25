@@ -342,3 +342,4 @@ graph TD
 | [US-046](11_user_stories/auth/US-046.md) | [TK-164](12_tickets/auth/backend/TK-164.md), [TK-165](12_tickets/auth/backend/TK-165.md) |
 | [US-047](11_user_stories/shared/US-047.md) | [TK-166](12_tickets/shared/backend/TK-166.md), [TK-167](12_tickets/shared/backend/TK-167.md) |
 | [US-048](11_user_stories/kitchen/US-048.md) | [TK-168](12_tickets/kitchen/backend/TK-168.md), [TK-169](12_tickets/kitchen/backend/TK-169.md) |
+| [US-049](11_user_stories/stock/US-049.md) | [TK-170-FE](12_tickets/stock/frontend/TK-170-FE.md) |
