@@ -4,7 +4,7 @@ id: TK-162-FE
 related_story: US-045
 points: 3
 type: frontend
-status: approved
+status: done
 inputs:
   - docs/05_agile_planning/11_user_stories/shared/US-045.md
   - docs/02_architecture_design/05_ui_ux_design_system.md
@@ -61,6 +61,16 @@ Aplicar el tramo `xs` (`<480px`) declarado en el sistema de diseño §6 a las ru
 1. **TDD Compliance:** el test se escribe y se ve fallar antes de la implementación, con el runner declarado en `docs/00_stack_manifest.md`.
 2. **Precisión Aritmética:** no aplica; este ticket no maneja cantidades.
 3. **Verificación Total:** cero errores en los comandos de test, build y lint declarados en `AGENTS.md`, y auditoría de la Fase 4 de `SK-05` sin hallazgos críticos.
+
+---
+
+## Hallazgo al implementar (2026-09-25)
+
+**El contenedor desplazable ya existía y nunca llegaba a activarse.** `.table-wrapper` declaraba `overflow-x: auto` desde antes, y tanto el historial de movimientos como el catálogo de insumos ya envolvían su tabla en él. Lo que faltaba era el ancho mínimo de `.data-table`: el desbordamiento sólo existe si el contenido es más ancho que su caja, así que a 390 px las columnas se aplastaban hasta ser ilegibles en lugar de desplazarse.
+
+Es el tipo de defecto que no se ve leyendo el código —la envoltura está, la regla está— y sólo aparece al preguntarse si de verdad llega a ejercitarse.
+
+La comprobación se hace sobre la fuente y no montando los paneles: ambos se buscan sus datos solos, y montar toda la pila de fetch para afirmar una envoltura daría un test frágil que falla por razones ajenas a lo que vigila.
 
 ---
 
