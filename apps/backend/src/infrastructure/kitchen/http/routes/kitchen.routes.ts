@@ -68,7 +68,7 @@ function buildReasonDependentUseCases(
     return {};
   }
   return {
-    consume: new ConsumeRemanenteUseCase(remanenteRepository, consumptionReasonRepository),
+    consume: new ConsumeRemanenteUseCase(remanenteRepository, consumptionReasonRepository, reconciliationRepo),
     reconcile: new PerformShiftReconciliationUseCase(
       remanenteRepository,
       remanenteQueryRepository,

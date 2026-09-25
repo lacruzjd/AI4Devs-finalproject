@@ -4,6 +4,8 @@ import { createApp } from '../../../infrastructure/http/app.js';
 import { InMemoryStockRepository } from '../../../infrastructure/stock/repositories/InMemoryStockRepository.js';
 import { InMemoryRemanenteQueryRepository } from '../../../infrastructure/kitchen/repositories/InMemoryRemanenteQueryRepository.js';
 import { InMemoryConsumptionReasonRepository } from '../../../infrastructure/kitchen/repositories/InMemoryConsumptionReasonRepository.js';
+import { InMemoryShiftReconciliationRepository } from '../../../infrastructure/kitchen/repositories/InMemoryShiftReconciliationRepository.js';
+import { ShiftReconciliation } from '../../../domain/kitchen/entities/ShiftReconciliation.js';
 import { Remanente } from '../../../domain/stock/entities/Remanente.js';
 import { DecimalQuantity } from '../../../domain/stock/value-objects/DecimalQuantity.js';
 
@@ -283,5 +285,76 @@ describe('TK-005: Partial Remanente Consumption TDD Suite', () => {
     const movement = stockRepo.movements.find((m) => m.operationId === 'op-cola-3');
     expect(movement?.occurredAtAdjusted).toBe(true);
     expect(movement!.occurredAt!.getTime()).toBeLessThanOrEqual(Date.now());
+  });
+  // ---------------------------------------------------------------------------
+  // TK-160 / US-044 / ADR-009: la operacion encolada se acepta siempre. Si bajaria
+  // de cero, se acota y la diferencia se registra como varianza con motivo.
+  // ---------------------------------------------------------------------------
+
+  it('TK-160: un consumo diferido que excede lo disponible se acota a cero y registra la varianza', async () => {
+    // 1. ARRANGE: el remanente tiene 1.750 y la cola trae un consumo de 2.000
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '2.000', reasonId: 'reason-seed-1', operationId: 'op-exceso-1' });
+
+    // 3. ASSERT — ORACULO INV-1: nunca negativo, se acota a cero
+    expect(response.status).toBe(200);
+    const remanente = await stockRepo.findRemanenteById('rem-salsa-1');
+    expect(remanente?.currentQuantity.toString()).toBe('0.000');
+    expect(remanente?.status).toBe('EXHAUSTED');
+
+    // ORACULO LEDGER: el consumo real y la varianza son dos movimientos distinguibles
+    const consumo = stockRepo.movements.find((m) => m.operationId === 'op-exceso-1');
+    expect(consumo?.quantity).toBe('1.750');
+    const varianza = stockRepo.movements.find((m) => m.type === 'DEFERRED_SYNC_VARIANCE');
+    expect(varianza?.quantity).toBe('0.250');
+    expect(varianza?.reasonId).toBe('reason-seed-1');
+  });
+
+  it('TK-160: una operacion cuyo turno ya se concilio se rechaza sin tocar el remanente', async () => {
+    // 1. ARRANGE: el turno de la fecha de la operacion ya tiene conciliacion cerrada
+    const ocurrio = new Date(Date.now() - 26 * 60 * 60 * 1000); // ayer
+    const reconRepo = new InMemoryShiftReconciliationRepository();
+    await reconRepo.save(
+      new ShiftReconciliation({ id: 'rec-ayer', shiftDate: ocurrio, operatorId: 'op-1', items: [] })
+    );
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({
+      stockRepository: stockRepo,
+      remanenteQueryRepository: connectedQueryRepo,
+      reconciliationRepository: reconRepo,
+      requireAuth: false,
+    });
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '0.250', reasonId: 'reason-seed-1', operationId: 'op-tarde-1', occurredAt: ocurrio.toISOString() });
+
+    // 3. ASSERT: un cierre firmado no se reabre en silencio
+    expect(response.status).toBe(409);
+    const untouched = await stockRepo.findRemanenteById('rem-salsa-1');
+    expect(untouched?.currentQuantity.toString()).toBe('1.750');
+    expect(stockRepo.movements.filter((m) => m.operationId === 'op-tarde-1')).toHaveLength(0);
+  });
+
+  it('TK-160: un consumo inmediato que excede sigue rechazandose con 422 (sin regresion)', async () => {
+    // 1. ARRANGE: sin operationId no es una operacion diferida
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '2.000', reasonId: 'reason-seed-1' });
+
+    // 3. ASSERT: la varianza es para lo que ya ocurrio sin red, no para un error en pantalla
+    expect(response.status).toBe(422);
+    const untouched = await stockRepo.findRemanenteById('rem-salsa-1');
+    expect(untouched?.currentQuantity.toString()).toBe('1.750');
   });
 });

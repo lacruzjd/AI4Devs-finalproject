@@ -43,6 +43,19 @@ export class PrismaShiftReconciliationRepository implements IShiftReconciliation
     return list.map((raw) => this.toDomain(raw));
   }
 
+  /**
+   * TK-160 / ADR-009: consulta acotada al día natural del turno, con `count` en vez de
+   * traer las conciliaciones a memoria — el cierre de turno crece con el tiempo.
+   */
+  public async existsForShiftDate(shiftDate: Date): Promise<boolean> {
+    const dayStart = new Date(Date.UTC(shiftDate.getUTCFullYear(), shiftDate.getUTCMonth(), shiftDate.getUTCDate()));
+    const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+    const found = await this.prisma.shiftReconciliation.count({
+      where: { shiftDate: { gte: dayStart, lt: dayEnd } },
+    });
+    return found > 0;
+  }
+
   private toDomain(raw: ReconciliationWithItems): ShiftReconciliation {
     return new ShiftReconciliation({
       id: raw.id,
