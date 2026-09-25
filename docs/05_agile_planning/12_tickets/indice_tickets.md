@@ -510,7 +510,7 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 
 *   **[TK-161-FE: Tramo de Teléfono en el Shell y el Tablero de Cocina](shared/frontend/TK-161-FE.md)** (Frontend) — ✅ Done. `US-045` / `SK-05`: tramo `xs` en el shell y la ruta raíz — franja superior, una ficha por fila, urgentes colapsable y filtro de áreas con desplazamiento propio.
 *   **[TK-162-FE: Tramo de Teléfono en Bodega e Historial](shared/frontend/TK-162-FE.md)** (Frontend) — ✅ Done. `US-045` / `SK-05`: las tablas anchas se desplazan dentro de su contenedor; el cuerpo de la página nunca en horizontal.
-*   **[TK-163-FE: Modales a Hoja Completa en Teléfono](shared/frontend/TK-163-FE.md)** (Frontend) — ⏳ Approved. `US-045` / `SK-05`: en `xs` los modales pasan a hoja completa, con el botón de confirmación al alcance del pulgar.
+*   **[TK-163-FE: Modales a Hoja Completa en Teléfono](shared/frontend/TK-163-FE.md)** (Frontend) — ✅ Done. `US-045` / `SK-05`: en `xs` los modales pasan a hoja completa, con el botón de confirmación al alcance del pulgar.
 
 
 `TK-056` cerró la deuda residual de listado de operarios; `TK-057`/`TK-057-FE` cierran la deuda de alta de catálogo (insumos y recetas) y la de `TK-008` — `TK-049`/`TK-049-FE`/`TK-050`/`TK-050-FE`/`TK-057`/`TK-057-FE` quedan sin pendientes conocidos. `TK-059` cierra el fix de conectividad Docker frontend↔backend; `TK-060`/`TK-060-FE` cierran el reabastecimiento de bodega (`US-013`); `TK-061` cierra la deuda de `US-012` sobre `RecipeSelectorModal.tsx`; `TK-069`/`TK-069-FE` extraen las recetas de `catalog` a un módulo `recipes` independiente; `TK-070-FE` le da al Recetario la misma estructura que Inventario de Bodega.

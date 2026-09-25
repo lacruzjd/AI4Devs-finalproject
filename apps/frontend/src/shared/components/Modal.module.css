@@ -51,3 +51,26 @@
 .modal-lg { max-width: 640px; }
 .modal-xl { max-width: 760px; }
 .modal-centered { text-align: center; }
+
+/* TK-163-FE / US-045: tramo de teléfono — el modal deja de ser una ventana centrada y
+   pasa a ocupar la hoja completa. En 390 px, centrar un formulario deja márgenes inútiles
+   a los lados y empuja el botón de confirmación a la zona de difícil alcance del pulgar.
+   El objetivo táctil de 48 px no cambia: lo que cambia es la superficie, no el tamaño. */
+@media (max-width: 479px) {
+  .modal-overlay {
+    padding: 0;
+    align-items: stretch;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-height: 100%;
+    min-height: 100%;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+  }
+}

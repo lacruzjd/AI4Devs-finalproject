@@ -4,7 +4,7 @@ id: TK-163-FE
 related_story: US-045
 points: 2
 type: frontend
-status: approved
+status: done
 inputs:
   - docs/05_agile_planning/11_user_stories/shared/US-045.md
   - docs/02_architecture_design/05_ui_ux_design_system.md
@@ -61,6 +61,16 @@ Aplicar el tramo `xs` (`<480px`) declarado en el sistema de diseño §6 a los mo
 1. **TDD Compliance:** el test se escribe y se ve fallar antes de la implementación, con el runner declarado en `docs/00_stack_manifest.md`.
 2. **Precisión Aritmética:** no aplica; este ticket no maneja cantidades.
 3. **Verificación Total:** cero errores en los comandos de test, build y lint declarados en `AGENTS.md`, y auditoría de la Fase 4 de `SK-05` sin hallazgos críticos.
+
+---
+
+## Nota de implementación (2026-09-25)
+
+El cambio es de superficie, no de tamaño: en hoja completa el objetivo táctil de 48 px sigue intacto. Lo que se gana es el ancho que los márgenes del modo ventana desperdiciaban, y que las acciones queden fijas abajo —al alcance del pulgar— sin obligar a recorrer un formulario largo para confirmar.
+
+Se aplica en el shell compartido `Modal`, así que lo heredan de una vez todos los modales que ya lo usan: consumo, descarte, extracción de bodega y selector de recetas.
+
+**Verificación visual pendiente:** que la hoja completa se comporte bien con el teclado virtual abierto exige un dispositivo real (workflow 09).
 
 ---
 
