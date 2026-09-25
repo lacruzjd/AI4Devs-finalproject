@@ -15,13 +15,18 @@
 # │   · Pasos de entorno del runner: checkout, setup-node, setup-pnpm, cachés.          │
 # │     Aquí se usan el Node/pnpm ya instalados en la máquina — una diferencia de       │
 # │     versión respecto a `lts/*` NO la detecta este script.                           │
+# │     TK-167: esto incluye lo que esos pasos CONSUMEN, no sólo los pasos. Declarar    │
+# │     `packageManager` en package.json rompió los tres jobs —`pnpm/action-setup`      │
+# │     aborta si recibe `version` y además lo encuentra— y este script siguió dando    │
+# │     verde, porque nunca lee ese campo. Un cambio ahí NO queda verificado en local.  │
 # │   · Subida de artefactos (`upload-artifact` del SBOM): se genera el fichero, pero   │
 # │     no se publica.                                                                  │
 # │   · Mutation testing: omitido salvo `--with-mutation` (informativo en CI, TK-138).  │
 # │   · Servicio PostgreSQL del Job 3: ci.yml levanta un contenedor efímero; aquí los   │
 # │     tests corren con los fakes InMemory salvo que el entorno ya tenga una BD.       │
 # │                                                                                     │
-# │ Al tocar `.github/workflows/ci.yml`, actualizar este script Y esta lista.           │
+# │ Regla bidireccional: actualizar este script Y esta lista al tocar `ci.yml`, y       │
+# │ también al cambiar algo que consuman los pasos excluidos (Guarda 40 de AGENTS.md). │
 # └─────────────────────────────────────────────────────────────────────────────────────┘ No reemplaza
 # el pipeline real (algunos pasos, como gitleaks/trivy/oasdiff/tofu, se auto-descargan
 # a una carpeta local cacheada si no están instalados, en vez de fallar duro), pero cubre
