@@ -1,7 +1,7 @@
 ---
 name: pull-requests
-description: "Documenta e inspecciona el historial veraz de Pull Requests, commits y Quality Gates (DoD) de CI/CD sin invención de metadatos, actualizando README.md y 15_history.md."
-version: "3.1.1"
+description: "Documenta e inspecciona el historial veraz de entregas —Pull Requests, commits y Quality Gates (DoD) de CI/CD— sin invención de metadatos, actualizando README.md y 15_history.md, y es la dueña del Registro de Release que el workflow 10 escribe y el gate release verifica."
+version: "3.2.0"
 category: "05_agile_planning"
 inputs:
   - "git_log_and_pr_data"
@@ -10,9 +10,11 @@ inputs:
 outputs:
   - "README.md"
   - "docs/05_agile_planning/15_history.md"
+  - "docs/06_release_and_operations/releases/vX.Y.Z.md"
+  - "CHANGELOG.md"
 ---
 
-# SK-15: Registro de Pull Requests e Integración Continua (v3.1.1)
+# SK-15: Registro de Pull Requests, Integración Continua y Releases (v3.2.0)
 
 Actúa como un **Lead DevOps & Release Manager** experto en inspección de repositorios Git, flujos de trabajo basados en Pull Requests (PRs), integración continua y trazabilidad de entrega.
 
@@ -29,7 +31,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ---
 
-## Pipeline de Ejecución Secuencial en 3 Pasos
+## Pipeline de Ejecución Secuencial en 4 Pasos
 
 ### Paso 1: Inspección de Git e Inicialización de Contexto
 1. Ejecutar comandos de lectura local: `git log --oneline -n 15` y `git branch -a`.
@@ -46,6 +48,58 @@ Para cada PR real verificada, estructurar la ficha de entregables:
 ### Paso 3: Actualización Documental
 1. Actualizar la sección de Histórico de Pull Requests en `README.md`.
 2. Registrar el log inmutable en `docs/05_agile_planning/15_history.md`.
+
+### Paso 4: Registro del Release (lo invoca el [workflow 10](../../../workflows/10_release_workflow.md))
+Este paso no se ejecuta por su cuenta: lo invoca el workflow de release en su Paso 8, una vez fijada la versión y pasados los gates previos. Aquí vive el **formato**; el workflow decide **cuándo**.
+
+1. Escribir `docs/06_release_and_operations/releases/vX.Y.Z.md` con `status: planned` y el formato de abajo. Los datos salen de lo ya decidido en el workflow (versión, tickets cerrados, estrategia, migraciones, rollback) — prohibido inferir o rellenar un campo que el humano no confirmó.
+2. Añadir la sección `## [X.Y.Z] - AAAA-MM-DD` a `CHANGELOG.md` en la raíz, con las notas **en lenguaje de usuario**: qué pueden hacer ahora, qué cambió, qué se corrigió. Sin nombres de clases ni identificadores de ticket en el texto principal.
+3. Al desplegar, actualizar el registro a `status: deployed` con `deployed_at` y la sección de verificación posterior. Si hubo vuelta atrás, `status: rolled_back`.
+4. Un proyecto que use otra convención de versionado la adapta al instalar momoy: el gate `release` comprueba exactamente la de este paso (archivo `CHANGELOG.md` en la raíz con formato Keep a Changelog y etiquetas `vX.Y.Z` sobre el commit desplegado).
+
+#### Formato del Registro de Release
+
+```markdown
+---
+document: release
+release: X.Y.Z
+version: 1.0.0
+status: planned              # planned | deployed | rolled_back | cancelled
+strategy: completo           # completo | flag | canary
+strategy_justification: "Obligatoria si strategy es completo"
+planned_on: AAAA-MM-DD
+deployed_at:                 # AAAA-MM-DDTHH:MM:SS±HH:MM al desplegar
+includes_migration: no       # si | no
+changes_deploy_config: no    # si | no
+rollback_rehearsed_on:       # AAAA-MM-DD; obligatorio si hay migración o cambio de despliegue
+---
+
+# Release vX.Y.Z
+
+## Tickets incluidos
+- TK-XXX — [título]
+
+## Notas de versión
+[Qué cambia para el usuario, en su lenguaje.]
+
+## Migraciones
+- expand: [descripción]
+- contract: [descripción] — expand en vA.B.C
+
+## Feature flags
+- [nombre del flag] — retirada en TK-XXX
+
+## Verificación previa al despliegue
+[Validación de la configuración y de los valores que resuelve la plataforma.]
+
+## Plan de rollback
+[Cómo se vuelve a la versión anterior, cuánto tarda, qué pasa con los datos y evidencia del ensayo si aplica.]
+
+## Verificación posterior
+[Al desplegar: resultado del workflow 08.]
+```
+
+Las secciones Migraciones y Feature flags solo son obligatorias si hay migraciones o la estrategia es `flag`; Verificación posterior, solo al desplegar.
 
 ---
 

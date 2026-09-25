@@ -1,11 +1,11 @@
 ---
 name: 10_release_workflow
 description: "Workflow de release: lleva un conjunto de tickets cerrados a producción sin riesgo. Fija la versión SemVer, pasa los gates previos, declara la estrategia de liberación, clasifica las migraciones, verifica la configuración de despliegue, planifica y ensaya el rollback cuando corresponde, escribe las notas de versión y solo despliega con aprobación humana, validando después con el workflow 08."
-version: "1.1.1"
+version: "1.2.0"
 category: "workflows/deployment"
 ---
 
-# Workflow 10: Release (v1.1.1)
+# Workflow 10: Release (v1.2.0)
 
 > **DIRECTIVA PARA EL AGENTE:**
 > Actúa como un **Release Manager** con mentalidad SRE. Desplegar es poner el código en producción; liberar es que el usuario lo vea. Tu trabajo es que ambos pasos sean predecibles, verificados y reversibles.
@@ -73,7 +73,7 @@ Si el release incluye cambios de esquema o de datos (`includes_migration: si`), 
 
 ## Paso 8 — Registro del Release y Gate
 
-1. Escribir `docs/06_release_and_operations/releases/vX.Y.Z.md` con `status: planned` (formato abajo).
+1. Invocar [`SK-15`](../skills/specs/05_agile_planning/SK-15_document_pull_requests.md) (Paso 4), que es la dueña del Registro de Release: escribe `docs/06_release_and_operations/releases/vX.Y.Z.md` con `status: planned` y la sección del `CHANGELOG.md`, con el formato declarado ahí. Este workflow decide **cuándo** y con qué datos; el **formato** no se duplica aquí.
 2. `python3 .agents/scripts/check_spec_artifacts.py --changed` debe pasar sin hallazgos del gate `release`.
 
 ## Paso 9 — PAUSA HitL: Go / No-Go
@@ -96,44 +96,4 @@ Presentar al humano versión, tickets, estrategia y justificación, migraciones,
 
 ## Formato del Registro de Release
 
-```markdown
----
-document: release
-release: X.Y.Z
-version: 1.0.0
-status: planned              # planned | deployed | rolled_back | cancelled
-strategy: completo           # completo | flag | canary
-strategy_justification: "Obligatoria si strategy es completo"
-planned_on: AAAA-MM-DD
-deployed_at:                 # AAAA-MM-DDTHH:MM:SS±HH:MM al desplegar
-includes_migration: no       # si | no
-changes_deploy_config: no    # si | no
-rollback_rehearsed_on:       # AAAA-MM-DD; obligatorio si hay migración o cambio de despliegue
----
-
-# Release vX.Y.Z
-
-## Tickets incluidos
-- TK-XXX — [título]
-
-## Notas de versión
-[Qué cambia para el usuario, en su lenguaje.]
-
-## Migraciones
-- expand: [descripción]
-- contract: [descripción] — expand en vA.B.C
-
-## Feature flags
-- [nombre del flag] — retirada en TK-XXX
-
-## Verificación previa al despliegue
-[Validación de la configuración y de los valores que resuelve la plataforma.]
-
-## Plan de rollback
-[Cómo se vuelve a la versión anterior, cuánto tarda, qué pasa con los datos y evidencia del ensayo si aplica.]
-
-## Verificación posterior
-[Al desplegar: resultado del workflow 08.]
-```
-
-Las secciones Migraciones y Feature flags solo son obligatorias si hay migraciones o la estrategia es `flag`; Verificación posterior, solo al desplegar.
+Lo declara [`SK-15`](../skills/specs/05_agile_planning/SK-15_document_pull_requests.md) en su Paso 4, junto con las reglas de qué secciones son obligatorias. No se repite aquí para que las dos versiones no puedan derivar.
