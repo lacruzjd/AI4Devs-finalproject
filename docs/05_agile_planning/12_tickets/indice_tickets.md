@@ -523,5 +523,7 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 
 *   **[TK-170-FE: Eliminar el Respaldo de Unidad por Identificador de Semilla](stock/frontend/TK-170-FE.md)** (Frontend) — ✅ Done. `US-049`: la pantalla de extracción resuelve la unidad con una tabla de ids de demostración y cae a `KG` para todo lo demás. Es código muerto —la unidad está garantizada por construcción— pero el respaldo taparía en silencio un fallo de mapeo de la API.
 
+*   **[TK-171: Corregir las Cifras del README y Declarar el Alcance de sus Selecciones](shared/backend/TK-171.md)** (Backend) — ⏳ Approved. `US-050` / `EXT-002` R-04: el README afirma 830 tests cuando hay 898, y sus secciones de historias y tickets cubren 39 de 49 y 100 de 169 sin declararlo. No se elimina ninguna sección: §0–§7 es la plantilla del curso.
+
 
 `TK-056` cerró la deuda residual de listado de operarios; `TK-057`/`TK-057-FE` cierran la deuda de alta de catálogo (insumos y recetas) y la de `TK-008` — `TK-049`/`TK-049-FE`/`TK-050`/`TK-050-FE`/`TK-057`/`TK-057-FE` quedan sin pendientes conocidos. `TK-059` cierra el fix de conectividad Docker frontend↔backend; `TK-060`/`TK-060-FE` cierran el reabastecimiento de bodega (`US-013`); `TK-061` cierra la deuda de `US-012` sobre `RecipeSelectorModal.tsx`; `TK-069`/`TK-069-FE` extraen las recetas de `catalog` a un módulo `recipes` independiente; `TK-070-FE` le da al Recetario la misma estructura que Inventario de Bodega.
