@@ -132,9 +132,15 @@ function useRolesManagement() {
       const [rList, pList] = await Promise.all([RolesService.fetchRoles(), RolesService.fetchPermissions()]);
       setRoles(rList);
       setPermissions(pList);
-      setSelectedRole((prev) => (prev && rList.some((r) => r.id === prev.id) ? prev : rList[0] ?? null));
-    } catch {
-      // Handled silently — la UI muestra la lista vacía
+      // AUDIT-DEV-017 F-1: conservar la SELECCIÓN del usuario, nunca sus datos. Antes se
+      // reusaba el objeto `prev` —comprobar que el rol sigue existiendo no es traerse su
+      // versión nueva—, así que `togglePermission` partía siempre de la matriz obsoleta y,
+      // como el endpoint la reemplaza entera, cada clic revertía la concesión anterior.
+      setSelectedRole((prev) => (prev ? rList.find((r) => r.id === prev.id) ?? rList[0] ?? null : rList[0] ?? null));
+    } catch (err) {
+      // Guard 6 §2 (AUDIT-DEV-017 F-3): sin esto, un 403 o un backend caído eran
+      // indistinguibles de un despliegue sin roles definidos.
+      setError(mapToUserFriendlyError(err).message);
     }
   }, []);
 
