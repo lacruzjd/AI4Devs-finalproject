@@ -2,6 +2,8 @@ import { apiRequest } from '../../../shared/http/apiClient.js';
 
 export interface CreateUserRequest {
   name: string;
+  /** US-051/TK-173-FE: credencial con la que el operario entra, no la clave interna. */
+  operatorCode: string;
   role: string;
   pin: string;
 }
@@ -14,6 +16,7 @@ export interface UpdateUserRequest {
 
 export interface CreateUserResult {
   id: string;
+  operatorCode: string;
   name: string;
   role: string;
   status: string;
@@ -26,6 +29,7 @@ export interface SetUserStatusResult {
 
 export interface UserListItem {
   id: string;
+  operatorCode: string;
   name: string;
   role: string;
   status: string;

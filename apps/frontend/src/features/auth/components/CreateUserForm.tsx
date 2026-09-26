@@ -11,6 +11,8 @@ interface CreateUserFormProps {
 interface CreateUserFieldsProps {
   name: string;
   onNameChange: (v: string) => void;
+  operatorCode: string;
+  onOperatorCodeChange: (v: string) => void;
   role: string;
   onRoleChange: (v: string) => void;
   availableRoles: RoleDto[];
@@ -54,6 +56,8 @@ const RoleSelectField: React.FC<RoleSelectFieldProps> = ({ role, onRoleChange, a
 const CreateUserFields: React.FC<CreateUserFieldsProps> = ({
   name,
   onNameChange,
+  operatorCode,
+  onOperatorCodeChange,
   role,
   onRoleChange,
   availableRoles,
@@ -74,6 +78,27 @@ const CreateUserFields: React.FC<CreateUserFieldsProps> = ({
         required
         minLength={2}
       />
+    </div>
+
+    <div>
+      <label htmlFor="input-new-user-code" className="form-label">
+        Código de Operario:
+      </label>
+      <input
+        type="text"
+        id="input-new-user-code"
+        className="input-touch"
+        value={operatorCode}
+        onChange={(e) => onOperatorCodeChange(e.target.value.toUpperCase())}
+        placeholder="Ej. CG-01"
+        pattern="[A-Za-z0-9-]{2,12}"
+        maxLength={12}
+        required
+        autoComplete="off"
+      />
+      <p className="text-secondary-color fs-xs mt-1">
+        Es lo que el operario teclea para entrar, junto a su PIN. Entre 2 y 12 caracteres.
+      </p>
     </div>
 
     <RoleSelectField role={role} onRoleChange={onRoleChange} availableRoles={availableRoles} />
@@ -97,14 +122,16 @@ const CreateUserFields: React.FC<CreateUserFieldsProps> = ({
 );
 
 async function submitCreateUser(
-  data: { name: string; role: string; pin: string },
+  data: { name: string; operatorCode: string; role: string; pin: string },
   onCreated: (message: string) => void,
   reset: () => void,
   setError: (msg: string | null) => void
 ): Promise<void> {
   try {
     const created = await UsersService.createUser(data);
-    onCreated(`Operario "${created.name}" creado con estado ${created.status}.`);
+    // US-051 Escenario 1: el código es la credencial. Mostrar solo el nombre era
+    // exactamente el defecto de AUDIT-DEV-017 F-2 — la cuenta quedaba inalcanzable.
+    onCreated(`Operario "${created.name}" creado. Código de acceso: ${created.operatorCode} — entrégueselo junto a su PIN.`);
     reset();
   } catch (err) {
     setError(err instanceof Error ? err.message : 'Error creando el operario.');
@@ -113,6 +140,7 @@ async function submitCreateUser(
 
 function useCreateUserForm(onCreated: (message: string) => void) {
   const [name, setName] = useState('');
+  const [operatorCode, setOperatorCode] = useState('');
   const [role, setRole] = useState('KITCHEN_STAFF');
   const [availableRoles, setAvailableRoles] = useState<RoleDto[]>([]);
   const [pin, setPin] = useState('');
@@ -133,6 +161,7 @@ function useCreateUserForm(onCreated: (message: string) => void) {
 
   const reset = () => {
     setName('');
+    setOperatorCode('');
     setPin('');
     if (availableRoles.length > 0) {
       const kitchenRole = availableRoles.find((r) => r.name === 'KITCHEN_STAFF');
@@ -146,11 +175,11 @@ function useCreateUserForm(onCreated: (message: string) => void) {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
-    await submitCreateUser({ name, role, pin }, onCreated, reset, setError);
+    await submitCreateUser({ name, operatorCode, role, pin }, onCreated, reset, setError);
     setIsSubmitting(false);
   };
 
-  return { name, setName, role, setRole, availableRoles, pin, setPin, error, isSubmitting, handleSubmit };
+  return { name, setName, operatorCode, setOperatorCode, role, setRole, availableRoles, pin, setPin, error, isSubmitting, handleSubmit };
 }
 
 export const CreateUserForm: React.FC<CreateUserFormProps> = ({ onCreated }) => {
@@ -163,6 +192,8 @@ export const CreateUserForm: React.FC<CreateUserFormProps> = ({ onCreated }) => 
       <CreateUserFields
         name={form.name}
         onNameChange={form.setName}
+        operatorCode={form.operatorCode}
+        onOperatorCodeChange={form.setOperatorCode}
         role={form.role}
         onRoleChange={form.setRole}
         availableRoles={form.availableRoles}

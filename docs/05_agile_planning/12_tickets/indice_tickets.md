@@ -525,5 +525,13 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 
 *   **[TK-171: Corregir las Cifras del README y Declarar el Alcance de sus Selecciones](shared/backend/TK-171.md)** (Backend) — ✅ Done. `US-050` / `EXT-002` R-04: el README afirma 830 tests cuando hay 898, y sus secciones de historias y tickets cubren 39 de 49 y 100 de 169 sin declararlo. No se elimina ninguna sección: §0–§7 es la plantilla del curso.
 
+*   **[TK-172-FE: Corregir la Matriz de Permisos que Descarta la Concesión Anterior en Cada Clic](security/frontend/TK-172-FE.md)** (Frontend) — ✅ Done. `US-015` / `AUDIT-DEV-017` F-1/F-3: `loadData` conservaba el objeto `selectedRole` obsoleto, así que cada clic enviaba un `PUT` construido sobre datos viejos y, como el endpoint reemplaza la matriz completa, revertía la concesión anterior en silencio.
+
+*   **[TK-173: Código de Operario como Identidad de Acceso, con Unicidad en la Base de Datos](auth/backend/TK-173.md)** (Backend) — ✅ Done. `US-051` / `AUDIT-DEV-017` F-2: el alta generaba un UUID que ninguna pantalla mostraba y que era la única credencial que `login-pin` aceptaba. Contrato OpenAPI 7.2.1 → 8.0.0 (breaking deliberado).
+
+*   **[TK-173-FE: Hacer Visible el Código de Operario en el Alta, la Lista y el Login](auth/frontend/TK-173-FE.md)** (Frontend) — ✅ Done. `US-051` / `AUDIT-DEV-017` F-2/F-4: las tres superficies que ocultaban la credencial de acceso.
+
+*   **[TK-174: `check_privilege_defaults` No Puede Aprobar un Catálogo de Roles Dinámico](security/backend/TK-174.md)** (Backend) — ⏳ Approved. Hallazgo colateral de `TK-173`: el gate exige `z.enum` para el campo `role`, lo que contradice el catálogo editable de `US-015`. Deuda preexistente, sin hueco de escalada real.
+
 
 `TK-056` cerró la deuda residual de listado de operarios; `TK-057`/`TK-057-FE` cierran la deuda de alta de catálogo (insumos y recetas) y la de `TK-008` — `TK-049`/`TK-049-FE`/`TK-050`/`TK-050-FE`/`TK-057`/`TK-057-FE` quedan sin pendientes conocidos. `TK-059` cierra el fix de conectividad Docker frontend↔backend; `TK-060`/`TK-060-FE` cierran el reabastecimiento de bodega (`US-013`); `TK-061` cierra la deuda de `US-012` sobre `RecipeSelectorModal.tsx`; `TK-069`/`TK-069-FE` extraen las recetas de `catalog` a un módulo `recipes` independiente; `TK-070-FE` le da al Recetario la misma estructura que Inventario de Bodega.

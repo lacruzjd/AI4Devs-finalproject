@@ -20,13 +20,13 @@ interface UserSelectorProps {
 }
 
 /**
- * Antes un <select> con 2 operarios de fixtures de desarrollo hardcodeados
- * (usr-carlos-1/usr-maria-2) — en una base de datos de producción nueva el único
- * usuario real es el admin sembrado por TK-051, que nunca aparecía en esa lista:
- * un humano real no podía loguearse tras un despliegue nuevo. El backend no expone
- * ningún endpoint para listar operarios (mismo hallazgo ya documentado en
- * TK-049-FE/UserStatusForm.tsx), así que se pide el ID real en vez de simular una
- * lista que podría no reflejar los usuarios reales de este despliegue.
+ * US-051/TK-173-FE: el operario teclea su CÓDIGO, no un identificador interno.
+ *
+ * Que aquí se teclee en vez de elegir de una lista es una decisión de producto, no una
+ * limitación técnica (`GET /auth/users` existe desde TK-056): un desplegable expondría
+ * la plantilla completa del restaurante en una terminal pública sin autenticar — el NFR
+ * de no divulgación de US-051. Es la desviación consciente respecto a US-001 Escenario 1,
+ * registrada en la Nota de Alcance de esa historia.
  */
 const UserSelector: React.FC<UserSelectorProps> = ({ selectedUserId, onChange, disabled }) => (
   <div className="mb-5 text-left">
@@ -34,7 +34,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({ selectedUserId, onChange, d
       htmlFor="input-pin-login-user"
       className="fs-sm text-secondary-color mb-2 d-block"
     >
-      ID de Operario:
+      Código de Operario:
     </label>
     <input
       type="text"
@@ -43,7 +43,7 @@ const UserSelector: React.FC<UserSelectorProps> = ({ selectedUserId, onChange, d
       value={selectedUserId}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
-      placeholder="ej. bootstrap-admin"
+      placeholder="ej. CG-01"
       autoComplete="off"
     />
   </div>
@@ -91,7 +91,7 @@ const PinLoginHeader: React.FC = () => (
 
     <h2 className="fs-xl fw-bold mb-1">Acceso Táctil de Operarios</h2>
     <p className="text-secondary-color fs-md mb-5">
-      Ingrese su ID de operario y su PIN de seguridad
+      Ingrese su código de operario y su PIN de seguridad
     </p>
   </>
 );
@@ -128,7 +128,7 @@ function usePinLoginForm(onSuccess: (authData: LoginPinResponse) => void) {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedUserId.trim()) {
-      setError('Ingresa tu ID de operario.');
+      setError('Ingresa tu código de operario.');
       return;
     }
     if (pin.length < 4) {

@@ -168,6 +168,11 @@ const UserRow: React.FC<UserRowProps> = ({ user, roles, isPending, onToggle, onS
         <div className="flex-between gap-3">
           <div>
             <div className="fs-md fw-bold">{user.name}</div>
+            {/* US-051 Escenario 2: la credencial con la que entra, legible por el
+                administrador sin acceso técnico. El DTO ya la traía; la fila no la pintaba. */}
+            <div className="text-secondary-color fs-xs">
+              Código: <strong className="text-primary-color font-mono">{user.operatorCode}</strong>
+            </div>
             <div className="text-secondary-color fs-xs">
               Rol: <strong className="text-primary-color">{user.role}</strong> · Estado:{' '}
               <span className={`fw-bold ${isBlocked ? 'text-danger-color' : 'text-success-color'}`}>

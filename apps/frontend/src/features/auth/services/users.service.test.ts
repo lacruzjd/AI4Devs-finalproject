@@ -10,8 +10,8 @@ describe('UsersService — gestión de personal (TK-049-FE)', () => {
 
   it('lista los operarios reales del backend (TK-056)', async () => {
     const mockUsers = [
-      { id: 'usr-1', name: 'Carlos', role: 'KITCHEN_STAFF', status: 'ACTIVE' },
-      { id: 'usr-2', name: 'Maria', role: 'ADMIN', status: 'BLOCKED' },
+      { id: 'usr-1', operatorCode: 'CG-01', name: 'Carlos', role: 'KITCHEN_STAFF', status: 'ACTIVE' },
+      { id: 'usr-2', operatorCode: 'MS-02', name: 'Maria', role: 'ADMIN', status: 'BLOCKED' },
     ];
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => mockUsers }));
 
@@ -22,10 +22,10 @@ describe('UsersService — gestión de personal (TK-049-FE)', () => {
 
   it('crea un operario nuevo y retorna la cuenta real del backend', async () => {
     AuthService.saveSession('admin-token', { id: 'usr-admin', name: 'Ana', role: 'ADMIN' });
-    const mockUser = { id: 'usr-new-1', name: 'Nuevo Operario', role: 'KITCHEN_STAFF', status: 'ACTIVE' };
+    const mockUser = { id: 'usr-new-1', operatorCode: 'NO-01', name: 'Nuevo Operario', role: 'KITCHEN_STAFF', status: 'ACTIVE' };
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 201, json: async () => mockUser }));
 
-    const result = await UsersService.createUser({ name: 'Nuevo Operario', role: 'KITCHEN_STAFF', pin: '4321' });
+    const result = await UsersService.createUser({ name: 'Nuevo Operario', operatorCode: 'NO-01', role: 'KITCHEN_STAFF', pin: '4321' });
 
     expect(result).toEqual(mockUser);
   });
@@ -37,7 +37,7 @@ describe('UsersService — gestión de personal (TK-049-FE)', () => {
       json: async () => ({ message: 'PIN inválido' }),
     }));
 
-    await expect(UsersService.createUser({ name: 'X', role: 'KITCHEN_STAFF', pin: 'ab' }))
+    await expect(UsersService.createUser({ name: 'X', operatorCode: 'X-01', role: 'KITCHEN_STAFF', pin: 'ab' }))
       .rejects.toMatchObject({ status: 400 });
   });
 

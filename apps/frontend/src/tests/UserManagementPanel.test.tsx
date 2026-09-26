@@ -15,18 +15,21 @@ describe('TK-049-FE: UserManagementPanel Component Suite', () => {
       vi.fn().mockResolvedValue({
         ok: true,
         status: 201,
-        json: async () => ({ id: 'usr-new-1', name: 'Nuevo Operario', role: 'KITCHEN_STAFF', status: 'ACTIVE' }),
+        json: async () => ({ id: 'usr-new-1', operatorCode: 'NO-01', name: 'Nuevo Operario', role: 'KITCHEN_STAFF', status: 'ACTIVE' }),
       })
     );
 
     render(<UserManagementPanel />);
 
     fireEvent.change(screen.getByLabelText(/Nombre Completo/i), { target: { value: 'Nuevo Operario' } });
+    fireEvent.change(screen.getByLabelText(/Código de Operario/i), { target: { value: 'NO-01' } });
     fireEvent.change(screen.getByLabelText(/PIN/i), { target: { value: '4321' } });
     fireEvent.click(screen.getByRole('button', { name: /Crear Operario/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/creado con estado ACTIVE/i)).toBeInTheDocument();
+      // US-051: la confirmación debe traer el código de acceso real devuelto por el
+      // backend — sin él, la cuenta creada queda inalcanzable (AUDIT-DEV-017 F-2).
+      expect(screen.getByText(/Código de acceso: NO-01/i)).toBeInTheDocument();
     });
   });
 
@@ -41,6 +44,7 @@ describe('TK-049-FE: UserManagementPanel Component Suite', () => {
     render(<UserManagementPanel />);
 
     fireEvent.change(screen.getByLabelText(/Nombre Completo/i), { target: { value: 'Nuevo Operario' } });
+    fireEvent.change(screen.getByLabelText(/Código de Operario/i), { target: { value: 'NO-01' } });
     fireEvent.change(screen.getByLabelText(/PIN/i), { target: { value: '4321' } });
     fireEvent.click(screen.getByRole('button', { name: /Crear Operario/i }));
 

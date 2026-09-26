@@ -17,7 +17,7 @@ describe('TK-007-FE: Tactile PIN Login Screen TDD Suite', () => {
   it('debe permitir ingresar digitos en el PinPad y activar la mascara de seguridad', () => {
     render(<App />);
 
-    fireEvent.change(screen.getByLabelText(/ID de Operario/i), { target: { value: 'bootstrap-admin' } });
+    fireEvent.change(screen.getByLabelText(/Código de Operario/i), { target: { value: 'bootstrap-admin' } });
 
     const btn1 = screen.getByRole('button', { name: '1' });
     const btn2 = screen.getByRole('button', { name: '2' });
@@ -41,7 +41,7 @@ describe('TK-007-FE: Tactile PIN Login Screen TDD Suite', () => {
 
     render(<App />);
 
-    fireEvent.change(screen.getByLabelText(/ID de Operario/i), { target: { value: 'bootstrap-admin' } });
+    fireEvent.change(screen.getByLabelText(/Código de Operario/i), { target: { value: 'bootstrap-admin' } });
 
     // Presionar 1-2-3-4
     fireEvent.click(screen.getByRole('button', { name: '1' }));
@@ -70,7 +70,7 @@ describe('TK-007-FE: Tactile PIN Login Screen TDD Suite', () => {
     render(<App />);
 
     // 2. ACT (Cuando)
-    fireEvent.change(screen.getByLabelText(/ID de Operario/i), { target: { value: 'usr-carlos-1' } });
+    fireEvent.change(screen.getByLabelText(/Código de Operario/i), { target: { value: 'usr-carlos-1' } });
     fireEvent.click(screen.getByRole('button', { name: '1' }));
     fireEvent.click(screen.getByRole('button', { name: '2' }));
     fireEvent.click(screen.getByRole('button', { name: '3' }));
@@ -113,7 +113,7 @@ describe('TK-113-FE: chips de operario reciente (device-local)', () => {
 
     render(<App />);
 
-    fireEvent.change(screen.getByLabelText(/ID de Operario/i), { target: { value: 'usr-carlos-1' } });
+    fireEvent.change(screen.getByLabelText(/Código de Operario/i), { target: { value: 'usr-carlos-1' } });
     fireEvent.click(screen.getByRole('button', { name: '1' }));
     fireEvent.click(screen.getByRole('button', { name: '2' }));
     fireEvent.click(screen.getByRole('button', { name: '3' }));
@@ -133,7 +133,7 @@ describe('TK-113-FE: chips de operario reciente (device-local)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'usr-carlos-1' }));
 
-    expect(screen.getByLabelText(/ID de Operario/i)).toHaveValue('usr-carlos-1');
+    expect(screen.getByLabelText(/Código de Operario/i)).toHaveValue('usr-carlos-1');
     expect(screen.getByRole('button', { name: /Ingresar a Cocina/i })).toBeDisabled();
   });
 });

@@ -14,14 +14,14 @@ export class AuthService {
   private static STORAGE_KEY = 'restostock_jwt_token';
   private static USER_KEY = 'restostock_user_info';
 
-  public static async loginWithPin(userId: string, pin: string, baseUrl: string = '/api/v1'): Promise<LoginPinResponse> {
+  public static async loginWithPin(operatorCode: string, pin: string, baseUrl: string = '/api/v1'): Promise<LoginPinResponse> {
     try {
       const response = await fetch(`${baseUrl}/auth/login-pin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId, pin }),
+        body: JSON.stringify({ operatorCode, pin }),
       });
 
       if (response.ok) {

@@ -344,3 +344,5 @@ graph TD
 | [US-048](11_user_stories/kitchen/US-048.md) | [TK-168](12_tickets/kitchen/backend/TK-168.md), [TK-169](12_tickets/kitchen/backend/TK-169.md) |
 | [US-049](11_user_stories/stock/US-049.md) | [TK-170-FE](12_tickets/stock/frontend/TK-170-FE.md) |
 | [US-050](11_user_stories/shared/US-050.md) | [TK-171](12_tickets/shared/backend/TK-171.md) |
+| [US-015](11_user_stories/security/US-015.md) *(defecto posterior)* | [TK-172-FE](12_tickets/security/frontend/TK-172-FE.md) |
+| [US-051](11_user_stories/auth/US-051.md) | [TK-173](12_tickets/auth/backend/TK-173.md), [TK-173-FE](12_tickets/auth/frontend/TK-173-FE.md) |
