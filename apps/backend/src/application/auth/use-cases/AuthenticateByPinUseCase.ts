@@ -6,7 +6,8 @@ import { InvalidPinException } from '../../../domain/auth/errors/InvalidPinExcep
 import { UserBlockedException } from '../../../domain/auth/errors/UserBlockedException.js';
 
 export interface AuthenticateByPinDTO {
-  userId: string;
+  /** US-051/TK-173: el código corto que el operario teclea, no la clave interna. */
+  operatorCode: string;
   pin: string;
 }
 
@@ -44,9 +45,9 @@ export class AuthenticateByPinUseCase {
   }
 
   public async execute(dto: AuthenticateByPinDTO): Promise<AuthResponseDTO> {
-    const user = await this.userRepository.findById(dto.userId);
+    const user = await this.userRepository.findByOperatorCode(dto.operatorCode);
     if (!user) {
-      throw new EntityNotFoundException('Usuario', dto.userId);
+      throw new EntityNotFoundException('Usuario', dto.operatorCode);
     }
 
     if (user.isBlocked()) {

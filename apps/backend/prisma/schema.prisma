@@ -79,6 +79,10 @@ model RolePermission {
 
 model User {
   id                String          @id @default(uuid())
+  // US-051/TK-173: identidad con la que el operario ENTRA (el `id` es la clave
+  // interna, nunca una credencial tecleable). Unicidad impuesta aquí, en la base de
+  // datos, no por una lectura previa en la aplicación (Guard 39).
+  operatorCode      String          @unique
   name              String
   roleId            String?
   role              Role?           @relation(fields: [roleId], references: [id], onDelete: SetNull)

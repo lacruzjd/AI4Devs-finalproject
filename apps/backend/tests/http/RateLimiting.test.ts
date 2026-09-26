@@ -44,14 +44,14 @@ describe('AUDIT-SEC-003 / TK-132: rate limiting por cliente real', () => {
       const ok = await request(app)
         .post('/api/v1/auth/login-pin')
         .set('X-Forwarded-For', '203.0.113.7')
-        .send({ userId: 'usr-1', pin: '9999' }); // PIN incorrecto: 401, pero cuenta contra el limiter
+        .send({ operatorCode: 'usr-1', pin: '9999' }); // PIN incorrecto: 401, pero cuenta contra el limiter
       expect(ok.status).not.toBe(429);
     }
 
     const blocked = await request(app)
       .post('/api/v1/auth/login-pin')
       .set('X-Forwarded-For', '203.0.113.7')
-      .send({ userId: 'usr-1', pin: '9999' });
+      .send({ operatorCode: 'usr-1', pin: '9999' });
 
     expect(blocked.status).toBe(429);
     expect(blocked.body.title).toBe('TooManyRequestsException');
@@ -64,20 +64,20 @@ describe('AUDIT-SEC-003 / TK-132: rate limiting por cliente real', () => {
 
     // Cliente A agota su cuota.
     for (let i = 0; i < 3; i++) {
-      await request(app).post('/api/v1/auth/login-pin').set('X-Forwarded-For', '198.51.100.1').send({ userId: 'usr-1', pin: '9999' });
+      await request(app).post('/api/v1/auth/login-pin').set('X-Forwarded-For', '198.51.100.1').send({ operatorCode: 'usr-1', pin: '9999' });
     }
-    const aBlocked = await request(app).post('/api/v1/auth/login-pin').set('X-Forwarded-For', '198.51.100.1').send({ userId: 'usr-1', pin: '9999' });
+    const aBlocked = await request(app).post('/api/v1/auth/login-pin').set('X-Forwarded-For', '198.51.100.1').send({ operatorCode: 'usr-1', pin: '9999' });
     expect(aBlocked.status).toBe(429);
 
     // Cliente B, IP distinta: su primer intento pasa (no hereda el bloqueo de A).
-    const bFirst = await request(app).post('/api/v1/auth/login-pin').set('X-Forwarded-For', '198.51.100.2').send({ userId: 'usr-1', pin: '1234' });
+    const bFirst = await request(app).post('/api/v1/auth/login-pin').set('X-Forwarded-For', '198.51.100.2').send({ operatorCode: 'usr-1', pin: '1234' });
     expect(bFirst.status).toBe(200);
   });
 
   it('el limiter global corta /api/v1/* al superar el máximo, y /health nunca se limita', async () => {
     const app = buildApp({ rateLimit: { windowMs: 60_000, max: 2 } });
     const token = (
-      await request(app).post('/api/v1/auth/login-pin').set('X-Forwarded-For', '198.51.100.9').send({ userId: 'usr-1', pin: '1234' })
+      await request(app).post('/api/v1/auth/login-pin').set('X-Forwarded-For', '198.51.100.9').send({ operatorCode: 'usr-1', pin: '1234' })
     ).body.accessToken;
 
     // El login de arriba ya consumió 1. Una petición más → 2 (ok), la siguiente → 429.

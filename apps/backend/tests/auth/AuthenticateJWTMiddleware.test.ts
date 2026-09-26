@@ -48,10 +48,10 @@ describe('Guard 14, 15 & 16: Security Middleware & Fail-Fast Validation TDD Suit
 
     // Enviar 11 peticiones a login-pin (el limite esta configurado en 10)
     for (let i = 0; i < 10; i++) {
-      await request(app).post('/api/v1/auth/login-pin').send({ userId: 'u-1', pin: '9999' });
+      await request(app).post('/api/v1/auth/login-pin').send({ operatorCode: 'u-1', pin: '9999' });
     }
 
-    const blockedResponse = await request(app).post('/api/v1/auth/login-pin').send({ userId: 'u-1', pin: '9999' });
+    const blockedResponse = await request(app).post('/api/v1/auth/login-pin').send({ operatorCode: 'u-1', pin: '9999' });
 
     expect(blockedResponse.status).toBe(429);
     expect(blockedResponse.body).toHaveProperty('type', 'https://restostock.com/errors/too-many-requests');

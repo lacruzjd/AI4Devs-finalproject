@@ -151,6 +151,10 @@ async function seedProductionAdmin(adminRoleId: string): Promise<void> {
     },
     create: {
       id: 'bootstrap-admin',
+      // US-051/TK-173: el código de acceso del administrador inicial es literalmente
+      // `bootstrap-admin`, el mismo valor que las credenciales de revisión publicadas
+      // en la documentación de despliegue — esa ruta sigue funcionando verbatim.
+      operatorCode: 'bootstrap-admin',
       name: adminName,
       roleId: adminRoleId,
       pinHash: hashPin(adminPin),
@@ -184,6 +188,7 @@ async function seedDevelopmentUsers(roles: { adminRoleId: string; kitchenRoleId:
     },
     create: {
       id: 'usr-maria-2',
+      operatorCode: 'MS-02',
       name: 'Maria Silva (Administrador)',
       roleId: roles.adminRoleId,
       pinHash: hashPin(adminPin),
@@ -201,6 +206,7 @@ async function seedDevelopmentUsers(roles: { adminRoleId: string; kitchenRoleId:
     },
     create: {
       id: 'usr-carlos-1',
+      operatorCode: 'CG-01',
       name: 'Carlos Gomez (Cocina)',
       roleId: roles.kitchenRoleId,
       pinHash: hashPin(kitchenPin),

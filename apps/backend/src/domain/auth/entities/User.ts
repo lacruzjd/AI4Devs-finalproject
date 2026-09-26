@@ -6,6 +6,14 @@ export type UserStatusType = 'ACTIVE' | 'BLOCKED';
 
 export interface UserProps {
   id: string;
+  /**
+   * US-051/TK-173: identidad con la que el operario ENTRA. Opcional aquí a propósito:
+   * por defecto es el `id`, que es exactamente lo que la migración rellenó en las filas
+   * anteriores a esta historia — ninguna credencial en circulación deja de funcionar.
+   * La regla de producto («el administrador lo escribe») vive donde entra el dato real,
+   * el esquema Zod del endpoint de alta, no duplicada aquí.
+   */
+  operatorCode?: string;
   name: string;
   role: UserRole;
   pin: Pin;
@@ -30,6 +38,10 @@ export class User {
 
   public get id(): string {
     return this.props.id;
+  }
+
+  public get operatorCode(): string {
+    return this.props.operatorCode ?? this.props.id;
   }
 
   public get name(): string {

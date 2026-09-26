@@ -37,7 +37,7 @@ describe('TK-071 / Guard 36: Flujo de Prueba de Creación de Usuario y Cambio Ob
     const createResponse = await request(app)
       .post('/api/v1/auth/users')
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ name: 'Juan Perez (Nuevo)', role: 'KITCHEN_STAFF', pin: '1111' });
+      .send({ name: 'Juan Perez (Nuevo)', operatorCode: 'JP-01', role: 'KITCHEN_STAFF', pin: '1111' });
 
     expect(createResponse.status).toBe(201);
     expect(createResponse.body).toHaveProperty('id');
@@ -51,14 +51,14 @@ describe('TK-071 / Guard 36: Flujo de Prueba de Creación de Usuario y Cambio Ob
     const createResponse = await request(app)
       .post('/api/v1/auth/users')
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ name: 'Juan Perez', role: 'KITCHEN_STAFF', pin: '1111' });
+      .send({ name: 'Juan Perez', operatorCode: 'JP-01', role: 'KITCHEN_STAFF', pin: '1111' });
 
-    const userId = createResponse.body.id;
+    const { operatorCode } = createResponse.body;
 
     // 2. Primer login con PIN asignado '1111'
     const loginResponse = await request(app)
       .post('/api/v1/auth/login-pin')
-      .send({ userId, pin: '1111' });
+      .send({ operatorCode, pin: '1111' });
 
     expect(loginResponse.status).toBe(200);
     expect(loginResponse.body.user.mustChangePin).toBe(true);
@@ -71,14 +71,14 @@ describe('TK-071 / Guard 36: Flujo de Prueba de Creación de Usuario y Cambio Ob
     const createResponse = await request(app)
       .post('/api/v1/auth/users')
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ name: 'Juan Perez', role: 'KITCHEN_STAFF', pin: '1111' });
+      .send({ name: 'Juan Perez', operatorCode: 'JP-01', role: 'KITCHEN_STAFF', pin: '1111' });
 
     const userId = createResponse.body.id;
 
-    // 2. Login inicial
+    // 2. Login inicial — con el código, que es la credencial del operario (US-051)
     const loginResponse = await request(app)
       .post('/api/v1/auth/login-pin')
-      .send({ userId, pin: '1111' });
+      .send({ operatorCode: createResponse.body.operatorCode, pin: '1111' });
 
     const userToken = loginResponse.body.accessToken;
 
@@ -97,14 +97,14 @@ describe('TK-071 / Guard 36: Flujo de Prueba de Creación de Usuario y Cambio Ob
     // 4. Verificar que el PIN anterior '1111' ya NO funciona
     const oldLoginResponse = await request(app)
       .post('/api/v1/auth/login-pin')
-      .send({ userId, pin: '1111' });
+      .send({ operatorCode: createResponse.body.operatorCode, pin: '1111' });
 
     expect(oldLoginResponse.status).toBe(401);
 
     // 5. Verificar que el nuevo PIN '5555' funciona y mustChangePin es false
     const newLoginResponse = await request(app)
       .post('/api/v1/auth/login-pin')
-      .send({ userId, pin: '5555' });
+      .send({ operatorCode: createResponse.body.operatorCode, pin: '5555' });
 
     expect(newLoginResponse.status).toBe(200);
     expect(newLoginResponse.body.user.mustChangePin).toBe(false);

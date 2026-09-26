@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: RestoStock API
   description: REST API specification for RestoStock real-time inventory and FEFO traceability system.
-  version: 7.2.1 # TK-166 / US-047: declara el bloque `tags` global que faltaba; sin cambios de forma ni de comportamiento. Prior: 7.2.0 = TK-165 / US-046: documenta POST /auth/change-pin, que existia en el codigo y no figuraba aqui. Aditivo: no cambia ningun comportamiento, publica uno que ya estaba. Prior: 7.1.0 = TK-159 / US-044 / ADR-009: consume y discard aceptan operationId (clave de idempotencia) y occurredAt (momento real), ambos opcionales — cambio aditivo, la tablet sin cola sigue siendo compatible. Prior: 7.0.0 = TK-129 / AUDIT-DEV-012 L-3: /settings/ai GET+PUT drop the inert replenishmentOn / anomalyAuditOn fields (no use case ever read them). oasdiff-confirmed removal of required response properties; deliberate. Single consumer is this repo's own frontend (TK-129-FE). Prior: 6.0.0 = TK-128 / US-035: RescueRecipeProposal.preventedWasteEstimate (physical quantity, meaningless — summed heterogeneous units, AUDIT-DEV-007 F-1) -> preventedWasteCost (nullable monetary string). oasdiff-confirmed breaking change, deliberate: the previous metric was wrong by construction. Single consumer is this monorepo's own frontend, updated in TK-128-FE. Prior: 5.0.0 = TK-108/ADR-004 (POST /kitchen/remanentes/{id}/consume requires reasonId).
+  version: 8.0.0 # TK-173 / US-051 / AUDIT-DEV-017 F-2: POST /auth/login-pin reemplaza `userId` (la clave interna, que ninguna pantalla mostraba jamas) por `operatorCode`, la credencial corta que el operario teclea; POST /auth/users exige `operatorCode` y responde 409 si ya esta en uso. Breaking change confirmado por oasdiff, deliberado: dar de alta a un operario producia una cuenta a la que nadie podia entrar. Unico consumidor es el frontend de este monorepo, actualizado en TK-173-FE. Prior: 7.2.1 = TK-166 / US-047: declara el bloque `tags` global que faltaba; sin cambios de forma ni de comportamiento. Prior: 7.2.0 = TK-165 / US-046: documenta POST /auth/change-pin, que existia en el codigo y no figuraba aqui. Aditivo: no cambia ningun comportamiento, publica uno que ya estaba. Prior: 7.1.0 = TK-159 / US-044 / ADR-009: consume y discard aceptan operationId (clave de idempotencia) y occurredAt (momento real), ambos opcionales — cambio aditivo, la tablet sin cola sigue siendo compatible. Prior: 7.0.0 = TK-129 / AUDIT-DEV-012 L-3: /settings/ai GET+PUT drop the inert replenishmentOn / anomalyAuditOn fields (no use case ever read them). oasdiff-confirmed removal of required response properties; deliberate. Single consumer is this repo's own frontend (TK-129-FE). Prior: 6.0.0 = TK-128 / US-035: RescueRecipeProposal.preventedWasteEstimate (physical quantity, meaningless — summed heterogeneous units, AUDIT-DEV-007 F-1) -> preventedWasteCost (nullable monetary string). oasdiff-confirmed breaking change, deliberate: the previous metric was wrong by construction. Single consumer is this monorepo's own frontend, updated in TK-128-FE. Prior: 5.0.0 = TK-108/ADR-004 (POST /kitchen/remanentes/{id}/consume requires reasonId).
 servers:
   - url: http://localhost:3000
     description: Local Development Server
@@ -50,7 +50,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AuthPinResponse'
         '400':
-          description: Input validation failed (userId/pin missing or malformed)
+          description: Input validation failed (operatorCode/pin missing or malformed)
           content:
             application/json:
               schema:
@@ -118,7 +118,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateUserResponse'
         '400':
-          description: Invalid name/role/pin
+          description: Invalid name/operatorCode/role/pin
           content:
             application/json:
               schema:
@@ -131,6 +131,15 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '403':
           description: Authenticated user does not have the ADMIN role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: >-
+            US-051/TK-173: the operatorCode is already taken. Emitted both by the
+            use case's fast-path read and by the real unique-index violation, so two
+            concurrent creations with the same code get identical treatment (Guard 39).
           content:
             application/json:
               schema:
@@ -1789,12 +1798,18 @@ components:
     AuthPinRequest:
       type: object
       required:
-        - userId
+        - operatorCode
         - pin
       properties:
-        userId:
+        operatorCode:
           type: string
-          example: "usr-maria-2"
+          description: >-
+            US-051/TK-173: código corto que el operario teclea en la terminal táctil.
+            A diferencia del alta, aquí NO se valida el formato: las filas anteriores a
+            US-051 llevan como código su identificador previo (`bootstrap-admin`, un
+            UUID) y ninguna credencial en circulación puede dejar de funcionar.
+            La resolución es insensible a mayúsculas y espacios.
+          example: "CG-01"
         pin:
           type: string
           pattern: '^\d{4,6}$'
@@ -1866,12 +1881,21 @@ components:
       type: object
       required:
         - name
+        - operatorCode
         - role
         - pin
       properties:
         name:
           type: string
           example: "Nuevo Operario"
+        operatorCode:
+          type: string
+          pattern: '^[A-Z0-9-]{2,12}$'
+          description: >-
+            US-051/TK-173: credencial de acceso que el administrador asigna. Se normaliza
+            (`trim` + mayúsculas) antes de persistir. Unicidad impuesta por el índice único
+            `User_operatorCode_key` de PostgreSQL (Guard 39); un duplicado responde 409.
+          example: "CG-01"
         role:
           type: string
           enum: [KITCHEN_STAFF, ADMIN]
@@ -1885,6 +1909,10 @@ components:
       properties:
         id:
           type: string
+          description: Clave interna. NO es una credencial — el operario entra con `operatorCode`.
+        operatorCode:
+          type: string
+          example: "CG-01"
         name:
           type: string
         role:

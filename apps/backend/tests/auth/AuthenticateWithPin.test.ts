@@ -27,7 +27,7 @@ describe('TK-002: Authenticate By PIN TDD Suite', () => {
     const app = createApp({ userRepository: userRepo, jwtSecret });
     const response = await request(app)
       .post('/api/v1/auth/login-pin')
-      .send({ userId: 'usr-carlos-1', pin: '1234' });
+      .send({ operatorCode: 'usr-carlos-1', pin: '1234' });
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('accessToken');
@@ -46,7 +46,7 @@ describe('TK-002: Authenticate By PIN TDD Suite', () => {
     const app = createApp({ userRepository: userRepo, jwtSecret });
     const response = await request(app)
       .post('/api/v1/auth/login-pin')
-      .send({ userId: 'usr-carlos-1', pin: '9999' });
+      .send({ operatorCode: 'usr-carlos-1', pin: '9999' });
 
     expect(response.status).toBe(401);
     expect(response.body).toHaveProperty('error', 'InvalidPinException');
@@ -60,13 +60,13 @@ describe('TK-002: Authenticate By PIN TDD Suite', () => {
     for (let i = 0; i < 5; i++) {
       await request(app)
         .post('/api/v1/auth/login-pin')
-        .send({ userId: 'usr-carlos-1', pin: '0000' });
+        .send({ operatorCode: 'usr-carlos-1', pin: '0000' });
     }
 
     // El sexto intento debe ser bloqueado con 403
     const response = await request(app)
       .post('/api/v1/auth/login-pin')
-      .send({ userId: 'usr-carlos-1', pin: '1234' });
+      .send({ operatorCode: 'usr-carlos-1', pin: '1234' });
 
     expect(response.status).toBe(403);
     expect(response.body).toHaveProperty('error', 'UserBlockedException');
@@ -78,7 +78,7 @@ describe('TK-002: Authenticate By PIN TDD Suite', () => {
 
     const response = await request(app)
       .post('/api/v1/auth/login-pin')
-      .send({ userId: 'usr-carlos-1', pin: 'abc' });
+      .send({ operatorCode: 'usr-carlos-1', pin: 'abc' });
 
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty('error', 'ValidationError');

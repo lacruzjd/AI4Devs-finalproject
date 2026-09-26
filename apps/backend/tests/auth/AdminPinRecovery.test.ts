@@ -142,7 +142,7 @@ describe('TK-077 / US-018: Recuperacion de PIN de Administrador por Email Token 
       // ORACULO LOGIN: el admin puede loguearse con el nuevo PIN 9876
       const loginResponse = await request(app)
         .post('/api/v1/auth/login-pin')
-        .send({ userId: 'usr-admin-1', pin: '9876' });
+        .send({ operatorCode: 'usr-admin-1', pin: '9876' });
 
       expect(loginResponse.status).toBe(200);
       expect(loginResponse.body).toHaveProperty('accessToken');

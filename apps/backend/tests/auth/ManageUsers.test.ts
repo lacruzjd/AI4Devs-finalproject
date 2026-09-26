@@ -28,7 +28,7 @@ describe('TK-049: Gestion Minima de Personal (crear/activar/desactivar operarios
       const response = await request(app)
         .post('/api/v1/auth/users')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ name: 'Nuevo Cocinero', role: 'KITCHEN_STAFF', pin: '4321' });
+        .send({ name: 'Nuevo Cocinero', operatorCode: 'NC-01', role: 'KITCHEN_STAFF', pin: '4321' });
 
       // ORACULO RED/RESPUESTA
       expect(response.status).toBe(201);
@@ -48,11 +48,11 @@ describe('TK-049: Gestion Minima de Personal (crear/activar/desactivar operarios
       const createResponse = await request(app)
         .post('/api/v1/auth/users')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ name: 'Nuevo Cocinero', role: 'KITCHEN_STAFF', pin: '9999' });
+        .send({ name: 'Nuevo Cocinero', operatorCode: 'NC-02', role: 'KITCHEN_STAFF', pin: '9999' });
 
       const loginResponse = await request(app)
         .post('/api/v1/auth/login-pin')
-        .send({ userId: createResponse.body.id, pin: '9999' });
+        .send({ operatorCode: createResponse.body.operatorCode, pin: '9999' });
 
       expect(loginResponse.status).toBe(200);
       expect(loginResponse.body).toHaveProperty('accessToken');
@@ -64,7 +64,7 @@ describe('TK-049: Gestion Minima de Personal (crear/activar/desactivar operarios
       const response = await request(app)
         .post('/api/v1/auth/users')
         .set('Authorization', `Bearer ${staffToken}`)
-        .send({ name: 'Intento No Autorizado', role: 'KITCHEN_STAFF', pin: '1111' });
+        .send({ name: 'Intento No Autorizado', operatorCode: 'NA-01', role: 'KITCHEN_STAFF', pin: '1111' });
 
       expect(response.status).toBe(403);
       expect(response.body).toHaveProperty('title', 'ForbiddenException');
@@ -75,7 +75,7 @@ describe('TK-049: Gestion Minima de Personal (crear/activar/desactivar operarios
 
       const response = await request(app)
         .post('/api/v1/auth/users')
-        .send({ name: 'Sin Token', role: 'KITCHEN_STAFF', pin: '1111' });
+        .send({ name: 'Sin Token', operatorCode: 'ST-01', role: 'KITCHEN_STAFF', pin: '1111' });
 
       expect(response.status).toBe(401);
     });
@@ -86,7 +86,7 @@ describe('TK-049: Gestion Minima de Personal (crear/activar/desactivar operarios
       const response = await request(app)
         .post('/api/v1/auth/users')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ name: 'PIN Invalido', role: 'KITCHEN_STAFF', pin: 'abc' });
+        .send({ name: 'PIN Invalido', operatorCode: 'PI-01', role: 'KITCHEN_STAFF', pin: 'abc' });
 
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('title', 'ValidationError');
@@ -155,7 +155,7 @@ describe('TK-049: Gestion Minima de Personal (crear/activar/desactivar operarios
       // ORACULO ESTADO: el login ahora falla para ese usuario
       const loginResponse = await request(app)
         .post('/api/v1/auth/login-pin')
-        .send({ userId: 'usr-to-block-1', pin: '5555' });
+        .send({ operatorCode: 'usr-to-block-1', pin: '5555' });
       expect(loginResponse.status).toBe(403);
       expect(loginResponse.body).toHaveProperty('title', 'UserBlockedException');
     });
@@ -176,7 +176,7 @@ describe('TK-049: Gestion Minima de Personal (crear/activar/desactivar operarios
 
       const loginResponse = await request(app)
         .post('/api/v1/auth/login-pin')
-        .send({ userId: 'usr-to-activate-1', pin: '6666' });
+        .send({ operatorCode: 'usr-to-activate-1', pin: '6666' });
       expect(loginResponse.status).toBe(200);
     });
 

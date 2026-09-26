@@ -2,6 +2,7 @@ import { IUserRepository } from '../../../domain/auth/repositories/IUserReposito
 
 export interface ListUsersItemDTO {
   id: string;
+  operatorCode: string;
   name: string;
   role: string;
   status: string;
@@ -14,6 +15,7 @@ export class ListUsersUseCase {
     const users = await this.userRepository.findAll();
     return users.map((user) => ({
       id: user.id,
+      operatorCode: user.operatorCode,
       name: user.name,
       role: user.role,
       status: user.status,

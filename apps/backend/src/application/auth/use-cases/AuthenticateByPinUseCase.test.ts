@@ -30,7 +30,7 @@ describe('TK-121 (US-015 Escenario 2): el JWT de login incluye la lista de permi
   it('emite los 5 permisos de KITCHEN_STAFF, sin los que no tiene', async () => {
     const useCase = new AuthenticateByPinUseCase(userRepo, SECRET, roleRepo);
 
-    const result = await useCase.execute({ userId: 'usr-cocinero', pin: '4321' });
+    const result = await useCase.execute({ operatorCode: 'usr-cocinero', pin: '4321' });
     const payload = decode(result.accessToken);
 
     expect(payload.permissions).toEqual(
@@ -44,7 +44,7 @@ describe('TK-121 (US-015 Escenario 2): el JWT de login incluye la lista de permi
   it('ADMIN no se trata como caso especial: emite sus 8 permisos reales', async () => {
     const useCase = new AuthenticateByPinUseCase(userRepo, SECRET, roleRepo);
 
-    const payload = decode((await useCase.execute({ userId: 'usr-admin', pin: '1234' })).accessToken);
+    const payload = decode((await useCase.execute({ operatorCode: 'usr-admin', pin: '1234' })).accessToken);
 
     expect(payload.permissions).toHaveLength(8);
     expect(payload.permissions).toContain('roles:manage');
@@ -53,7 +53,7 @@ describe('TK-121 (US-015 Escenario 2): el JWT de login incluye la lista de permi
   it('sin repositorio de roles inyectado, el login sigue funcionando y omite permissions (no lo fabrica vacío)', async () => {
     const useCase = new AuthenticateByPinUseCase(userRepo, SECRET);
 
-    const payload = decode((await useCase.execute({ userId: 'usr-cocinero', pin: '4321' })).accessToken);
+    const payload = decode((await useCase.execute({ operatorCode: 'usr-cocinero', pin: '4321' })).accessToken);
 
     expect(payload.role).toBe('KITCHEN_STAFF');
     expect(payload.permissions).toBeUndefined();
@@ -63,7 +63,7 @@ describe('TK-121 (US-015 Escenario 2): el JWT de login incluye la lista de permi
     userRepo.seedUser(buildUser('usr-raro', 'Rol Huérfano', 'ROL_INEXISTENTE', '9999'));
     const useCase = new AuthenticateByPinUseCase(userRepo, SECRET, roleRepo);
 
-    const payload = decode((await useCase.execute({ userId: 'usr-raro', pin: '9999' })).accessToken);
+    const payload = decode((await useCase.execute({ operatorCode: 'usr-raro', pin: '9999' })).accessToken);
 
     expect(payload.permissions).toEqual([]);
   });
