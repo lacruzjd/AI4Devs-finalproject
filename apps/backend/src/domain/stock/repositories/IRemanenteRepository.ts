@@ -19,6 +19,12 @@ export interface StockMovementRecord {
   // Opcional: Prisma lo genera solo (@default(now())); InMemoryStockRepository lo completa
   // si no viene seteado (TK-050, trazabilidad de movimientos).
   createdAt?: Date;
+  /** TK-159 / ADR-009: clave de idempotencia del cliente. Sólo en operaciones encoladas. */
+  operationId?: string;
+  /** TK-159 / ADR-009: momento real en cocina, distinto de `createdAt` (momento de recepción). */
+  occurredAt?: Date;
+  /** TK-159: el servidor acotó un momento imposible y lo deja registrado. */
+  occurredAtAdjusted?: boolean;
 }
 
 export interface IRemanenteRepository {
@@ -26,6 +32,11 @@ export interface IRemanenteRepository {
   findActiveRemanentesByInsumoId(insumoId: string): Promise<Remanente[]>;
   saveRemanente(remanente: Remanente): Promise<void>;
   recordMovement(movement: StockMovementRecord): Promise<void>;
+  /**
+   * TK-159 / ADR-009: movimiento ya aplicado con esa clave de idempotencia, si existe.
+   * Reintentar la sincronización de una cola es comportamiento normal, no excepcional.
+   */
+  findMovementByOperationId(operationId: string): Promise<StockMovementRecord | null>;
   /**
    * US-026 / Invariante 5: `true` si existe algún `Remanente` `ACTIVE` en el área de
    * cocina indicada. Se comprueba por FK (`storageLocationId`) y, para remanentes

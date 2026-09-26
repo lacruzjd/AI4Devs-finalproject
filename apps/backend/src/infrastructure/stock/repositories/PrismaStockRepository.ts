@@ -4,8 +4,10 @@ import { Remanente, RemanenteStatusType } from '../../../domain/stock/entities/R
 import { DecimalQuantity } from '../../../domain/stock/value-objects/DecimalQuantity.js';
 import { IInsumoRepository } from '../../../domain/stock/repositories/IInsumoRepository.js';
 import { IRemanenteRepository, StockMovementRecord } from '../../../domain/stock/repositories/IRemanenteRepository.js';
+import { toMovementRow, toMovementRecord } from './stockMovementMapper.js';
 import {
   AdhocConsumptionUnitOfWork,
+  RemanenteWriteUnitOfWork,
   ExtractionUnitOfWork,
   IStockUnitOfWork,
   PreparationCloseUnitOfWork,
@@ -217,6 +219,22 @@ export class PrismaStockRepository implements IInsumoRepository, IRemanenteRepos
     });
   }
 
+  /**
+   * US-048 / TK-168: frontera transaccional del consumo y el descarte de un remanente.
+   * La comprobación de idempotencia entra dentro para que ver y escribir ocurran sobre
+   * el mismo estado (Guarda 39).
+   */
+  public async runRemanenteWrite<T>(work: (uow: RemanenteWriteUnitOfWork) => Promise<T>): Promise<T> {
+    return this.prisma.$transaction(async (tx) => {
+      const uow: RemanenteWriteUnitOfWork = {
+        saveRemanente: (remanente) => this.saveRemanenteOn(tx, remanente),
+        recordMovement: (movement) => this.recordMovementOn(tx, movement),
+        findMovementByOperationId: (operationId) => this.findMovementByOperationIdOn(tx, operationId),
+      };
+      return work(uow);
+    });
+  }
+
   /** `ACTIVE` únicamente, orden FEFO — filtro adicional según el llamador (por insumo o por preparación). */
   private async findActiveRemanentesOn(
     client: StockDbClient,
@@ -336,22 +354,35 @@ export class PrismaStockRepository implements IInsumoRepository, IRemanenteRepos
   }
 
   private async recordMovementOn(client: StockDbClient, movement: StockMovementRecord): Promise<void> {
-    await client.stockMovement.create({
-      data: {
-        id: movement.id,
-        insumoId: movement.insumoId,
-        type: movement.type,
-        quantity: movement.quantity,
-        fromLoc: movement.fromLoc,
-        fromStorageLocationId: movement.fromStorageLocationId,
-        toLoc: movement.toLoc,
-        operatorId: movement.operatorId,
-        purpose: movement.purpose,
-        reason: movement.reason,
-        reasonId: movement.reasonId,
-        recipeId: movement.recipeId,
-      },
-    });
+    try {
+      await this.insertMovementOn(client, movement);
+    } catch (error) {
+      // TK-159 / ADR-009: dos sincronizaciones simultáneas de la misma operación encolada
+      // pueden pasar ambas la comprobación previa; la que pierde la carrera choca contra el
+      // índice único. Eso es exactamente lo que el índice existe para impedir, así que se
+      // trata como lo que es —un reintento ya aplicado— y no como un error del operario.
+      if (movement.operationId && isUniqueViolationOn(error, 'operationId')) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  private async insertMovementOn(client: StockDbClient, movement: StockMovementRecord): Promise<void> {
+    await client.stockMovement.create({ data: toMovementRow(movement) });
+  }
+
+  /** TK-159 / ADR-009: movimiento ya aplicado con esa clave de idempotencia, si existe. */
+  public async findMovementByOperationId(operationId: string): Promise<StockMovementRecord | null> {
+    return this.findMovementByOperationIdOn(this.prisma, operationId);
+  }
+
+  private async findMovementByOperationIdOn(
+    client: StockDbClient,
+    operationId: string
+  ): Promise<StockMovementRecord | null> {
+    const found = await client.stockMovement.findUnique({ where: { operationId } });
+    return found ? toMovementRecord(found) : null;
   }
 
   private toRemanente(raw: {
@@ -383,4 +414,16 @@ export class PrismaStockRepository implements IInsumoRepository, IRemanenteRepos
       terminalAt: raw.terminalAt ?? undefined,
     });
   }
+}
+
+/**
+ * TK-159: violación de restricción única de Prisma (`P2002`) sobre un campo concreto.
+ * Se comprueba el campo y no solo el código, para no tragarse una colisión distinta.
+ */
+function isUniqueViolationOn(error: unknown, field: string): boolean {
+  const candidate = error as { code?: string; meta?: { target?: unknown } } | null;
+  if (!candidate || candidate.code !== 'P2002') return false;
+  const target = candidate.meta?.target;
+  if (Array.isArray(target)) return target.includes(field);
+  return typeof target === 'string' && target.includes(field);
 }

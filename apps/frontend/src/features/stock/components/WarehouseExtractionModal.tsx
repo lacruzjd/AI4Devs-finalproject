@@ -8,6 +8,7 @@ import { ModalFooterActions } from '../../../shared/components/ModalFooterAction
 import { ErrorBanner } from '../../../shared/components/ErrorBanner.js';
 import { BarcodeScannerButton } from '../../../shared/components/BarcodeScannerButton.js';
 import { mapToUserFriendlyError } from '../../../shared/utils/errorMessageMapper.js';
+import { resolveUnitOfMeasure } from './unitOfMeasure.js';
 import { DecimalQuantity } from '../../../shared/domain/DecimalQuantity.js';
 import {
   RecipePreparationsService,
@@ -361,14 +362,6 @@ const DuplicateRemanenteWarning: React.FC<{ activeRemanentes: RemanenteFEFOItem[
     </div>
   );
 };
-
-const UNIT_BY_INSUMO_ID: Record<string, string> = { 'ins-2': 'L', 'ins-3': 'UNITS' };
-
-function resolveUnitOfMeasure(selectedInsumoId: string, insumos: Insumo[]): string {
-  const found = insumos.find((i) => i.id === selectedInsumoId);
-  if (found?.unit) return found.unit;
-  return UNIT_BY_INSUMO_ID[selectedInsumoId] ?? 'KG';
-}
 
 function buildLocalRemanenteFromExtraction(
   selectedInsumoId: string,

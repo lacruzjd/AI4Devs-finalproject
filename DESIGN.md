@@ -1,6 +1,6 @@
 ---
 name: RestoStock UI Design System
-version: "4.2.0"
+version: "4.3.0"
 description: "Sistema FEFO — turno Dia (comanda de papel) / Noche (pizarra de turno), con interruptor persistido por dispositivo. Reemplaza 'Señal Industrial' v3.0 como unico tema. v4.1.0 anade la lamina Aplicacion (shell de rutas con barra lateral comanda, boton de accion circular, chip de urgencia de 4 niveles, panel Estado de 3 cubetas) — US-023. v4.2.0: index.css pasa a ser manifiesto de @import a partials (apps/frontend/src/styles/), sin cambios de tokens. Ver docs/02_architecture_design/05_ui_ux_design_system.md."
 colors:
   # Alias plano requerido por herramientas que esperan un esquema de un solo tema
@@ -226,6 +226,25 @@ Formaliza la tercera lámina de la propuesta Sistema FEFO (el artefacto de dise�
 6. **Panel Estado de 3 cubetas + leyenda numérica:** El bloque de métricas del tablero pasa de 2 tarjetas a 3 cubetas de severidad (`Vigentes` / `Vencimiento Próximo` / `Críticos Hoy`) alineadas con los 3 segmentos de la `FEFOInventoryHealthBar`, que gana una leyenda numérica explícita (`58% vigente (7)`).
 
 > **Contraste (Guard 29 + decisión abierta #3 del artefacto):** todos los tokens nuevos se auditan a AAA 7:1 en ambos turnos con verificador real de luminancia relativa WCAG en `TK-088-FE` (Skill `SK-21`), no por estimación.
+
+---
+
+## 🧾 v4.3.0 — Tramo de Teléfono (US-045 / ADR-008)
+
+La superficie objetivo del producto es **Web y sólo Web** (`ADR-008`): el mismo cliente en la tablet de cocina y en el teléfono personal del operario, sin cliente nativo.
+
+Tramos: `xs` (`<480px`, teléfono), `sm` (`480–767px`), `md` (`768px`), `lg` (`1024px`), `xl` (`1280px`).
+
+Reglas obligatorias en `xs`, aplicables al tablero de cocina, bodega e historial de movimientos:
+
+- Una ficha por fila, nunca rejilla.
+- Modales a hoja completa, no ventana centrada.
+- El desplazamiento horizontal vive dentro del contenedor que lo necesita; el cuerpo de la página nunca se desplaza en horizontal.
+- Un bloque sin contenido no ocupa alto.
+- La navegación principal permanece en la franja superior.
+- **El objetivo táctil de 48 × 48 px rige en todos los tramos.** Un tramo más estrecho reduce densidad, nunca el objetivo táctil.
+
+Corrección de deriva documental: la matriz previa declaraba una franja superior de 44px que el código nunca fijó; `AppShell.module.css` no establece esa altura y conserva los mínimos de 48px.
 
 ---
 

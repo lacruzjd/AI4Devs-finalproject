@@ -75,6 +75,7 @@ RestoStock tiene como propósito eliminar las mermas invisibles y desperdicios d
 *   **Recuperación de PIN por Email:** el Administrador solicita el reseteo de su PIN por correo verificado y recibe un enlace con token de un solo uso y expiración de 15 minutos.
 *   **Trazabilidad de Preparación de Recetas y Mermas** (`US-026`–`US-029`): extraer insumos "para una receta" abre una preparación que agrupa la tanda; al cerrarla se declaran porciones producidas, sobrante (con ubicación) y merma (con motivo), y el reporte cruza consumo real vs. teórico por receta.
 *   **Catálogo Administrable de Motivos de Consumo:** el consumo manual y las varianzas negativas de conciliación exigen elegir un motivo de una lista consistente y mantenible, en vez de texto libre.
+*   **Operación desde el Teléfono del Personal con Cola sin Conexión** (`US-044` / `ADR-008` / `ADR-009`): la aplicación se instala en el dispositivo personal del operario; si la red se cae, los consumos y descartes se encolan localmente y se sincronizan al volver la conexión. Cuando dos operarios consumen a la vez más de lo disponible, ambas operaciones se aceptan y la diferencia aflora como varianza con motivo en la conciliación del turno, en lugar de perderse.
 *   **Escaneo de Código de Barras:** al registrar una extracción, el operario escanea el código de barras del insumo con la cámara de la tablet para seleccionarlo sin buscarlo por nombre.
 *   **Registro de Temperatura de Refrigeración:** al iniciar el turno se registra la temperatura leída en cada refrigerador/congelador, como evidencia de cumplimiento de seguridad alimentaria.
 *   **Reportes de Costeo y Rotación:** costo unitario por insumo y valor monetario de las mermas en el dashboard; indicador TRR real (tiempo medio de rotación de remanentes) contra el objetivo de 72 h; advertencia de apertura duplicada al extraer un insumo ya abierto en cocina.
@@ -117,11 +118,15 @@ La aplicación sigue el **Sistema de Diseño FEFO** (`US-022`/`US-023`, ver [`DE
     cp apps/backend/.env.example apps/backend/.env
     cp apps/frontend/.env.example apps/frontend/.env
     ```
-4.  **Ejecutar Pruebas Automatizadas:**
+4.  **Generar el cliente de Prisma** (obligatorio antes de probar o compilar — sin este paso la suite de composición del backend falla por una razón que no es suya):
+    ```bash
+    pnpm --filter @restostock/backend exec prisma generate --schema=prisma/schema.prisma
+    ```
+5.  **Ejecutar Pruebas Automatizadas:**
     ```bash
     pnpm test
     ```
-5.  **Compilación del Proyecto:**
+6.  **Compilación del Proyecto:**
     ```bash
     pnpm build
     ```
@@ -306,7 +311,7 @@ El `nginx` que sirve el SPA hace de proxy inverso hacia el backend (`/api/`), pr
 ### **2.6. Tests y Gobernanza Agéntica:**
 El proyecto sigue la directiva de **Desarrollo Guiado por Pruebas (TDD)** y **Gobernanza Agéntica v2.15.0**:
 *   Se prohíbe escribir código de producción sin un test unitario/integración que falle previamente (`RED` a `GREEN`).
-*   Suite completa verificada: **830/830 tests al 100 % de éxito (587 backend + 243 frontend)**, ejecutados en cada corrida de CI.
+*   Suite completa verificada: **898 tests al 100 % de éxito (608 backend + 290 frontend)**, ejecutados en cada corrida de CI. El recuento exacto cambia con cada ticket; la cifra vigente es la que reporta `pnpm test`.
 *   Patrón de **3 Oráculos** (UI, RED, ESTADO) para aserciones deterministas en Playwright E2E y pruebas unitarias/integración.
 *   Uso de **Fake Repositories** en memoria para pruebas de la capa de aplicación con sincronización dinámica entre modelos de lectura y escritura.
 *   **Mutation testing (Stryker) — alcance real, declarado sin adornos ([`TK-138`](docs/05_agile_planning/12_tickets/shared/backend/TK-138.md)):** el gate corre **acotado al diff** y aplica el umbral del 70 % **por archivo**, nunca agregado — agrupar dejaría que un archivo con tests fuertes compense estadísticamente a uno débil, algo confirmado en vivo en `AUDIT-DEV-002`. Funciona igual en local (archivos sin commitear) y en CI (`git diff <base>...HEAD`), con **una sola implementación** para ambos.
@@ -457,7 +462,11 @@ erDiagram
 
 ## 4. Especificación de la API
 
-La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan los 4 endpoints críticos de negocio del MVP original (el contrato completo, incluyendo los endpoints añadidos en la entrega 2, vive en [`docs/03_persistence_and_api/openapi.yaml`](docs/03_persistence_and_api/openapi.yaml)):
+La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan los endpoints críticos de negocio a modo de guía rápida.
+
+> **La fuente de verdad es [`docs/03_persistence_and_api/openapi.yaml`](docs/03_persistence_and_api/openapi.yaml), no esta sección.** Ahí viven el contrato completo, los campos obligatorios y los códigos de error de cada operación, y es lo que se valida en integración continua. Esta guía se resume a partir de él: ante cualquier discrepancia, manda el contrato.
+>
+> Corregido en `TK-166` (`US-047`) tras la revisión externa `EXT-002`: una ruta apuntaba a `/catalog/recipes`, que devuelve 404, y tres ejemplos omitían campos obligatorios o usaban un campo inexistente. Se corrigieron uno a uno contra el contrato.
 
 ### **4.1. POST `/api/v1/auth/login-pin` (Autenticación)**
 *   **Propósito:** Valida el PIN de 4-6 dígitos de un operario y genera un token JWT temporal.
@@ -488,7 +497,8 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
     {
       "insumoId": "e2298c5d-6c17-4886-9a2d-4f1b80e8efea",
       "quantity": "2.0000",
-      "toLocation": "KITCHEN_FRIDGE"
+      "fromStorageLocationId": "9d2b7c41-5ea3-4f18-8b77-1c0d9e4a6b52",
+      "toStorageLocationId": "3f7a1e58-64bc-4d09-9a2e-7b5c8d1f0342"
     }
     ```
 *   **Response Success (`201 Created`):**
@@ -611,14 +621,14 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 *   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
 *   **Request Body** (`unitOfMeasure` es lista cerrada: `KG` | `L` | `UNITS`):
     ```json
-    { "name": "Harina 000", "unitOfMeasure": "KG" }
+    { "name": "Harina 000", "unitOfMeasure": "KG", "storageLocationId": "9d2b7c41-5ea3-4f18-8b77-1c0d9e4a6b52" }
     ```
 *   **Response Success (`201 Created`):**
     ```json
     { "id": "f3a1c2e0-1234-4abc-9def-0123456789ab", "name": "Harina 000", "unitOfMeasure": "KG", "warehouseStock": "0.000" }
     ```
 
-### **4.9. POST `/api/v1/catalog/recipes` (Alta de Receta — Rol `ADMIN`)**
+### **4.9. POST `/api/v1/recipes` (Alta de Receta — Rol `ADMIN`)**
 *   **Propósito:** Crea una receta nueva con sus ingredientes, validando que cada `insumoId` exista en el catálogo (`GET /api/v1/stock/insumos`).
 *   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
 *   **Request Body:**
@@ -640,7 +650,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 *   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
 *   **Request Body:**
     ```json
-    { "quantity": 20 }
+    { "quantity": 20, "storageLocationId": "9d2b7c41-5ea3-4f18-8b77-1c0d9e4a6b52" }
     ```
 *   **Response Success (`200 OK`):**
     ```json
@@ -652,7 +662,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 
 ## 5. Historias de Usuario
 
-Se detallan a continuación las 13 historias de usuario críticas del MVP (§5.1–5.13). El desarrollo posterior (Entrega Final) añadió otras 24, resumidas en §5.14. Todas las fichas completas están en el [Índice de Historias de Usuario](docs/05_agile_planning/11_user_stories/indice_user_stories.md):
+Se detallan a continuación las 13 historias de usuario críticas del MVP (§5.1–5.13), y §5.14 resume las que añadió el desarrollo posterior. **Esta sección es una selección representativa, no el listado completo:** el conjunto vigente —que sigue creciendo— vive en el [Índice de Historias de Usuario](docs/05_agile_planning/11_user_stories/indice_user_stories.md), que es la fuente. Aquí no se repite un recuento porque caducaría con la siguiente historia:
 
 ### **5.1. US-001: Autenticación por PIN del Personal de Cocina**
 *   **Formato de Negocio:** Como operario de cocina (Staff), quiero autenticarme en la terminal táctil ingresando mi PIN personal de 4 dígitos, para registrar mis movimientos de insumos y consumos de forma rápida y segura sin interrumpir el ritmo del servicio.
@@ -786,7 +796,9 @@ Las 13 historias anteriores son el núcleo del MVP (Entregas 1 y 2). El desarrol
 
 ## 6. Tickets de Trabajo
 
-El backlog técnico y funcional (disponible en el [Índice de Tickets de Trabajo](docs/05_agile_planning/12_tickets/indice_tickets.md)) contiene las especificaciones exactas para el desarrollo de cada sprint, organizados en subcarpetas por módulo/epic (ej: `12_tickets/{modulo}/backend/` y `12_tickets/{modulo}/frontend/`):
+El backlog técnico y funcional contiene las especificaciones exactas para el desarrollo de cada sprint, organizado en subcarpetas por módulo/epic (ej: `12_tickets/{modulo}/backend/` y `12_tickets/{modulo}/frontend/`).
+
+**Lo que sigue es una selección de los tickets más representativos, no el backlog completo.** El listado vigente y completo está en el [Índice de Tickets de Trabajo](docs/05_agile_planning/12_tickets/indice_tickets.md), que es la fuente; esta sección recoge los que mejor ilustran el recorrido del proyecto:
 
 ### ⚙️ 6.1. Tickets de Backend (en subcarpetas `docs/05_agile_planning/12_tickets/{modulo}/backend/`)
 

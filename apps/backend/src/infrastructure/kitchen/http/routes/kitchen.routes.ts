@@ -59,7 +59,7 @@ function buildPreparationCloseUseCases(deps: PreparationCloseDeps): {
 // conciliación exigen un motivo del mismo catálogo — sin él tampoco se puede montar
 // el caso de uso correspondiente (evita un 500 en runtime en vez de un 4xx claro).
 function buildReasonDependentUseCases(
-  remanenteRepository: IRemanenteRepository | undefined,
+  remanenteRepository: (IRemanenteRepository & IStockUnitOfWork) | undefined,
   remanenteQueryRepository: IRemanenteQueryRepository,
   reconciliationRepo: IShiftReconciliationRepository,
   consumptionReasonRepository: IConsumptionReasonRepository | undefined
@@ -68,7 +68,7 @@ function buildReasonDependentUseCases(
     return {};
   }
   return {
-    consume: new ConsumeRemanenteUseCase(remanenteRepository, consumptionReasonRepository),
+    consume: new ConsumeRemanenteUseCase(remanenteRepository, consumptionReasonRepository, reconciliationRepo),
     reconcile: new PerformShiftReconciliationUseCase(
       remanenteRepository,
       remanenteQueryRepository,
@@ -94,7 +94,7 @@ function buildRecipeAvailabilityUseCase(
 
 function buildKitchenController(
   remanenteQueryRepository: IRemanenteQueryRepository,
-  remanenteRepository?: IRemanenteRepository & Partial<IInsumoRepository>,
+  remanenteRepository?: IRemanenteRepository & IStockUnitOfWork & Partial<IInsumoRepository>,
   recipeRepository?: IRecipeRepository,
   reconciliationRepository?: IShiftReconciliationRepository,
   recipePreparationRepository?: IRecipePreparationRepository,
@@ -134,7 +134,7 @@ function buildKitchenController(
 }
 
 interface KitchenRouteDeps {
-  remanenteRepository?: IRemanenteRepository & Partial<IInsumoRepository>;
+  remanenteRepository?: IRemanenteRepository & IStockUnitOfWork & Partial<IInsumoRepository>;
   recipeRepository?: IRecipeRepository;
   recipePreparationRepository?: IRecipePreparationRepository;
   stockUnitOfWork?: IStockUnitOfWork;
@@ -184,7 +184,7 @@ function mountMutationRoutes(router: Router, controller: KitchenController, guar
 
 export function createKitchenRouter(
   remanenteQueryRepository: IRemanenteQueryRepository,
-  remanenteRepository?: IRemanenteRepository & Partial<IInsumoRepository>,
+  remanenteRepository?: IRemanenteRepository & IStockUnitOfWork & Partial<IInsumoRepository>,
   recipeRepository?: IRecipeRepository,
   reconciliationRepository?: IShiftReconciliationRepository,
   isAuthRequired = true,

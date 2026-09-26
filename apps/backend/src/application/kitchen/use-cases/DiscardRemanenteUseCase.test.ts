@@ -112,4 +112,20 @@ describe('TK-006: Waste and Discard Recording TDD Suite', () => {
     const ids = stockRepo.movements.map((m) => m.id);
     expect(new Set(ids).size).toBe(2);
   });
+  // TK-159 / US-044 / ADR-009: el descarte también entra en la cola sin conexión.
+  it('TK-159: reenviar la misma clave de idempotencia no vuelve a descartar', async () => {
+    // 1. ARRANGE
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: queryRepo, requireAuth: false });
+    const body = { reason: 'EXPIRATION', operationId: 'op-descarte-1' };
+
+    // 2. ACT: la cola sincroniza y el reintento reenvia la misma operacion
+    const first = await request(app).post('/api/v1/kitchen/remanentes/rem-mozzarella-discard/discard').send(body);
+    const retry = await request(app).post('/api/v1/kitchen/remanentes/rem-mozzarella-discard/discard').send(body);
+
+    // 3. ASSERT — el segundo envio no genera un segundo movimiento de merma
+    expect(first.status).toBe(200);
+    expect(retry.status).toBe(200);
+    expect(retry.body.discardedQuantity).toBe(first.body.discardedQuantity);
+    expect(stockRepo.movements.filter((m) => m.operationId === 'op-descarte-1')).toHaveLength(1);
+  });
 });

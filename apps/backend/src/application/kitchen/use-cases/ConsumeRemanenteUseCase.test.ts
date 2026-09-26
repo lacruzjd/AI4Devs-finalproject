@@ -4,6 +4,8 @@ import { createApp } from '../../../infrastructure/http/app.js';
 import { InMemoryStockRepository } from '../../../infrastructure/stock/repositories/InMemoryStockRepository.js';
 import { InMemoryRemanenteQueryRepository } from '../../../infrastructure/kitchen/repositories/InMemoryRemanenteQueryRepository.js';
 import { InMemoryConsumptionReasonRepository } from '../../../infrastructure/kitchen/repositories/InMemoryConsumptionReasonRepository.js';
+import { InMemoryShiftReconciliationRepository } from '../../../infrastructure/kitchen/repositories/InMemoryShiftReconciliationRepository.js';
+import { ShiftReconciliation } from '../../../domain/kitchen/entities/ShiftReconciliation.js';
 import { Remanente } from '../../../domain/stock/entities/Remanente.js';
 import { DecimalQuantity } from '../../../domain/stock/value-objects/DecimalQuantity.js';
 
@@ -219,5 +221,173 @@ describe('TK-005: Partial Remanente Consumption TDD Suite', () => {
       expect(stockRepo.movements[0].reasonId).toBe('reason-seed-1');
       expect(stockRepo.movements[0].reason).toBeUndefined();
     });
+  });
+  // ---------------------------------------------------------------------------
+  // TK-159 / US-044 / ADR-009: idempotencia y momento real de las operaciones
+  // encoladas sin conexion. Reintentar una sincronizacion es comportamiento normal
+  // de una cola, no un caso raro.
+  // ---------------------------------------------------------------------------
+
+  it('TK-159: reenviar la misma clave de idempotencia no vuelve a descontar', async () => {
+    // 1. ARRANGE
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+    const body = { quantity: '0.250', reasonId: 'reason-seed-1', operationId: 'op-cola-1' };
+
+    // 2. ACT: la cola sincroniza y el reintento reenvia la misma operacion
+    const first = await request(app).post('/api/v1/kitchen/remanentes/rem-salsa-1/consume').send(body);
+    const retry = await request(app).post('/api/v1/kitchen/remanentes/rem-salsa-1/consume').send(body);
+
+    // 3. ASSERT — ORACULO ESTADO: se descuenta una sola vez
+    expect(first.status).toBe(200);
+    expect(retry.status).toBe(200);
+    const remanente = await stockRepo.findRemanenteById('rem-salsa-1');
+    expect(remanente?.currentQuantity.toString()).toBe('1.500');
+
+    // ORACULO RESPUESTA: el reintento devuelve lo mismo que la primera vez
+    expect(retry.body.remainingQuantity).toBe(first.body.remainingQuantity);
+
+    // ORACULO LEDGER: un unico movimiento con esa clave
+    expect(stockRepo.movements.filter((m) => m.operationId === 'op-cola-1')).toHaveLength(1);
+  });
+
+  it('TK-159: el movimiento conserva el momento real en que ocurrio en cocina', async () => {
+    // 1. ARRANGE: la operacion ocurrio hace dos horas y se sincroniza ahora
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+    const occurredAt = new Date(Date.now() - 2 * 60 * 60 * 1000);
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '0.250', reasonId: 'reason-seed-1', operationId: 'op-cola-2', occurredAt: occurredAt.toISOString() });
+
+    // 3. ASSERT: el ledger guarda el momento real, no el de recepcion
+    expect(response.status).toBe(200);
+    const movement = stockRepo.movements.find((m) => m.operationId === 'op-cola-2');
+    expect(movement?.occurredAt?.toISOString()).toBe(occurredAt.toISOString());
+    expect(movement?.occurredAtAdjusted).toBe(false);
+  });
+
+  it('TK-159: un momento imposible se acota y el movimiento queda marcado como corregido', async () => {
+    // 1. ARRANGE: el reloj del dispositivo va adelantado un dia
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+    const enElFuturo = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '0.250', reasonId: 'reason-seed-1', operationId: 'op-cola-3', occurredAt: enElFuturo.toISOString() });
+
+    // 3. ASSERT: se aplica igual, con el momento acotado y constancia de la correccion
+    expect(response.status).toBe(200);
+    const movement = stockRepo.movements.find((m) => m.operationId === 'op-cola-3');
+    expect(movement?.occurredAtAdjusted).toBe(true);
+    expect(movement!.occurredAt!.getTime()).toBeLessThanOrEqual(Date.now());
+  });
+  // ---------------------------------------------------------------------------
+  // TK-160 / US-044 / ADR-009: la operacion encolada se acepta siempre. Si bajaria
+  // de cero, se acota y la diferencia se registra como varianza con motivo.
+  // ---------------------------------------------------------------------------
+
+  it('TK-160: un consumo diferido que excede lo disponible se acota a cero y registra la varianza', async () => {
+    // 1. ARRANGE: el remanente tiene 1.750 y la cola trae un consumo de 2.000
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '2.000', reasonId: 'reason-seed-1', operationId: 'op-exceso-1' });
+
+    // 3. ASSERT — ORACULO INV-1: nunca negativo, se acota a cero
+    expect(response.status).toBe(200);
+    const remanente = await stockRepo.findRemanenteById('rem-salsa-1');
+    expect(remanente?.currentQuantity.toString()).toBe('0.000');
+    expect(remanente?.status).toBe('EXHAUSTED');
+
+    // ORACULO LEDGER: el consumo real y la varianza son dos movimientos distinguibles
+    const consumo = stockRepo.movements.find((m) => m.operationId === 'op-exceso-1');
+    expect(consumo?.quantity).toBe('1.750');
+    const varianza = stockRepo.movements.find((m) => m.type === 'DEFERRED_SYNC_VARIANCE');
+    expect(varianza?.quantity).toBe('0.250');
+    expect(varianza?.reasonId).toBe('reason-seed-1');
+  });
+
+  it('TK-160: una operacion cuyo turno ya se concilio se rechaza sin tocar el remanente', async () => {
+    // 1. ARRANGE: el turno de la fecha de la operacion ya tiene conciliacion cerrada
+    const ocurrio = new Date(Date.now() - 26 * 60 * 60 * 1000); // ayer
+    const reconRepo = new InMemoryShiftReconciliationRepository();
+    await reconRepo.save(
+      new ShiftReconciliation({ id: 'rec-ayer', shiftDate: ocurrio, operatorId: 'op-1', items: [] })
+    );
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({
+      stockRepository: stockRepo,
+      remanenteQueryRepository: connectedQueryRepo,
+      reconciliationRepository: reconRepo,
+      requireAuth: false,
+    });
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '0.250', reasonId: 'reason-seed-1', operationId: 'op-tarde-1', occurredAt: ocurrio.toISOString() });
+
+    // 3. ASSERT: un cierre firmado no se reabre en silencio
+    expect(response.status).toBe(409);
+    const untouched = await stockRepo.findRemanenteById('rem-salsa-1');
+    expect(untouched?.currentQuantity.toString()).toBe('1.750');
+    expect(stockRepo.movements.filter((m) => m.operationId === 'op-tarde-1')).toHaveLength(0);
+  });
+
+  it('TK-160: un consumo inmediato que excede sigue rechazandose con 422 (sin regresion)', async () => {
+    // 1. ARRANGE: sin operationId no es una operacion diferida
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '2.000', reasonId: 'reason-seed-1' });
+
+    // 3. ASSERT: la varianza es para lo que ya ocurrio sin red, no para un error en pantalla
+    expect(response.status).toBe(422);
+    const untouched = await stockRepo.findRemanenteById('rem-salsa-1');
+    expect(untouched?.currentQuantity.toString()).toBe('1.750');
+  });
+  // ---------------------------------------------------------------------------
+  // TK-168 / US-048: una operación se registra entera o no se registra. Salda la
+  // mitigación 2 que TK-160 declaró incumplida.
+  // ---------------------------------------------------------------------------
+
+  it('TK-168: si una escritura falla a mitad, no queda nada escrito', async () => {
+    // 1. ARRANGE: consumo diferido con varianza => dos movimientos; el segundo falla
+    const connectedQueryRepo = new InMemoryRemanenteQueryRepository(stockRepo);
+    const app = createApp({ stockRepository: stockRepo, remanenteQueryRepository: connectedQueryRepo, requireAuth: false });
+    const original = stockRepo.recordMovement.bind(stockRepo);
+    let escrituras = 0;
+    stockRepo.recordMovement = async (movement) => {
+      escrituras += 1;
+      if (escrituras === 2) throw new Error('fallo simulado a mitad de la operación');
+      return original(movement);
+    };
+
+    // 2. ACT
+    const response = await request(app)
+      .post('/api/v1/kitchen/remanentes/rem-salsa-1/consume')
+      .send({ quantity: '2.000', reasonId: 'reason-seed-1', operationId: 'op-parcial-1' });
+
+    // 3. ASSERT — la operación no se aplica a medias
+    expect(response.status).toBeGreaterThanOrEqual(500);
+
+    // ORACULO STOCK: el remanente conserva su cantidad anterior
+    const remanente = await stockRepo.findRemanenteById('rem-salsa-1');
+    expect(remanente?.currentQuantity.toString()).toBe('1.750');
+    expect(remanente?.status).toBe('ACTIVE');
+
+    // ORACULO LEDGER: ningún movimiento suelto sobrevive
+    expect(stockRepo.movements).toHaveLength(0);
   });
 });

@@ -10,3 +10,16 @@
   justify-content: center;
   margin-bottom: 16px;
 }
+
+/* TK-163-FE / US-045: en hoja completa, las acciones se quedan fijas abajo — al alcance
+   del pulgar y sin obligar a desplazarse hasta el final de un formulario largo para
+   confirmar. `margin-top: auto` las empuja al fondo cuando el contenido es corto. */
+@media (max-width: 479px) {
+  .modal-footer-actions {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    padding: var(--space-3) 0;
+    background-color: var(--bg-card);
+  }
+}

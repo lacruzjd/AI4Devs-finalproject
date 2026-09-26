@@ -1,6 +1,8 @@
 import React from 'react';
 import { SemaphoricCard, AlertItem } from './SemaphoricCard.js';
 import { OfflineBanner } from './OfflineBanner.js';
+import { QueuedOperationsPanel } from './QueuedOperationsPanel.js';
+import { useQueuedOperations } from '../../../shared/offline/useQueuedOperations.js';
 import { CheckCircle2, AlertTriangle, RefreshCw } from 'lucide-react';
 import styles from './AlertFeed.module.css';
 
@@ -79,9 +81,12 @@ export const AlertFeed: React.FC<AlertFeedProps> = ({
 }) => {
   const viewState = resolveViewState(isLoading, error, alerts.length);
 
+  const queued = useQueuedOperations();
+
   return (
     <section aria-label="Feed de Alertas FEFO de Cocina" className={styles['alert-feed-container']}>
       <OfflineBanner />
+      <QueuedOperationsPanel operations={queued} />
 
       <header className={styles['alert-feed-header']}>
         <h2 className="flex-gap-xs m-0 fs-xl">

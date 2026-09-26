@@ -6,6 +6,12 @@
 
 .data-table {
   width: 100%;
+  /* TK-162-FE / US-045: sin un ancho mínimo, en el tramo de teléfono las columnas se
+     aplastan hasta ser ilegibles y el contenedor `.table-wrapper` nunca llega a
+     desplazarse — el desbordamiento sólo existe si el contenido es más ancho que su
+     caja. Con este mínimo la tabla desborda y se desplaza dentro de su contenedor, que
+     es lo que impide que lo haga el cuerpo de la página. */
+  min-width: 560px;
   border-collapse: collapse;
   text-align: left;
   background-color: var(--bg-card);

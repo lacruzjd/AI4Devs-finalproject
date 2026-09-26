@@ -164,6 +164,37 @@ export class Remanente {
     return this.props.terminalAt;
   }
 
+  /**
+   * TK-160 / US-044 / ADR-009: consumo de una operación que ocurrió sin conexión.
+   *
+   * A diferencia de `consumeQuantity`, no rechaza el exceso: el producto ya salió de la
+   * nevera y el sistema existe para reflejar la cocina, no para negarla. Acota el descuento
+   * a lo disponible —`INV-1`: la cantidad nunca queda negativa— y devuelve el excedente
+   * para que la capa de aplicación lo registre como varianza con su motivo.
+   *
+   * Un remanente que ya no está activo no se modifica (`INV-3`): todo lo pedido sale como
+   * excedente, porque el consumo ocurrió de verdad pero no puede imputarse a un remanente
+   * cerrado.
+   */
+  public consumeDeferred(quantityToConsume: DecimalQuantity): {
+    applied: DecimalQuantity;
+    excess: DecimalQuantity;
+  } {
+    if (this.props.status !== 'ACTIVE') {
+      return { applied: new DecimalQuantity('0'), excess: quantityToConsume };
+    }
+
+    if (this.props.currentQuantity.isGreaterThanOrEqualTo(quantityToConsume)) {
+      this.consumeQuantity(quantityToConsume);
+      return { applied: quantityToConsume, excess: new DecimalQuantity('0') };
+    }
+
+    const available = this.props.currentQuantity;
+    const excess = quantityToConsume.subtract(available);
+    this.consumeQuantity(available);
+    return { applied: available, excess };
+  }
+
   public consumeQuantity(quantityToConsume: DecimalQuantity): void {
     if (this.props.status !== 'ACTIVE') {
       throw new ExcessConsumptionException(

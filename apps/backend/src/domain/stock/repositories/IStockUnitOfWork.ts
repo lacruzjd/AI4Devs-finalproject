@@ -94,6 +94,23 @@ export interface AdhocConsumptionUnitOfWork {
  * del remanente y el registro del movimiento dentro de `runExtraction` — ante
  * cualquier excepción la transacción revierte **por completo**, sin compensación manual.
  */
+/**
+ * TK-168 / US-048: escrituras de una operación sobre un remanente concreto —consumo y
+ * descarte—. El consumo escribe hasta tres veces (el remanente, el movimiento de consumo
+ * y, si `ADR-009` genera varianza, el de varianza) y el descarte dos. Sin frontera, una
+ * caída entre la primera y la última deja el stock descontado y la pérdida sin registrar,
+ * que es justo lo que `ADR-009` prometió no perder.
+ *
+ * `findMovementByOperationId` vive dentro porque la comprobación de idempotencia y la
+ * escritura deben ver el mismo estado: comprobarla fuera reabre la ventana de carrera que
+ * la Guarda 39 de `AGENTS.md` describe.
+ */
+export interface RemanenteWriteUnitOfWork {
+  saveRemanente(remanente: Remanente): Promise<void>;
+  recordMovement(movement: StockMovementRecord): Promise<void>;
+  findMovementByOperationId(operationId: string): Promise<StockMovementRecord | null>;
+}
+
 export interface IStockUnitOfWork {
   runExtraction<T>(work: (uow: ExtractionUnitOfWork) => Promise<T>): Promise<T>;
 
@@ -102,4 +119,7 @@ export interface IStockUnitOfWork {
 
   /** US-029: misma garantía para el consumo ad-hoc de una receta (`POST /kitchen/recipes/:id/consume`). */
   runAdhocConsumption<T>(work: (uow: AdhocConsumptionUnitOfWork) => Promise<T>): Promise<T>;
+
+  /** US-048 / TK-168: misma garantía para el consumo y el descarte de un remanente. */
+  runRemanenteWrite<T>(work: (uow: RemanenteWriteUnitOfWork) => Promise<T>): Promise<T>;
 }

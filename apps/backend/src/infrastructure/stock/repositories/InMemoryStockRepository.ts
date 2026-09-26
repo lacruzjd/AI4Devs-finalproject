@@ -7,6 +7,7 @@ import {
 } from '../../../domain/stock/repositories/IRemanenteRepository.js';
 import {
   AdhocConsumptionUnitOfWork,
+  RemanenteWriteUnitOfWork,
   ExtractionUnitOfWork,
   IStockUnitOfWork,
   PreparationCloseUnitOfWork,
@@ -106,6 +107,11 @@ export class InMemoryStockRepository
     this.remanentes.set(remanente.id, remanente);
   }
 
+  /** TK-159 / ADR-009: la clave de idempotencia es única; el ledger es la fuente. */
+  async findMovementByOperationId(operationId: string): Promise<StockMovementRecord | null> {
+    return this.movements.find((m) => m.operationId === operationId) ?? null;
+  }
+
   async recordMovement(movement: StockMovementRecord): Promise<void> {
     this.movements.push({ ...movement, createdAt: movement.createdAt ?? new Date() });
   }
@@ -189,6 +195,11 @@ export class InMemoryStockRepository
 
   /** US-029: frontera transaccional del consumo ad-hoc de una receta. */
   async runAdhocConsumption<T>(work: (uow: AdhocConsumptionUnitOfWork) => Promise<T>): Promise<T> {
+    return this.withSnapshot(() => work(this));
+  }
+
+  /** US-048 / TK-168: frontera transaccional del consumo y el descarte de un remanente. */
+  async runRemanenteWrite<T>(work: (uow: RemanenteWriteUnitOfWork) => Promise<T>): Promise<T> {
     return this.withSnapshot(() => work(this));
   }
 
