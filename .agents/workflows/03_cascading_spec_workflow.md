@@ -1,7 +1,7 @@
 ---
 name: 03_cascading_spec_workflow
 description: "Integra una idea o funcionalidad nueva en las especificaciones en cascada: PRD, modelo de dominio, esquema de datos, contrato de API, historias de usuario, tickets y trazabilidad, antes de escribir código."
-version: "1.1.1"
+version: "1.1.2"
 category: "workflows/specification"
 ---
 
@@ -52,7 +52,7 @@ Antes de redactar cualquier archivo de especificación (Fase 2 en adelante), ide
 ### FASE 2: Modificación de Requisitos, Modelo y Sistema de Diseño
 1. **PRD (`docs/01_product_definition/`):** Integra la funcionalidad en la descripción de alcance o flujos alternativos.
 2. **Diseño de Arquitectura, Base de Datos y UI/UX (`DESIGN.md`):**
-   * Si la funcionalidad afecta o crea pantallas/componentes UI, invoca [`SK-05: Sistema de Diseño UI/UX`](../skills/specs/02_architecture_design/SK-05_design_ui_ux_system.md) para actualizar `docs/02_architecture_design/05_ui_ux_design_system.md` y `DESIGN.md` en la raíz con los nuevos tokens visuales, estados de UI y componentes antes de escribir código frontend.
+   * Si la funcionalidad afecta o crea pantallas/componentes UI, invoca [`SK-05: Sistema de Diseño UI/UX`](../procedures/specs/02_architecture_design/SK-05_design_ui_ux_system.md) para actualizar `docs/02_architecture_design/05_ui_ux_design_system.md` y `DESIGN.md` en la raíz con los nuevos tokens visuales, estados de UI y componentes antes de escribir código frontend.
    * Si requiere cambios de base de datos, edita el esquema declarativo oficial (convención snake_case en BD, camelCase en código, uso estricto de Decimal para montos/cantidades físicas, uso de Enums nativos para campos cerrados e índices de búsqueda).
    * Actualiza el modelo lógico en `docs/02_architecture_design/` y `docs/03_persistence_and_api/`.
 3. **Contrato de API (`docs/03_persistence_and_api/`):** Agrega o modifica las firmas de endpoints, payloads de esquemas de validación y códigos de respuesta.
@@ -67,7 +67,7 @@ Antes de redactar cualquier archivo de especificación (Fase 2 en adelante), ide
    * Desglosa las historias de usuario en tickets atómicos y guárdalos en las subcarpetas de Epic/Módulo correspondientes de `docs/05_agile_planning/12_tickets/` (ej. `12_tickets/{modulo}/backend/TK-NNN.md` y `12_tickets/{modulo}/frontend/TK-NNN-X.md`).
    * Para cada ticket, indica la estimación en Story Points, prioridad MoSCoW, capas de código afectadas y Definition of Done (DoD) estricto (exigiendo TDD y cumplimiento de estrategias de seguridad/ergonomía).
    * Enlaza los tickets creados en el archivo `docs/05_agile_planning/12_tickets/tickets_index.md`.
-3. **Matriz de Trazabilidad (`docs/05_agile_planning/13_traceability_matrix.md`):** añade o actualiza la fila del requisito con enlaces a la historia y a cada ticket nuevo siguiendo [`SK-13`](../skills/specs/05_agile_planning/SK-13_generate_traceability_matrix.md). Un artefacto mencionado sin enlace no cuenta como trazado.
+3. **Matriz de Trazabilidad (`docs/05_agile_planning/13_traceability_matrix.md`):** añade o actualiza la fila del requisito con enlaces a la historia y a cada ticket nuevo siguiendo [`SK-13`](../procedures/specs/05_agile_planning/SK-13_generate_traceability_matrix.md). Un artefacto mencionado sin enlace no cuenta como trazado.
 4. **Gate de especificación (bloqueante):** antes de actualizar el mapa y de dar la cascada por cerrada, ejecuta `python3 .agents/scripts/check_spec_artifacts.py --changed`. Revisa KPIs, historias, tickets, matriz y ADRs que esta cascada creó o modificó. Si reporta hallazgos, corrígelos en los artefactos antes de continuar; la deuda de archivos que no tocaste no bloquea.
 5. **Mapa del Backlog (docs/05_agile_planning/14_backlog_map.md):** Actualiza el diagrama Mermaid para incluir el nuevo nodo de la Epic (si corresponde), la nueva User Story (`US-NNN`) y sus respectivos Tickets Técnicos de Backend y Frontend, definiendo sus relaciones. Agrega la fila correspondiente en la **Tabla de Navegación del Backlog (Alternativa)** inferior para garantizar la navegabilidad.
 

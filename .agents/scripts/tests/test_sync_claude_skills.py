@@ -64,7 +64,7 @@ class SyncClaudeSkillsTests(unittest.TestCase):
 
     def test_non_momoy_skills_and_procedure_catalog_are_ignored(self):
         self._add_command("pdf-tools")
-        os.makedirs(os.path.join(self.agents_dir, "skills", "specs"))
+        os.makedirs(os.path.join(self.agents_dir, "procedures", "specs"))
 
         self._run()
 

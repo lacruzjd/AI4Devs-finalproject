@@ -6,7 +6,7 @@ set -euo pipefail
 echo "Validando integridad de momoy (.agents/)..."
 
 # Check directories exist
-for dir in workflows skills rules examples; do
+for dir in workflows skills procedures rules examples; do
   if [ ! -d ".agents/$dir" ]; then
     echo "❌ Error: Directorio faltante .agents/$dir"
     exit 1
@@ -16,7 +16,7 @@ done
 echo "✅ Directorios principales verificados."
 
 # Count Skills, Commands & Workflows
-SKILLS_COUNT=$(find .agents/skills -name "SK-*.md" | wc -l)
+SKILLS_COUNT=$(find .agents/procedures -name "SK-*.md" | wc -l)
 COMMANDS_COUNT=$(find .agents/skills -mindepth 2 -maxdepth 2 -name "SKILL.md" | wc -l)
 WORKFLOWS_COUNT=$(find .agents/workflows -name "*.md" | wc -l)
 

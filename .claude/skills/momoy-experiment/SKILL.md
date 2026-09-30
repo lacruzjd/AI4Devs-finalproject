@@ -6,16 +6,16 @@ description: "Pone a prueba una hipótesis de producto antes de especificarla: d
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-experiment
 
 **Entrada:** Una hipótesis nueva para diseñar su experimento, o el `EXP-NNN` cuyo resultado se registra. Si no dio ninguna, pídesela.
 
-Lee por completo y ejecuta el procedimiento `.agents/skills/specs/01_product_definition/SK-37_design_validation_experiment.md`.
+Lee por completo y ejecuta el procedimiento `.agents/procedures/specs/01_product_definition/SK-37_design_validation_experiment.md`.
 
 ## Reglas del comando
 
-- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/skills/specs/01_product_definition/SK-37_design_validation_experiment.md`. Si ambos discrepan, manda el procedimiento.
+- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/procedures/specs/01_product_definition/SK-37_design_validation_experiment.md`. Si ambos discrepan, manda el procedimiento.
 - Respeta cada pausa de aprobación humana del procedimiento: no guardes ni crees archivos antes de que el humano confirme (regla Human-in-the-Loop de `.agents/README.md`).

@@ -1,7 +1,7 @@
 ---
 name: sk-17-develop-frontend-ticket
 description: "Guía el desarrollo atómico de tickets de Frontend aplicando Clean Architecture en cliente, SOLID (<150 líneas por componente), WCAG 2.2, Core Web Vitals (INP/LCP/CLS) y seguridad defensiva."
-version: "4.6.5"
+version: "4.6.6"
 category: "development/03_frontend_development"
 inputs:
   - ticket_id: "ID o ruta del ticket técnico de frontend (ej. TK-NNN o docs/05_agile_planning/12_tickets/...)"
@@ -69,7 +69,7 @@ Antes de entregar el ticket, ejecuta esta lista de cotejo interna:
 ## FASE 5: Verificación, Auditoría Visual y Quality Gate
 1. **Compilación del Proyecto:** Corre el comando de build oficial declarado en `AGENTS.md` para asegurar 0 errores de compilación.
 2. **Análisis Estático (Ticket-Scoped, obligatorio):** Ejecuta `bash docs/04_governance_and_quality/scripts/check_ticket_code_quality.sh` — verifica, con `--max-warnings 0`, que los archivos sin commitear de este ticket no violen la regla de granularidad (`complexity`/`max-lines-per-function`/`max-depth`, alineada con la regla de ~150 líneas por componente de FASE 2). Deuda preexistente en archivos que este ticket no tocó no bloquea el cierre (ver `docs/00_stack_manifest.md`). Además, ejecuta el linter oficial de `AGENTS.md` sobre todo el proyecto para confirmar **0 errores**.
-3. **Auditoría de Accesibilidad Opcional:** Ejecutar la verificación a11y mediante `.agents/skills/development/06_visual_qa/SK-21_audit_ui_accessibility.md`.
+3. **Auditoría de Accesibilidad Opcional:** Ejecutar la verificación a11y mediante `.agents/procedures/development/06_visual_qa/SK-21_audit_ui_accessibility.md`.
 4. **Duplicación:** Ejecuta primero el comando canónico de duplicación de `docs/00_stack_manifest.md` §7 — gate bloqueante real, con el umbral que declara el manifest. Complementa con un chequeo ligero manual: compara estructuralmente los archivos nuevos/modificados contra sus pares en features hermanas (mismos imports, mismos bloques de estilo/lógica repetidos con nombres distintos) — jscpd detecta copy-paste literal pero no el mismo patrón reescrito. Si detectas 2+ instancias del mismo patrón sin extraer, decide entre extraerlo ahora a la capa compartida o documentar la deuda explícitamente en el reporte del ticket. Para una auditoría exhaustiva multi-ángulo de reuso a nivel de todo el repositorio, el humano puede solicitar adicionalmente una revisión de código dedicada fuera del alcance atómico de este ticket.
 5. **Presupuesto de Bundle:** si el ticket agrega una dependencia nueva o un chunk nuevo, confirma que el build no exceda el presupuesto de tamaño declarado en `docs/00_stack_manifest.md` (ej. `build.chunkSizeWarningLimit` en `vite.config.ts` del proyecto, o el mecanismo equivalente del bundler real). El valor exacto del presupuesto es una decisión de stack tomada por el humano, nunca un número fijo asumido por esta skill — si el manifest no declara uno todavía, repórtalo como gap en vez de inventar un umbral.
 6. **Implementación Verificada, no solo leída (obligatorio):** antes de reportar el ticket como terminado, autoaplica los 3 checks de [`.agents/rules/04_verified_implementation_standard.md`](../../../rules/04_verified_implementation_standard.md) — en frontend aplica sobre todo el (a): toda variable `VITE_*`/config que valides o leas debe tener un call-site real que la consuma, no solo un `.env.example` documentándola.

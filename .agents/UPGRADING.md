@@ -4,6 +4,34 @@ Qué hacer al pasar un proyecto a una versión de momoy que cambia rutas. El pro
 
 ---
 
+## De 3.x a 4.0.0
+
+En 4.0.0 cambia una sola cosa: los procedimientos `SK-NN` salen de `.agents/skills/` y pasan a `.agents/procedures/`. `.agents/skills/` queda solo para los comandos `/momoy-*` del estándar Agent Skills, así que el nombre del directorio vuelve a decir qué contiene. Los IDs `SK-NN`, los nombres de archivo, las carpetas de fase y los comandos no cambian.
+
+| Antes | Ahora |
+|:---|:---|
+| `.agents/skills/specs/<fase>/SK-NN_<slug>.md` | `.agents/procedures/specs/<fase>/SK-NN_<slug>.md` |
+| `.agents/skills/development/<fase>/SK-NN_<slug>.md` | `.agents/procedures/development/<fase>/SK-NN_<slug>.md` |
+
+### Pasos
+
+1. Reinstala `.agents/` y regenera las copias de los comandos: `bash .agents/scripts/sync_claude_skills.sh`. `install.sh` exige borrar `.agents/` antes de reinstalar, así que los directorios antiguos desaparecen. Si actualizas copiando encima, borra a mano `.agents/skills/specs/` y `.agents/skills/development/`: `check_skill_standard.py` ya no los exceptúa y los informa como directorios sin `SKILL.md`.
+2. Busca las rutas antiguas fuera de `.agents/`:
+   ```bash
+   grep -rln "\.agents/skills/\(specs\|development\)/" --exclude-dir=.agents --exclude-dir=node_modules .
+   ```
+3. Reescríbelas. Es un cambio de prefijo, sin excepciones:
+   ```bash
+   grep -rlZ "skills/\(specs\|development\)/" --exclude-dir=.agents --exclude-dir=node_modules --exclude-dir=.git . \
+     | xargs -0 sed -i 's#skills/specs/#procedures/specs/#g; s#skills/development/#procedures/development/#g'
+   ```
+   Revisa antes los resultados del paso 2: si el proyecto tiene su propio directorio `skills/specs/` o `skills/development/` ajeno a momoy, exclúyelo.
+4. Corre los gates y revisa el diff antes de commitear.
+
+Si vienes de 2.x, aplica primero la sección de 3.0.0 y después esta. Las tablas de 3.0.0 muestran las rutas bajo `skills/`, que eran las vigentes entonces.
+
+---
+
 ## De 2.x a 3.0.0
 
 En 3.0.0 cambian tres cosas: los workflows se renumeran en el orden del ciclo, siete procedimientos se renombran para que su nombre sea una acción y cinco artefactos de `docs/` pasan a inglés.

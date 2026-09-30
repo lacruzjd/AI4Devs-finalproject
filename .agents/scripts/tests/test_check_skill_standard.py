@@ -40,7 +40,7 @@ class CheckSkillStandardTests(unittest.TestCase):
         os.makedirs(os.path.join(self.agents_dir, "workflows"))
         with open(os.path.join(self.agents_dir, "workflows", "05_cascading_dev_workflow.md"), "w") as f:
             f.write("# workflow\n")
-        sk_dir = os.path.join(self.agents_dir, "skills", "specs", "02_architecture_design")
+        sk_dir = os.path.join(self.agents_dir, "procedures", "specs", "02_architecture_design")
         os.makedirs(sk_dir)
         with open(os.path.join(sk_dir, "SK-36_generate_architecture_decision_record.md"), "w") as f:
             f.write("---\nname: architecture-decision-record\n---\n")
@@ -67,14 +67,15 @@ class CheckSkillStandardTests(unittest.TestCase):
         self.assertEqual(checked, 1)
         self.assertEqual(violations, 0, msg=messages)
 
-    def test_legacy_procedure_containers_are_allowed_without_skill_md(self):
+    def test_procedure_containers_under_skills_are_no_longer_exempt(self):
+        # 4.0.0: los procedimientos viven en .agents/procedures/; skills/ solo admite comandos.
         self._write("specs/01_product_definition/SK-01_discover_product_vision.md", "---\nname: SK-01\n---\n")
         self._write("development/02_backend_development/SK-16_develop_backend_ticket.md", "---\nname: SK-16\n---\n")
 
         checked, violations, messages = run_checks(self.agents_dir)
 
         self.assertEqual(checked, 0)
-        self.assertEqual(violations, 0, msg=messages)
+        self.assertEqual(violations, 2, msg=messages)
 
     def test_unknown_directory_without_skill_md_is_detected(self):
         self._write("momoy-dev/README.md", "# sin SKILL.md\n")
@@ -148,7 +149,7 @@ class CheckSkillStandardTests(unittest.TestCase):
     def test_command_referencing_sk_procedure_is_valid(self):
         self._write_command("momoy-adr", body=VALID_COMMAND.format(name="momoy-adr").replace(
             ".agents/workflows/05_cascading_dev_workflow.md",
-            ".agents/skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md"))
+            ".agents/procedures/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md"))
 
         checked, violations, messages = run_checks(self.agents_dir)
 
@@ -157,7 +158,7 @@ class CheckSkillStandardTests(unittest.TestCase):
     def test_command_with_broken_sk_procedure_reference_is_detected(self):
         self._write_command("momoy-adr", body=VALID_COMMAND.format(name="momoy-adr").replace(
             ".agents/workflows/05_cascading_dev_workflow.md",
-            ".agents/skills/specs/02_architecture_design/SK-99_missing.md"))
+            ".agents/procedures/specs/02_architecture_design/SK-99_missing.md"))
 
         checked, violations, messages = run_checks(self.agents_dir)
 

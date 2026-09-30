@@ -4,16 +4,16 @@ description: "Cierra el ciclo del producto: mide los KPIs cuya fecha de revisió
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-outcomes
 
 **Entrada:** Opcional: los KPIs a medir. Si no los indicó, mide todos los que tengan la fecha de revisión vencida.
 
-Lee por completo y ejecuta el procedimiento `.agents/skills/specs/01_product_definition/SK-39_measure_product_outcomes.md`.
+Lee por completo y ejecuta el procedimiento `.agents/procedures/specs/01_product_definition/SK-39_measure_product_outcomes.md`.
 
 ## Reglas del comando
 
-- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/skills/specs/01_product_definition/SK-39_measure_product_outcomes.md`. Si ambos discrepan, manda el procedimiento.
+- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/procedures/specs/01_product_definition/SK-39_measure_product_outcomes.md`. Si ambos discrepan, manda el procedimiento.
 - Respeta cada pausa de aprobación humana del procedimiento: no guardes ni crees archivos antes de que el humano confirme (regla Human-in-the-Loop de `.agents/README.md`).

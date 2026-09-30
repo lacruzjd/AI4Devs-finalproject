@@ -9,8 +9,9 @@ herramientas, sin ningún error visible — por eso se verifica aquí y no por r
 
 Reglas para cada subdirectorio directo de `.agents/skills/`:
 
-1. Contiene `SKILL.md` con frontmatter YAML. Única excepción: los contenedores del catálogo
-   de procedimientos internos `SK-NN` (LEGACY_CONTAINERS), que no son skills del estándar.
+1. Contiene `SKILL.md` con frontmatter YAML, sin excepciones: desde 4.0.0 los procedimientos
+   internos `SK-NN` viven en `.agents/procedures/`, así que un directorio de `skills/` sin
+   `SKILL.md` es siempre un error.
 2. Solo usa campos del estándar portable: name, description, license, compatibility,
    metadata, allowed-tools. Los campos propios de una herramienta (ej.
    `disable-model-invocation` de Claude Code) se inyectan en la copia que genera
@@ -24,7 +25,7 @@ Reglas para cada subdirectorio directo de `.agents/skills/`:
 Reglas adicionales para los comandos de momoy (nombre `momoy` o `momoy-*`):
 
 6. Referencian al menos una ruta que existe: un workflow (`.agents/workflows/...`), un script
-   (`.agents/scripts/...`) o un procedimiento SK-NN (`.agents/skills/specs|development/.../SK-NN_*.md`).
+   (`.agents/scripts/...`) o un procedimiento SK-NN (`.agents/procedures/specs|development/.../SK-NN_*.md`).
    El comando es un punto de entrada; la fuente de verdad es lo que referencia. Nunca otro
    comando: encadenar comandos esconde el procedimiento real.
 7. Declaran `agents/openai.yaml` con `allow_implicit_invocation: false`: un agente no debe
@@ -43,7 +44,6 @@ import re
 import sys
 
 STANDARD_FIELDS = {"name", "description", "license", "compatibility", "metadata", "allowed-tools"}
-LEGACY_CONTAINERS = {"specs", "development"}
 NAME_REGEX = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 MAX_NAME = 64
 MAX_DESCRIPTION = 1024
@@ -52,7 +52,7 @@ FRONTMATTER = re.compile(r"^---\n(.*?)\n---\n", re.S)
 TOP_LEVEL_KEY = re.compile(r"^([A-Za-z0-9_-]+):(.*)$")
 ENTRYPOINT_REFERENCE = re.compile(
     r"\.agents/(?:workflows|scripts)/[A-Za-z0-9_./-]+\.(?:md|sh|py)"
-    r"|\.agents/skills/(?:specs|development)/[A-Za-z0-9_./-]*SK-\d+_[A-Za-z0-9_-]+\.md"
+    r"|\.agents/procedures/(?:specs|development)/[A-Za-z0-9_./-]*SK-\d+_[A-Za-z0-9_-]+\.md"
 )
 IMPLICIT_OFF = re.compile(r"^\s*allow_implicit_invocation:\s*false\s*$", re.M)
 MAX_INPUT_CHARS = 220
@@ -133,8 +133,7 @@ def run_checks(agents_dir):
 
         skill_file = os.path.join(skill_dir, "SKILL.md")
         if not os.path.isfile(skill_file):
-            if entry not in LEGACY_CONTAINERS:
-                fail(f"skills/{entry}/ no contiene SKILL.md — no es descubrible como skill del estándar Agent Skills.")
+            fail(f"skills/{entry}/ no contiene SKILL.md — no es descubrible como skill del estándar Agent Skills.")
             continue
 
         checked_count += 1

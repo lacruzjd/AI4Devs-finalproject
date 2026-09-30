@@ -28,7 +28,7 @@ class CheckLinksTests(unittest.TestCase):
         self.tmp = tempfile.mkdtemp()
         self.agents_dir = os.path.join(self.tmp, ".agents")
         self.project_root = self.tmp
-        os.makedirs(os.path.join(self.agents_dir, "skills"))
+        os.makedirs(os.path.join(self.agents_dir, "procedures"))
         os.makedirs(os.path.join(self.agents_dir, "rules"))
         with open(os.path.join(self.agents_dir, "rules", "dummy_rule.md"), "w") as f:
             f.write("# dummy\n")
@@ -37,7 +37,7 @@ class CheckLinksTests(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def _write_skill(self, filename, required_rule_path):
-        path = os.path.join(self.agents_dir, "skills", filename)
+        path = os.path.join(self.agents_dir, "procedures", filename)
         content = SKILL_TEMPLATE.format(
             name=filename,
             required_rules=f'  - "{required_rule_path}"',
@@ -86,7 +86,7 @@ class CheckLinksTests(unittest.TestCase):
         os.makedirs(os.path.join(self.project_root, "docs", "01_product_definition"))
         open(os.path.join(self.project_root, "docs", "01_product_definition", "02_prd.md"), "w").close()
 
-        path = os.path.join(self.agents_dir, "skills", "SK-16_b.md")
+        path = os.path.join(self.agents_dir, "procedures", "SK-16_b.md")
         content = SKILL_TEMPLATE.format(
             name="SK-16_b.md",
             required_rules='  - "docs/04_governance_and_quality/rules/backend_rules.md"',
@@ -138,7 +138,7 @@ class CheckLinksTests(unittest.TestCase):
         self.assertTrue(any("duplicado" in m for m in messages))
 
     def test_broken_markdown_link_in_body_is_detected(self):
-        path = os.path.join(self.agents_dir, "skills", "SK-02_broken_link.md")
+        path = os.path.join(self.agents_dir, "procedures", "SK-02_broken_link.md")
         with open(path, "w") as f:
             f.write("---\nname: x\n---\n\n[dead link](./nowhere.md)\n")
 

@@ -6,16 +6,16 @@ description: "Convierte un informe externo (auditoría UX, revisión de segurida
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-external
 
 **Entrada:** La ruta del informe externo, o su contenido pegado.
 
-Lee por completo y ejecuta el procedimiento `.agents/skills/specs/04_governance_and_quality/SK-42_intake_external_review.md`.
+Lee por completo y ejecuta el procedimiento `.agents/procedures/specs/04_governance_and_quality/SK-42_intake_external_review.md`.
 
 ## Reglas del comando
 
-- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/skills/specs/04_governance_and_quality/SK-42_intake_external_review.md`. Si ambos discrepan, manda el procedimiento.
+- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/procedures/specs/04_governance_and_quality/SK-42_intake_external_review.md`. Si ambos discrepan, manda el procedimiento.
 - Respeta cada pausa de aprobación humana del procedimiento: no guardes ni crees archivos antes de que el humano confirme (regla Human-in-the-Loop de `.agents/README.md`).

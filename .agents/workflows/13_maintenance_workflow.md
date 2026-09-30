@@ -1,7 +1,7 @@
 ---
 name: 13_maintenance_workflow
 description: "Workflow de mantenimiento periódico: cada 30 días revisa dependencias y vulnerabilidades, deuda técnica, feature flags pendientes de retirar, salud de la operación y deuda de especificaciones, detecta candidatos a retirada y convierte cada hallazgo accionable en un ticket, con prioridad decidida por el humano."
-version: "1.1.0"
+version: "1.1.1"
 category: "workflows/maintenance"
 ---
 
@@ -19,10 +19,10 @@ Esta revisión **no corrige nada**: detecta, prioriza con el humano y abre ticke
 ---
 
 ## Paso 1 — Dependencias y Vulnerabilidades
-Ejecutar la auditoría completa de [`SK-23`](../skills/development/05_code_quality/SK-23_audit_dependency_security.md) (`/momoy-deps`): árbol de dependencias y, si el proyecto empaqueta contenedores, la imagen construida. Registrar vulnerabilidades `High` o `Critical` nuevas desde la revisión anterior y dependencias con versiones mayores pendientes.
+Ejecutar la auditoría completa de [`SK-23`](../procedures/development/05_code_quality/SK-23_audit_dependency_security.md) (`/momoy-deps`): árbol de dependencias y, si el proyecto empaqueta contenedores, la imagen construida. Registrar vulnerabilidades `High` o `Critical` nuevas desde la revisión anterior y dependencias con versiones mayores pendientes.
 
 ## Paso 2 — Deuda Técnica
-Actualizar el índice de deuda con [`SK-31`](../skills/development/01_rules_extraction/SK-31_index_technical_debt.md) en `docs/05_agile_planning/technical_debt.md` y señalar los elementos que más riesgo o fricción generan hoy.
+Actualizar el índice de deuda con [`SK-31`](../procedures/development/01_rules_extraction/SK-31_index_technical_debt.md) en `docs/05_agile_planning/technical_debt.md` y señalar los elementos que más riesgo o fricción generan hoy.
 
 ## Paso 3 — Feature Flags
 Listar los flags de los registros de release (`docs/06_release_and_operations/releases/`) cuyo ticket de retirada no esté `done`. Un flag que ya cumplió su propósito y sigue en el código es un *zombie flag*.
@@ -34,12 +34,12 @@ Revisar los hallazgos del gate `operacion`: runbooks sin ensayo, simulacro de re
 Ejecutar `python3 .agents/scripts/check_spec_artifacts.py` y revisar lo que el tiempo vuelve urgente: KPIs con fecha de revisión vencida (`/momoy-outcomes`), postmortems obligatorios sin cerrar, tickets abiertos que ya no cumplen la Definition of Ready.
 
 ## Paso 6 — Candidatos a Retirada
-Señalar capacidades que podrían retirarse: informes de resultados con recomendación `retirar`, funcionalidades sin uso medible o que duplican otra. Proponerlas al humano para [`/momoy-retire`](../skills/specs/05_agile_planning/SK-41_retire_capability.md); nunca iniciar una retirada desde aquí.
+Señalar capacidades que podrían retirarse: informes de resultados con recomendación `retirar`, funcionalidades sin uso medible o que duplican otra. Proponerlas al humano para [`/momoy-retire`](../procedures/specs/05_agile_planning/SK-41_retire_capability.md); nunca iniciar una retirada desde aquí.
 
 ## Paso 7 — Hallazgos y PAUSA HitL
 1. Consolidar los hallazgos de los Pasos 1 a 6 con su riesgo.
 2. **PAUSA HitL:** presentar la lista al humano, que decide qué se hace y en qué orden.
-3. Para cada hallazgo aprobado, crear el ticket con [`SK-12`](../skills/specs/05_agile_planning/SK-12_generate_backlog_tickets.md). Los descartados se registran como `sin acción — motivo`.
+3. Para cada hallazgo aprobado, crear el ticket con [`SK-12`](../procedures/specs/05_agile_planning/SK-12_generate_backlog_tickets.md). Los descartados se registran como `sin acción — motivo`.
 
 ## Paso 8 — Registro
 1. Escribir `docs/06_release_and_operations/maintenance/MNT-{NNN}.md` (formato abajo) y cerrarlo cuando todos los hallazgos estén trazados.

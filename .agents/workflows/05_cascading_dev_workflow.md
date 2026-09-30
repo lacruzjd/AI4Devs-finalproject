@@ -1,7 +1,7 @@
 ---
 name: 05_cascading_dev_workflow
 description: "Implementa un ticket técnico TK-XXX de punta a punta: extracción de reglas, migraciones, TDD, build, lint, QA visual y commit atómico."
-version: "1.1.0"
+version: "1.1.1"
 category: "workflows/development"
 ---
 
@@ -40,7 +40,7 @@ Antes de escribir cualquier línea de código:
 ### FASE 1: Extracción / Sincronización de Reglas (`SK-27_extract_rules`)
 1. Revisa la carpeta `docs/04_governance_and_quality/rules/`.
 2. Ejecuta `bash .agents/scripts/check_rules_freshness.sh` para verificar de forma determinista (vía timestamps de git, no inferencia) si algún doc fuente cambió después que su regla derivada. Código de salida `0`: verificado (alineado, o con deriva informada); código `2`: **no verificable** — falta la carpeta de reglas, falta alguna de las 7 reglas o una regla no está commiteada. Un `2` nunca cuenta como alineado.
-3. Ejecuta la skill [SK-27 Extracción de Reglas](../skills/development/01_rules_extraction/SK-27_extract_project_rules.md) para sincronizar las reglas de gobernanza técnica solo si: (a) el script salió con código `2` porque faltan archivos de reglas (`domain_rules.md`, `backend_rules.md`, `frontend_rules.md`, `database_rules.md`, `testing_rules.md`, `security_rules.md`, `git_rules.md`), o (b) el script reportó `⚠️ Posible drift` para algún archivo relevante al ticket en curso.
+3. Ejecuta la skill [SK-27 Extracción de Reglas](../procedures/development/01_rules_extraction/SK-27_extract_project_rules.md) para sincronizar las reglas de gobernanza técnica solo si: (a) el script salió con código `2` porque faltan archivos de reglas (`domain_rules.md`, `backend_rules.md`, `frontend_rules.md`, `database_rules.md`, `testing_rules.md`, `security_rules.md`, `git_rules.md`), o (b) el script reportó `⚠️ Posible drift` para algún archivo relevante al ticket en curso.
 4. **Guarda nueva descubierta a mitad de proyecto:** si este ticket agrega una guarda nueva de "prohibir/mandatar patrón X" a la sección 6 de `AGENTS.md` (el patrón `"Discovered in TK-XXX"` ya usado por la mayoría de las guardas existentes), el mismo ticket DEBE también agregar el bullet correspondiente a la lista enumerada del paso "Generación de Scripts de Gobernanza Ejecutable" de `SK-27` — nunca dejar la guarda solo en prosa. Un `AGENTS.md` con una regla nueva y ningún script que la verifique es, en sí mismo, deuda de gobernanza sin cerrar: la próxima vez que alguien corra `SK-27` en este proyecto (o lo instale en uno nuevo vía `install.sh`), esa guarda debe generarse como script ejecutable, no solo copiarse como texto.
 
 ---
@@ -48,12 +48,12 @@ Antes de escribir cualquier línea de código:
 ### FASE 2: Migración de Persistencia y ORM (`SK-18_db_migration` - Si Afecta BD)
 Si el ticket modifica o crea modelos de base de datos:
 1. Aplica los cambios en el esquema del ORM o motor de persistencia indicado en `docs/02_architecture_design/04_technical_design.md`.
-2. Ejecuta la skill [SK-18 Migraciones de Base de Datos](../skills/development/04_persistence_and_db/SK-18_execute_db_migration.md) para generar la migración física local, sincronizar la BD y regenerar el cliente de base de datos usando los comandos de `AGENTS.md`.
+2. Ejecuta la skill [SK-18 Migraciones de Base de Datos](../procedures/development/04_persistence_and_db/SK-18_execute_db_migration.md) para generar la migración física local, sincronizar la BD y regenerar el cliente de base de datos usando los comandos de `AGENTS.md`.
 
 ---
 
 ### FASE 3: Implementación Guiada por Pruebas - TDD (`SK-16` / `SK-17` & `06_test_runner_workflow`)
-Ejecuta la skill correspondiente ([SK-16 Backend](../skills/development/02_backend_development/SK-16_develop_backend_ticket.md) o [SK-17 Frontend](../skills/development/03_frontend_development/SK-17_develop_frontend_ticket.md)) delegando el bucle determinista de pruebas al subagente [06_test_runner_workflow.md](06_test_runner_workflow.md):
+Ejecuta la skill correspondiente ([SK-16 Backend](../procedures/development/02_backend_development/SK-16_develop_backend_ticket.md) o [SK-17 Frontend](../procedures/development/03_frontend_development/SK-17_develop_frontend_ticket.md)) delegando el bucle determinista de pruebas al subagente [06_test_runner_workflow.md](06_test_runner_workflow.md):
 1. **RED:** Escribir primero el test unitario o de integración usando `InMemoryRepository` fakes, confirmando el estado de fallo explícito.
 2. **GREEN:** Implementar el código mínimo en capas Hexagonales (`Domain` → `Application` → `Infrastructure`) hasta pasar el test.
 3. **REFACTOR & MUTATION:** Limpiar código e invocar la verificación de mutación según el umbral definido en `docs/04_governance_and_quality/rules/testing_rules.md`.
@@ -62,7 +62,7 @@ Ejecuta la skill correspondiente ([SK-16 Backend](../skills/development/02_backe
 
 ### FASE 4: Quality Gate & Inspección Linter (`SK-19_refactor_lint`)
 Antes de dar por terminado el desarrollo:
-1. Ejecuta la skill [SK-19 Refactorización y Lints](../skills/development/05_code_quality/SK-19_refactor_and_lint.md).
+1. Ejecuta la skill [SK-19 Refactorización y Lints](../procedures/development/05_code_quality/SK-19_refactor_and_lint.md).
 2. Valida la compilación de tipos y el análisis estático ejecutando los comandos CLI autorizados en `AGENTS.md`.
 3. **Quality Gate:** Se exige estricto **0 errores y 0 advertencias**. Si hay lints, deben ser resueltos antes de avanzar.
 4. **Descubrimiento de tests:** ejecuta `bash docs/04_governance_and_quality/scripts/check_test_discovery.sh` (generado por `SK-27`). Si el ticket añadió archivos de test, el recuento de su pasada debe haber subido: una suite en verde que no ejecutó los tests nuevos no prueba nada.
@@ -83,7 +83,7 @@ Antes de dar por terminado el desarrollo:
 
 ### FASE 5: Verificación Visual QA (`SK-20_browser_qa` - Para Frontend)
 Si el ticket es de Frontend o interfaz de usuario:
-1. Ejecuta la skill [SK-20 Visual QA](../skills/development/06_visual_qa/SK-20_execute_browser_qa.md).
+1. Ejecuta la skill [SK-20 Visual QA](../procedures/development/06_visual_qa/SK-20_execute_browser_qa.md).
 2. Inicia el subagente del navegador (`browser_subagent`), renderiza la interfaz localmente y verifica que los componentes cumplan con la accesibilidad táctil, contraste y estados defensivos. Guarda evidencias en artefactos.
 
 ---

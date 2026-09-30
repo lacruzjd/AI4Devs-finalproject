@@ -8,11 +8,11 @@ frontmatter y cada uno titulaba a su manera. Ningún chequeo lo veía, porque na
 contra la ruta real. Si el frontmatter se deriva de la ruta, un script puede decidir si es correcto
 sin criterio humano — por eso se verifica aquí.
 
-Reglas para cada procedimiento `skills/{specs,development}/<carpeta>/SK-NN_<slug>.md`:
+Reglas para cada procedimiento `procedures/{specs,development}/<carpeta>/SK-NN_<slug>.md`:
 
 1. `name` es el nombre del archivo sin extensión, en minúsculas y con guiones
    (`SK-16_develop_backend_ticket.md` → `sk-16-develop-backend-ticket`).
-2. `category` es la ruta de su carpeta relativa a `skills/` (`development/02_backend_development`).
+2. `category` es la ruta de su carpeta relativa a `procedures/` (`development/02_backend_development`).
 
 Reglas para cada workflow `workflows/NN_<slug>_workflow.md`:
 
@@ -55,7 +55,7 @@ def _read(path):
 def _check_procedures(agents_dir, messages):
     checked = 0
     for container in PROCEDURE_CONTAINERS:
-        base = os.path.join(agents_dir, "skills", container)
+        base = os.path.join(agents_dir, "procedures", container)
         if not os.path.isdir(base):
             continue
         for folder in sorted(os.listdir(base)):
@@ -66,7 +66,7 @@ def _check_procedures(agents_dir, messages):
                 if not filename.startswith("SK-") or not filename.endswith(".md"):
                     continue
                 checked += 1
-                rel_path = f"skills/{container}/{folder}/{filename}"
+                rel_path = f"procedures/{container}/{folder}/{filename}"
                 if not PROCEDURE_FILE.match(filename):
                     messages.append(f"❌ {rel_path}: el nombre no sigue SK-NN_<slug_en_snake_case>.md")
                     continue

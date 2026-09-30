@@ -51,9 +51,9 @@ def run_checks(agents_dir, project_root, extra_files=()):
         normalized = os.path.normpath(target_rel_path).replace(os.sep, '/')
         return normalized.startswith('docs/04_governance_and_quality/rules/')
 
-    skills_dir = os.path.join(agents_dir, "skills")
-    if os.path.isdir(skills_dir):
-        for root, dirs, files in os.walk(skills_dir):
+    procedures_dir = os.path.join(agents_dir, "procedures")
+    if os.path.isdir(procedures_dir):
+        for root, dirs, files in os.walk(procedures_dir):
             for f in files:
                 if not f.endswith('.md'):
                     continue

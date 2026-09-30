@@ -1,7 +1,7 @@
 ---
 name: 02_brownfield_adoption_workflow
 description: "Adopta momoy en un código existente sin docs/ previo: reconstruye producto, dominio y stack por ingeniería inversa con entrevista humana obligatoria y cataloga la deuda técnica. Se ejecuta una sola vez por proyecto."
-version: "1.1.1"
+version: "1.1.2"
 category: "workflows/bootstrap"
 ---
 
@@ -31,26 +31,26 @@ category: "workflows/bootstrap"
 
 ### FASE 1: Extracción Técnica desde Código (no depende de `docs/` previo)
 Estos dos pasos leen código directamente, no documentación — pueden ejecutarse aunque `docs/` esté vacío.
-1. Invoca [`SK-30: Extractor de Diagramas Legacy`](../skills/development/01_rules_extraction/SK-30_extract_legacy_diagrams.md) sobre `codebase_path`. Produce diagramas C4/ERD en `docs/02_architecture_design/`.
-2. Invoca [`SK-33: Auditoría de Configuración de Entorno`](../skills/development/01_rules_extraction/SK-33_audit_environment_configuration.md) sobre los `.env`/`.env.example` existentes. Produce el esquema de validación Fail-Fast y una plantilla `.env.example` saneada.
+1. Invoca [`SK-30: Extractor de Diagramas Legacy`](../procedures/development/01_rules_extraction/SK-30_extract_legacy_diagrams.md) sobre `codebase_path`. Produce diagramas C4/ERD en `docs/02_architecture_design/`.
+2. Invoca [`SK-33: Auditoría de Configuración de Entorno`](../procedures/development/01_rules_extraction/SK-33_audit_environment_configuration.md) sobre los `.env`/`.env.example` existentes. Produce el esquema de validación Fail-Fast y una plantilla `.env.example` saneada.
 
 ### FASE 2: Reconstrucción del Producto (Ingeniería Inversa + Entrevista Humana OBLIGATORIA)
 El código revela comportamiento, no intención de negocio — esta fase existe específicamente para no asumir esa intención en silencio.
-1. Invoca [`SK-01: Descubrimiento de Producto`](../skills/specs/01_product_definition/SK-01_discover_product_vision.md) en **MODO C (Reconstrucción Retroactiva)**, usando `codebase_path` y los diagramas de FASE 1 como evidencia. Esta skill **debe** entrevistar al humano antes de escribir nada — nunca infiere el "por qué" de negocio solo del código. Produce `docs/01_product_definition/01_product_discovery.md` y `01_glossary_and_business_rules.md`.
-2. Invoca [`SK-02: Generación del PRD`](../skills/specs/01_product_definition/SK-02_generate_prd.md) sobre esos artefactos. Produce `docs/01_product_definition/02_prd.md`.
-3. Invoca [`SK-03: Modelo Conceptual de Dominio`](../skills/specs/02_architecture_design/SK-03_design_domain_model.md) sobre el PRD reconstruido. Produce `docs/02_architecture_design/03_domain_model.md` — es una dependencia explícita de `SK-04` en FASE 3.
+1. Invoca [`SK-01: Descubrimiento de Producto`](../procedures/specs/01_product_definition/SK-01_discover_product_vision.md) en **MODO C (Reconstrucción Retroactiva)**, usando `codebase_path` y los diagramas de FASE 1 como evidencia. Esta skill **debe** entrevistar al humano antes de escribir nada — nunca infiere el "por qué" de negocio solo del código. Produce `docs/01_product_definition/01_product_discovery.md` y `01_glossary_and_business_rules.md`.
+2. Invoca [`SK-02: Generación del PRD`](../procedures/specs/01_product_definition/SK-02_generate_prd.md) sobre esos artefactos. Produce `docs/01_product_definition/02_prd.md`.
+3. Invoca [`SK-03: Modelo Conceptual de Dominio`](../procedures/specs/02_architecture_design/SK-03_design_domain_model.md) sobre el PRD reconstruido. Produce `docs/02_architecture_design/03_domain_model.md` — es una dependencia explícita de `SK-04` en FASE 3.
 
 ### FASE 3: Descubrimiento de Stack Tecnológico (Delegado en `SK-04`, Modo Brownfield — Human-in-the-Loop OBLIGATORIO)
-Invoca [`SK-04: Arquitectura de Sistema y Stack Tecnológico`](../skills/specs/02_architecture_design/SK-04_design_technical_architecture.md) en su **Modo Brownfield**: inspecciona manifiestos reales del proyecto (`package.json`, lockfiles, `requirements.txt`, Dockerfiles, etc.), presenta el inventario detectado al humano para confirmación — nunca propone alternativas a tecnología ya en producción — y tras la aprobación escribe tanto `docs/02_architecture_design/04_technical_design.md` como `docs/00_stack_manifest.md` (con las 9 secciones canónicas, poblado con lo realmente detectado, no con valores por defecto).
+Invoca [`SK-04: Arquitectura de Sistema y Stack Tecnológico`](../procedures/specs/02_architecture_design/SK-04_design_technical_architecture.md) en su **Modo Brownfield**: inspecciona manifiestos reales del proyecto (`package.json`, lockfiles, `requirements.txt`, Dockerfiles, etc.), presenta el inventario detectado al humano para confirmación — nunca propone alternativas a tecnología ya en producción — y tras la aprobación escribe tanto `docs/02_architecture_design/04_technical_design.md` como `docs/00_stack_manifest.md` (con las 9 secciones canónicas, poblado con lo realmente detectado, no con valores por defecto).
 
 ### FASE 4: Contrato Operativo Raíz
 La mayoría de las skills invocadas de aquí en adelante (incluyendo `SK-27` a continuación) asumen que `AGENTS.md` existe para leer comandos canónicos — en un proyecto que nunca usó `.agents/`, casi siempre no existe todavía, aunque el proyecto ya tenga código funcionando.
-1. Invoca [`SK-35: Generación del Contrato Operativo Raíz`](../skills/specs/04_governance_and_quality/SK-35_generate_root_contract.md) usando los comandos reales ya presentes en el `package.json`/manifiesto de build existente y `docs/00_stack_manifest.md` recién escrito. Genera `AGENTS.md` y los entrypoints `CLAUDE.md`/`GEMINI.md`. **Si el proyecto ya tenía convenciones de comandos distintas a lo que el inventario de FASE 3 detectó, resuelve la discrepancia con el humano antes de guardar** — mismo principio de FASE 2: nunca asumir en silencio.
+1. Invoca [`SK-35: Generación del Contrato Operativo Raíz`](../procedures/specs/04_governance_and_quality/SK-35_generate_root_contract.md) usando los comandos reales ya presentes en el `package.json`/manifiesto de build existente y `docs/00_stack_manifest.md` recién escrito. Genera `AGENTS.md` y los entrypoints `CLAUDE.md`/`GEMINI.md`. **Si el proyecto ya tenía convenciones de comandos distintas a lo que el inventario de FASE 3 detectó, resuelve la discrepancia con el humano antes de guardar** — mismo principio de FASE 2: nunca asumir en silencio.
 
 ### FASE 5: Gobernanza y Deuda Técnica
 Ahora que `docs/01_product_definition/`, `docs/02_architecture_design/` y `AGENTS.md` tienen contenido real, estas dos skills pueden operar (antes de esta fase, sus dependencias no existían):
-1. Invoca [`SK-27: Extracción de Reglas de Gobernanza`](../skills/development/01_rules_extraction/SK-27_extract_project_rules.md) sobre `docs/`. Produce `docs/04_governance_and_quality/rules/`.
-2. Invoca [`SK-31: Indexador de Deuda Técnica`](../skills/development/01_rules_extraction/SK-31_index_technical_debt.md) sobre `codebase_path`. Produce `docs/05_agile_planning/technical_debt.md`.
+1. Invoca [`SK-27: Extracción de Reglas de Gobernanza`](../procedures/development/01_rules_extraction/SK-27_extract_project_rules.md) sobre `docs/`. Produce `docs/04_governance_and_quality/rules/`.
+2. Invoca [`SK-31: Indexador de Deuda Técnica`](../procedures/development/01_rules_extraction/SK-31_index_technical_debt.md) sobre `codebase_path`. Produce `docs/05_agile_planning/technical_debt.md`.
 
 ### FASE 6: Inicialización del Esqueleto de Backlog Restante
 Igual que en greenfield, [`03_cascading_spec_workflow.md`](03_cascading_spec_workflow.md) asume en su FASE 0 que estos índices existen:

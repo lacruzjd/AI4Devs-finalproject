@@ -1,7 +1,7 @@
 ---
 name: 12_production_observability_workflow
 description: "Workflow de observabilidad Shift-Right v2.1: captura logs/stacktraces de producción, traduce incidencias a escenarios BDD Gherkin, genera pruebas de regresión en borrador (con checkpoint humano obligatorio antes de sumarse a la suite real) y cierra el bucle de feedback convirtiendo incidencias en tickets TK-XXX del backlog."
-version: "2.3.0"
+version: "2.3.1"
 category: "workflows/observability"
 ---
 
@@ -45,13 +45,13 @@ Una vez confirmada la regresión y el fix, cerrar el ciclo de feedback convirtie
 
 ### 4.1. Clasificación de la Incidencia
 
-1. **Severidad**, con la escala de [`SK-38`](../skills/development/07_performance_and_observability/SK-38_write_blameless_postmortem.md) (Fase 1): `critica`, `alta`, `media` o `baja`. Propónla al humano; la confirma él.
+1. **Severidad**, con la escala de [`SK-38`](../procedures/development/07_performance_and_observability/SK-38_write_blameless_postmortem.md) (Fase 1): `critica`, `alta`, `media` o `baja`. Propónla al humano; la confirma él.
 2. **Módulo afectado:** el slice o módulo del proyecto donde vive el fallo, según la estructura real de `docs/05_agile_planning/12_tickets/` y `docs/02_architecture_design/` — nunca una lista de módulos supuesta.
 3. **Prioridad del ticket:** `critica` y `alta` → MUST; `media` → SHOULD; `baja` → COULD.
 
 ### 4.2. Generación del Ticket TK-XXX
 
-1. Crear el ticket con [`SK-12`](../skills/specs/05_agile_planning/SK-12_generate_backlog_tickets.md): mismo frontmatter y mismas secciones obligatorias que cualquier otro ticket, para que pase el gate `ready`. Al ser una remediación técnica, `related_story` es `N/A (Técnico — incidencia INC-XXX)`. El escenario Gherkin del Paso 2 va en sus Criterios de Aceptación y el stacktrace sanitizado en su Descripción.
+1. Crear el ticket con [`SK-12`](../procedures/specs/05_agile_planning/SK-12_generate_backlog_tickets.md): mismo frontmatter y mismas secciones obligatorias que cualquier otro ticket, para que pase el gate `ready`. Al ser una remediación técnica, `related_story` es `N/A (Técnico — incidencia INC-XXX)`. El escenario Gherkin del Paso 2 va en sus Criterios de Aceptación y el stacktrace sanitizado en su Descripción.
 2. Su DoD exige la prueba de regresión del Paso 3 en verde y el comando de test declarado en `AGENTS.md` sin regresiones.
 3. **Enlazar el ticket** en el índice de tickets y en la matriz de trazabilidad, y **registrar la incidencia** en `docs/05_agile_planning/15_history.md`:
    ```text

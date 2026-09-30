@@ -1,7 +1,7 @@
 ---
 name: 10_release_workflow
 description: "Workflow de release: lleva un conjunto de tickets cerrados a producción sin riesgo. Fija la versión SemVer, pasa los gates previos, declara la estrategia de liberación, clasifica las migraciones, verifica la configuración de despliegue, planifica y ensaya el rollback cuando corresponde, escribe las notas de versión y solo despliega con aprobación humana, validando después con el workflow 11."
-version: "1.2.2"
+version: "1.2.3"
 category: "workflows/deployment"
 ---
 
@@ -31,7 +31,7 @@ El registro del release vive en `docs/06_release_and_operations/releases/vX.Y.Z.
 
 1. `python3 .agents/scripts/check_spec_artifacts.py --changed` y los gates de calidad y seguridad del proyecto declarados en `AGENTS.md` (build, lint, tests, auditoría de dependencias con `/momoy-deps`).
 2. Cualquier gate en rojo detiene el release. No se "libera ahora y se arregla después".
-3. **Operación previa (etapa 9):** antes del **primer** release a producción deben existir `docs/06_release_and_operations/slos.md` y `backup_and_recovery.md`, diseñados con [`/momoy-operate`](../skills/specs/04_governance_and_quality/SK-40_design_service_operations.md).
+3. **Operación previa (etapa 9):** antes del **primer** release a producción deben existir `docs/06_release_and_operations/slos.md` y `backup_and_recovery.md`, diseñados con [`/momoy-operate`](../procedures/specs/04_governance_and_quality/SK-40_design_service_operations.md).
 4. **Presupuesto de error:** si algún SLO de `slos.md` tiene el presupuesto `agotado`, el release **solo puede incluir correcciones y mejoras de fiabilidad**: ningún ticket de funcionalidad (los que apuntan a una historia de usuario). El gate `release` lo verifica.
 
 ## Paso 3 — Estrategia de Liberación
@@ -46,7 +46,7 @@ Declarar **una estrategia para todo el release** (`strategy`):
 
 ## Paso 4 — Migraciones
 
-Si el release incluye cambios de esquema o de datos (`includes_migration: si`), clasificar cada migración según el patrón expand-contract de [`SK-06`](../skills/specs/03_persistence_and_api/SK-06_design_database_schema.md):
+Si el release incluye cambios de esquema o de datos (`includes_migration: si`), clasificar cada migración según el patrón expand-contract de [`SK-06`](../procedures/specs/03_persistence_and_api/SK-06_design_database_schema.md):
 
 - `expand`: añade estructura compatible; el código anterior sigue funcionando con el esquema nuevo. Es la única que permite volver al código anterior sin tocar datos.
 - `contract`: elimina la estructura antigua. **Solo puede ir en un release posterior** al que desplegó su `expand`, y debe citar esa versión (`contract: … — expand en vA.B.C`).
@@ -73,7 +73,7 @@ Si el release incluye cambios de esquema o de datos (`includes_migration: si`), 
 
 ## Paso 8 — Registro del Release y Gate
 
-1. Invocar [`SK-15`](../skills/specs/05_agile_planning/SK-15_document_pull_requests.md) (Paso 4), que es la dueña del Registro de Release: escribe `docs/06_release_and_operations/releases/vX.Y.Z.md` con `status: planned` y la sección del `CHANGELOG.md`, con el formato declarado ahí. Este workflow decide **cuándo** y con qué datos; el **formato** no se duplica aquí.
+1. Invocar [`SK-15`](../procedures/specs/05_agile_planning/SK-15_document_pull_requests.md) (Paso 4), que es la dueña del Registro de Release: escribe `docs/06_release_and_operations/releases/vX.Y.Z.md` con `status: planned` y la sección del `CHANGELOG.md`, con el formato declarado ahí. Este workflow decide **cuándo** y con qué datos; el **formato** no se duplica aquí.
 2. `python3 .agents/scripts/check_spec_artifacts.py --changed` debe pasar sin hallazgos del gate `release`.
 
 ## Paso 9 — PAUSA HitL: Go / No-Go
@@ -96,4 +96,4 @@ Presentar al humano versión, tickets, estrategia y justificación, migraciones,
 
 ## Formato del Registro de Release
 
-Lo declara [`SK-15`](../skills/specs/05_agile_planning/SK-15_document_pull_requests.md) en su Paso 4, junto con las reglas de qué secciones son obligatorias. No se repite aquí para que las dos versiones no puedan derivar.
+Lo declara [`SK-15`](../procedures/specs/05_agile_planning/SK-15_document_pull_requests.md) en su Paso 4, junto con las reglas de qué secciones son obligatorias. No se repite aquí para que las dos versiones no puedan derivar.

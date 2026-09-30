@@ -4,16 +4,16 @@ description: "Documenta con veracidad un Pull Request o el historial de entregas
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # /momoy-pr
 
 **Entrada:** Opcional: el número de PR o la rama a documentar. Si el usuario no lo indicó, documenta los PRs verificables del historial reciente.
 
-Lee por completo y ejecuta el procedimiento `.agents/skills/specs/05_agile_planning/SK-15_document_pull_requests.md`.
+Lee por completo y ejecuta el procedimiento `.agents/procedures/specs/05_agile_planning/SK-15_document_pull_requests.md`.
 
 ## Reglas del comando
 
-- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/skills/specs/05_agile_planning/SK-15_document_pull_requests.md`. Si ambos discrepan, manda el procedimiento.
+- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/procedures/specs/05_agile_planning/SK-15_document_pull_requests.md`. Si ambos discrepan, manda el procedimiento.
 - Respeta cada pausa de aprobación humana del procedimiento: no guardes ni crees archivos antes de que el humano confirme (regla Human-in-the-Loop de `.agents/README.md`).

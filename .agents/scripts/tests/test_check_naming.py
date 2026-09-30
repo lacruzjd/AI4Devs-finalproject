@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(__file__), "..")))
 from check_naming import run_checks  # noqa: E402
 
-PROCEDURE = "skills/development/02_backend_development/SK-16_develop_backend_ticket.md"
+PROCEDURE = "procedures/development/02_backend_development/SK-16_develop_backend_ticket.md"
 WORKFLOW = "workflows/10_release_workflow.md"
 VALID_WORKFLOW = (
     '---\nname: 10_release_workflow\ndescription: "Release."\nversion: "1.2.0"\n'
@@ -58,7 +58,7 @@ class CheckNamingTests(unittest.TestCase):
         self.assertIn("development/02_backend_development", messages[0])
 
     def test_procedure_filename_outside_snake_case_is_detected(self):
-        self._write("skills/specs/01_product_definition/SK-02_Generate-PRD.md", self._procedure("x", "y"))
+        self._write("procedures/specs/01_product_definition/SK-02_Generate-PRD.md", self._procedure("x", "y"))
 
         _, violations, messages = run_checks(self.agents_dir)
 

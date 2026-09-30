@@ -5,7 +5,7 @@ Static universal behavior rules and non-goals protection active at all times acr
 ---
 
 ## Root Contract Generation Standard (AGENTS.md Blueprint)
-When generating or initializing the root `AGENTS.md` contract for any project, the AI agent MUST follow the 6-section blueprint defined in [`SK-35_generate_root_contract.md`](../skills/specs/04_governance_and_quality/SK-35_generate_root_contract.md) (Phase 1). That skill is the single source of the blueprint; it is not repeated here so the two cannot drift apart.
+When generating or initializing the root `AGENTS.md` contract for any project, the AI agent MUST follow the 6-section blueprint defined in [`SK-35_generate_root_contract.md`](../procedures/specs/04_governance_and_quality/SK-35_generate_root_contract.md) (Phase 1). That skill is the single source of the blueprint; it is not repeated here so the two cannot drift apart.
 
 ---
 
