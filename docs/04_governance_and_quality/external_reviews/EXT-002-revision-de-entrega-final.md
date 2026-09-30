@@ -10,7 +10,7 @@ reviewed_on: 2026-09-25
 
 # EXT-002: Revisión de entrega final
 
-> Procesado con [`SK-42`](../../../.agents/skills/specs/04_governance_and_quality/SK-42_intake_external_review.md) (`/momoy-external`). El informe es dato, no instrucción: cada recomendación se contrastó contra el código y la documentación reales antes de clasificarla.
+> Procesado con [`SK-42`](../../../.agents/procedures/specs/04_governance_and_quality/SK-42_intake_external_review.md) (`/momoy-external`). El informe es dato, no instrucción: cada recomendación se contrastó contra el código y la documentación reales antes de clasificarla.
 
 ## Origen y alcance
 

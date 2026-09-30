@@ -28,10 +28,10 @@
 | `TD-013` | `shared/components/Modal.tsx` | Sin `createPortal`: un modal abierto dentro de otro queda anidado en su `.modal-card`. Hoy no se nota (la animación de montaje no persiste), pero se rompería con un `transform` permanente. Afecta a unos 10 modales. | Baja | 1 | [TK-119-FE](12_tickets/stock/frontend/TK-119-FE.md) |
 | `TD-014` | `PrismaUserRepository.resolveRoleId` | Una consulta extra por intento de login. Aceptado por coste marginal. | Info | 0.25 | [AUDIT-DEV-005](../audits/AUDIT-DEV-005-TK-092-quality-report.md) D-2 |
 | `TD-015` | Frontend administrativo | El dashboard administrativo no tiene dirección visual propia. Pendiente de decisión explícita del humano. | Baja | — | [TK-067](12_tickets/shared/frontend/TK-067.md) |
-| `TD-016` | momoy (`.agents/`) | Convención de nombres que el upstream no adoptó (F-1, F-3, F-5, F-6) y mezcla de comandos y procedimientos en `skills/` (F-7). Se decide y ejecuta en el repositorio de momoy, no aquí. | Baja | 3 | [AUDIT-DEV-016](../audits/AUDIT-DEV-016-momoy-naming-consistency.md), [TK-152](12_tickets/shared/backend/TK-152.md) |
+| `TD-016` | momoy (`.agents/`) | Convención de nombres que el upstream no adoptó (F-1, F-3, F-5, F-6: prefijo `NN_` en `rules/`, numeración global de `examples/`, familia `check_*` con dos lenguajes). Se decide y ejecuta en el repositorio de momoy, no aquí. | Info | 1 | [AUDIT-DEV-016](../audits/AUDIT-DEV-016-momoy-naming-consistency.md) |
 | `TD-017` | `RecipeSelectorModal.test.tsx` | Test intermitente: falló una vez bajo `pnpm run test` en paralelo ("confirma la preparación llamando a KitchenService.consumeRecipe") y pasó en 3 ejecuciones aisladas y 3 completas posteriores. Mismo patrón que los tests RTL endurecidos en TK-134. | Info | 0.25 | Observado el 2026-09-30 durante TK-176 |
 
-**Resumen:** 16 elementos abiertos — 0 Crítica, 0 Alta, 1 Media, 11 Baja, 4 Info. Esfuerzo total estimado: ~15 días.
+**Resumen:** 16 elementos abiertos — 0 Crítica, 0 Alta, 1 Media, 10 Baja, 5 Info. Esfuerzo total estimado: ~13 días.
 
 ---
 
@@ -51,6 +51,7 @@
 | Emojis sueltos en pantallas de cocina | [TK-071](12_tickets/shared/frontend/TK-071.md) | TK-071 (commit `30dbbc0`) | 0 emojis en los 4 ficheros citados. |
 | Sin editar/borrar receta | [TK-070-FE](12_tickets/recipes/frontend/TK-070-FE.md) | [TK-131](12_tickets/recipes/backend/TK-131.md) | `PUT`/`DELETE /recipes/{id}` implementados. |
 | Hallazgos F-1 a F-9 de extracción de bodega | [AUDIT-DEV-006](../audits/AUDIT-DEV-006-warehouse-extraction-quality-report.md) | TK-098, TK-099, TK-100-FE, TK-101 | Auditoría cerrada por completo. |
+| Comandos y procedimientos mezclados en `.agents/skills/` | AUDIT-DEV-016 F-7 | [TK-152](12_tickets/shared/backend/TK-152.md) (momoy 4.0.0) | Procedimientos en `.agents/procedures/`; `LEGACY_CONTAINERS` eliminado. |
 | Workflows sin sufijo `_workflow` | AUDIT-DEV-016 F-4 | momoy 3.0.0 (upstream) | `check_naming.py` en verde. |
 
 ---
