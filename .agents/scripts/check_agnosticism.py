@@ -31,6 +31,8 @@ import os
 import re
 import sys
 
+from source_repo import source_files
+
 BLOCKED_SUBSTRINGS = [
     ("npx ", "invoca npx (Node) directamente"),
     ("pnpm ", "invoca pnpm (Node) directamente"),
@@ -91,7 +93,7 @@ DOC_ALLOWED_COMMAND_SUBSTRINGS = ("@google/design.md",)
 DOC_EXTENSIONS = {".md", ".sh", ".py"}
 
 
-def run_doc_checks(agents_dir):
+def run_doc_checks(agents_dir, extra_files=()):
     """Recorre .agents/ (excluyendo tests/, __pycache__, el CHANGELOG y este módulo) buscando
     acoplamiento a un proyecto concreto en documentación y comentarios.
 
@@ -99,29 +101,31 @@ def run_doc_checks(agents_dir):
     """
     checked_count = 0
     findings = []
-    if not os.path.isdir(agents_dir):
-        return checked_count, findings
+    targets = []
     for root, dirs, files in os.walk(agents_dir):
         dirs[:] = sorted(d for d in dirs if d not in EXCLUDED_DIR_NAMES)
-        for fname in sorted(files):
-            _, ext = os.path.splitext(fname)
-            if ext not in DOC_EXTENSIONS or fname in DOC_EXEMPT_FILENAMES or fname == SELF_FILENAME:
-                continue
-            file_path = os.path.join(root, fname)
-            rel_path = os.path.relpath(file_path, agents_dir)
-            checked_count += 1
-            with open(file_path, encoding="utf-8", errors="ignore") as f:
-                for line_idx, line in enumerate(f, 1):
-                    for pattern, reason in DOC_PATTERNS:
-                        for match in (m.group(0) for m in pattern.finditer(line)):
-                            if match not in DOC_ALLOWED_MATCHES:
-                                findings.append((rel_path, line_idx, reason, match))
-                    for m in DOC_COMMAND_PATTERN.finditer(line):
-                        if DOC_EXAMPLE_MARKERS.search(line[:m.start()]):
-                            continue
-                        if any(allowed in m.group(0) for allowed in DOC_ALLOWED_COMMAND_SUBSTRINGS):
-                            continue
-                        findings.append((rel_path, line_idx, DOC_COMMAND_REASON, m.group(0)))
+        targets.extend(os.path.join(root, fname) for fname in sorted(files))
+    # Archivos del repositorio fuente fuera de .agents/ (source_repo.py); vacío en un proyecto instalado
+    targets.extend(extra_files)
+    for file_path in targets:
+        fname = os.path.basename(file_path)
+        _, ext = os.path.splitext(fname)
+        if ext not in DOC_EXTENSIONS or fname in DOC_EXEMPT_FILENAMES or fname == SELF_FILENAME:
+            continue
+        rel_path = os.path.relpath(file_path, agents_dir)
+        checked_count += 1
+        with open(file_path, encoding="utf-8", errors="ignore") as f:
+            for line_idx, line in enumerate(f, 1):
+                for pattern, reason in DOC_PATTERNS:
+                    for match in (m.group(0) for m in pattern.finditer(line)):
+                        if match not in DOC_ALLOWED_MATCHES:
+                            findings.append((rel_path, line_idx, reason, match))
+                for m in DOC_COMMAND_PATTERN.finditer(line):
+                    if DOC_EXAMPLE_MARKERS.search(line[:m.start()]):
+                        continue
+                    if any(allowed in m.group(0) for allowed in DOC_ALLOWED_COMMAND_SUBSTRINGS):
+                        continue
+                    findings.append((rel_path, line_idx, DOC_COMMAND_REASON, m.group(0)))
     return checked_count, findings
 
 
@@ -200,7 +204,8 @@ def main():
     print(f"\nTotal de archivos .sh/.py auditados en .agents/scripts/ (recursivo): {checked_count}")
     print(f"Total de acoplamientos a stack encontrados: {violation_count}")
 
-    doc_checked, doc_findings = run_doc_checks(os.path.dirname(scripts_dir))
+    agents_dir = os.path.dirname(scripts_dir)
+    doc_checked, doc_findings = run_doc_checks(agents_dir, source_files(agents_dir, DOC_EXTENSIONS))
     marker = "❌" if args.strict_docs else "⚠️"
     if args.verbose or args.strict_docs:
         for rel_path, line_idx, reason, match in doc_findings:

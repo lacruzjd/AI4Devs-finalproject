@@ -1,8 +1,8 @@
 ---
-name: product-outcomes
+name: sk-39-measure-product-outcomes
 description: "Cierra el ciclo del producto: cuando llega la fecha de revisión de los KPIs, los mide con datos reales exportados, emite un veredicto por KPI contra el umbral y la línea base declarados (cumplido, no cumplido, no concluyente o no medible) y propone mantener, iterar, pivotar o retirar, dejando la decisión al humano."
-version: "1.0.0"
-category: "01_product_definition"
+version: "1.0.1"
+category: "specs/01_product_definition"
 inputs:
   - "docs/01_product_definition/01_product_discovery.md"
   - "docs/01_product_definition/02_prd.md"

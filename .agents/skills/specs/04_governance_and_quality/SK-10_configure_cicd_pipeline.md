@@ -1,8 +1,8 @@
 ---
-name: cicd-pipeline
+name: sk-10-configure-cicd-pipeline
 description: "Genera la automatización del pipeline de CI/CD con la plataforma, el runtime, los comandos y el IaC Engine que declara docs/00_stack_manifest.md (OIDC sin llaves estáticas obligatorio): lint, auditoría de dependencias, secretos y SAST, tests, validación de contrato, SBOM y aprovisionamiento declarativo. No asume ninguna tecnología."
-version: "4.0.0"
-category: "04_governance_and_quality"
+version: "4.0.2"
+category: "specs/04_governance_and_quality"
 inputs:
   - "docs/04_governance_and_quality/08_security_strategy.md"
   - "docs/04_governance_and_quality/09_testing_strategy.md"
@@ -106,7 +106,7 @@ outputs:
 # Especificación de Pipeline CI/CD y Automatización DevSecOps
 
 > **Navegación del Framework SDD:**  
-> [← Volver a Estrategia de Pruebas (09_testing_strategy.md)](./09_testing_strategy.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Planificación Ágil (05_agile_planning/11_user_stories.md) →](../05_agile_planning/11_user_stories.md)
+> [← Volver a Estrategia de Pruebas (09_testing_strategy.md)](./09_testing_strategy.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Planificación Ágil (05_agile_planning/11_user_stories.md) →](../05_agile_planning/11_user_stories.md)
 
 ---
 ```

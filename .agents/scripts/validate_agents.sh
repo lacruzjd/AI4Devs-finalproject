@@ -41,4 +41,7 @@ python3 .agents/scripts/check_emoji_policy.py
 # Run Agent Skills Standard Guard: los comandos de momoy deben ser descubribles por Antigravity/Codex/Gemini/Claude
 python3 .agents/scripts/check_skill_standard.py
 
+# Run Naming Guard: el name/category de cada SK-NN y el frontmatter y título de cada workflow se derivan de su ruta
+python3 .agents/scripts/check_naming.py
+
 echo "✅ Arnés momoy (.agents/) verificado exitosamente sin errores de integridad ni enlaces rotos."

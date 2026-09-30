@@ -2,7 +2,7 @@
 """Gates deterministas de las especificaciones que generan las skills de momoy (ola 0).
 
 Hasta ahora los artefactos de descubrimiento y planificación — KPIs, historias, tickets,
-matriz de trazabilidad, ADRs — solo se revisaban con juicio (workflow 03). Las propiedades
+matriz de trazabilidad, ADRs — solo se revisaban con juicio (workflow 04). Las propiedades
 que sí son mecánicas quedaban sin verificar, y en un proyecto real derivaron sin que nadie
 lo notara: dos esquemas de frontmatter conviviendo, estados fuera de vocabulario, tickets
 de más de 5 puntos o que mezclan backend y frontend, secciones obligatorias ausentes y
@@ -23,7 +23,7 @@ Once gates:
   operacion    Un servicio con un release desplegado tiene SLOs de disponibilidad y latencia, cada uno
                con alerta y runbook ensayado con éxito, y backup con RPO/RTO y un simulacro de
                restauración exitoso de hace menos de 90 días que cumple el RTO (SK-40).
-  mantenimiento Cada MNT-NNN (workflow 11) cerrado traza sus hallazgos; con algo desplegado, pasar 30 días
+  mantenimiento Cada MNT-NNN (workflow 13) cerrado traza sus hallazgos; con algo desplegado, pasar 30 días
                sin una revisión cerrada es un hallazgo.
   retirada     Cada RET-NNN (SK-41) completado tiene aviso de al menos 30 días, tickets de eliminación
                cerrados e historias con retired_by; la retención vencida exige registrar el borrado.
@@ -38,6 +38,9 @@ Once gates:
                existente y secciones obligatorias.
   trazabilidad Cada historia y ticket aparece en la matriz, sus enlaces resuelven y cada ADR
                aceptado apunta a historias o tickets que existen.
+  migracion    Ningún artefacto de docs/ conserva su ruta anterior a momoy 3.0.0: sin esto, un
+               glosario o una matriz con el nombre viejo se saltarían en silencio
+               (migrate_docs_v3.py los renombra).
 
 Modos:
   (sin argumentos)   Informe del repositorio completo. No bloquea: la deuda documental previa
@@ -53,6 +56,9 @@ import sys
 import unicodedata
 from collections import Counter
 from datetime import date, datetime, timedelta
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from migrate_docs_v3 import LEGACY_DOCS  # noqa: E402  (una sola tabla de rutas anteriores para el gate y la migración)
 
 STATUS_ENUM = ("backlog", "approved", "in_progress", "done", "cancelled")
 KPI_COLUMNS = ("kpi", "fuente de datos", "linea base", "umbral de exito", "ventana", "fecha de revision")
@@ -125,7 +131,7 @@ RELEASE_SECTIONS = {
 # Convención de versiones de momoy (workflow 10): CHANGELOG.md en la raíz y etiquetas git vX.Y.Z.
 CHANGELOG = "CHANGELOG.md"
 
-# Mantenimiento y retirada (etapa 12, workflow 11 y SK-41).
+# Mantenimiento y retirada (etapa 12, workflow 13 y SK-41).
 MAINTENANCE_DIR = "docs/06_release_and_operations/maintenance"
 MAINTENANCE_STATUS = ("draft", "closed")
 MAINTENANCE_CADENCE_DAYS = 30
@@ -167,7 +173,7 @@ BACKUP_SECTIONS = {"Mecanismo de backup": ("mecanismo",), "Procedimiento de rest
 KPI_DOCS = ("docs/01_product_definition/01_product_discovery.md", "docs/01_product_definition/02_prd.md")
 STORIES_DIR = "docs/05_agile_planning/11_user_stories"
 TICKETS_DIR = "docs/05_agile_planning/12_tickets"
-MATRIX = "docs/05_agile_planning/13_matriz_trazabilidad.md"
+MATRIX = "docs/05_agile_planning/13_traceability_matrix.md"
 ADR_DIR = "docs/02_architecture_design/adr"
 EXTERNAL_DIR = "docs/04_governance_and_quality/external_reviews"
 EXTERNAL_FILE = re.compile(r"^(EXT-\d+).*\.md$")
@@ -186,7 +192,7 @@ ADR_ID = re.compile(r"ADR-\d+")
 PENDING_FOLLOW_UPS = {"gap": "pendiente de cascada", "conflicto": "pendiente de ADR",
                       "no verificable": "pendiente de verificacion"}
 MIN_FOLLOW_UP_MOTIVE = 10
-GLOSSARY = "docs/01_product_definition/01_glosario_y_reglas_negocio.md"
+GLOSSARY = "docs/01_product_definition/01_glossary_and_business_rules.md"
 INVARIANT_ID = re.compile(r"\bINV-\d+\b")
 STACK_MANIFEST = "docs/00_stack_manifest.md"
 # Mecanismos de operación que usan release, smoke y operación (SK-04): nombre legible y palabras de la fila.
@@ -798,7 +804,7 @@ def check_maintenance_cadence(findings, reviews, deployed, today, first_deployed
         return
     closed = sorted(fm["reviewed_on"] for fm in reviews if fm.get("status") == "closed" and ISO_DATE.match(fm.get("reviewed_on", "")))
     if not closed and first_deployed and today:
-        # La primera revisión vence 30 días después del primer despliegue, no el mismo día (workflow 11).
+        # La primera revisión vence 30 días después del primer despliegue, no el mismo día (workflow 13).
         if (today - first_deployed).days > MAINTENANCE_CADENCE_DAYS:
             findings.add("mantenimiento", MAINTENANCE_DIR,
                          f"servicio desplegado hace más de {MAINTENANCE_CADENCE_DAYS} días sin revisión de mantenimiento",
@@ -1296,12 +1302,23 @@ def changed_files(root):
     return result
 
 
+# ---------------------------------------------------------------- gate: migracion
+
+def check_legacy_docs(root, findings):
+    """Una ruta anterior a 3.0.0 no es deuda documental: hace que otros gates no vean el artefacto."""
+    for old, new in LEGACY_DOCS:
+        if os.path.isfile(os.path.join(root, old)):
+            findings.add("migracion", old, "ruta anterior a momoy 3.0.0",
+                         f"renombrar a {new} con python3 .agents/scripts/migrate_docs_v3.py --apply")
+
+
 def run_checks(root, scope=None, ticket=None, today=None, tags=None):
     """Aplica los gates. `scope` es un conjunto de rutas relativas a revisar (None = todo el
     repositorio); `ticket` limita la revisión a la Definition of Ready de ese ticket.
 
     Devuelve (Findings, checked_count) sin imprimir ni salir del proceso."""
     findings = Findings()
+    check_legacy_docs(root, findings)
     stories = list_files(root, STORIES_DIR, re.compile(r"^US-\d+.*\.md$"))
     tickets = list_files(root, TICKETS_DIR, TICKET_FILE)
     adrs = list_files(root, ADR_DIR, re.compile(r"^ADR-\d+.*\.md$"))
@@ -1462,7 +1479,7 @@ def main():
     else:
         by_gate = Counter(gate for gate, *_ in findings.items)
         by_kind = Counter((gate, kind) for gate, _, kind, _ in findings.items)
-        for gate in ("kpi", "resultado", "experimento", "historia", "ready", "trazabilidad", "release", "operacion", "mantenimiento", "retirada", "postmortem", "externo"):
+        for gate in ("kpi", "resultado", "experimento", "historia", "ready", "trazabilidad", "release", "operacion", "mantenimiento", "retirada", "postmortem", "externo", "migracion"):
             print(f"\n[{gate}] {by_gate.get(gate, 0)} hallazgos")
             for (g, kind), count in sorted(by_kind.items(), key=lambda kv: -kv[1]):
                 if g == gate:

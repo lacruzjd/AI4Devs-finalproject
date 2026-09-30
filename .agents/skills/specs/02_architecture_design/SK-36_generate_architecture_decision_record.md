@@ -1,8 +1,8 @@
 ---
-name: architecture-decision-record
+name: sk-36-generate-architecture-decision-record
 description: "Registra una decisión arquitectónicamente significativa como ADR (Architecture Decision Record): enmarca el problema y sus fuerzas, genera un mínimo de 3 opciones defendibles con matriz comparativa, somete la elección al humano y persiste la decisión con sus consecuencias, alternativas descartadas y trazabilidad a las historias/tickets que la implementan."
-version: "1.1.0"
-category: "02_architecture_design"
+version: "1.1.2"
+category: "specs/02_architecture_design"
 inputs:
   - "docs/00_stack_manifest.md"
   - "docs/02_architecture_design/04_technical_design.md"
@@ -93,7 +93,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
    | `Superseded` | Reemplazado por otro ADR — DEBE nombrar cuál |
 
 3. **Protocolo de supersesión (Non-Goal 4):** para cambiar una decisión aceptada, crear el ADR nuevo, poner el anterior en `Superseded — reemplazado por ADR-NNN` y añadir en el nuevo `Supersede: ADR-MMM`. Nunca editar la sección de Decisión del ADR viejo.
-4. **Trazabilidad (Non-Goal 5):** rellenar `Implementado por:` con las historias/tickets **verificados en disco**. Si aún no existen, dejar `— pendiente de cascada de spec` (válido durante 30 días desde `date`) y señalar al humano que el siguiente paso es [`01_cascading_spec_workflow.md`](../../../workflows/01_cascading_spec_workflow.md).
+4. **Trazabilidad (Non-Goal 5):** rellenar `Implementado por:` con las historias/tickets **verificados en disco**. Si aún no existen, dejar `— pendiente de cascada de spec` (válido durante 30 días desde `date`) y señalar al humano que el siguiente paso es [`03_cascading_spec_workflow.md`](../../../workflows/03_cascading_spec_workflow.md).
 5. **Reporte final:** usar la **Plantilla B** de [`rules/00_output_reporting_standard.md`](../../../rules/00_output_reporting_standard.md) (skills de `specs/`).
 
 ---

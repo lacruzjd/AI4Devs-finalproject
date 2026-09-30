@@ -276,5 +276,16 @@ class CheckProjectAgnosticismInDocsTests(unittest.TestCase):
         self.assertEqual(findings, [])
 
 
+    def test_extra_source_file_is_checked_for_project_coupling(self):
+        extra_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, extra_dir, True)
+        extra = os.path.join(extra_dir, "VERSIONING.md")
+        with open(extra, "w", encoding="utf-8") as f:
+            f.write("Precedente: TK-055 lo resolvió así.\n")
+
+        _, findings = run_doc_checks(os.path.join(extra_dir, ".agents"), extra_files=[extra])
+
+        self.assertEqual([match for _, _, _, match in findings], ["TK-055"])
+
 if __name__ == "__main__":
     unittest.main()

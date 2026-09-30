@@ -1,8 +1,8 @@
 ---
-name: testing-strategy
+name: sk-09-define-testing-strategy
 description: "Establece la directiva de pruebas TDD Test-First (Red-Green-Refactor), la pirámide de testing (Unitario, Integración, E2E), la política anti-Test Theater, el uso de fakes InMemory y la meta de Mutation Score >= 70%."
-version: "3.3.1"
-category: "04_governance_and_quality"
+version: "3.3.3"
+category: "specs/04_governance_and_quality"
 inputs:
   - "docs/01_product_definition/02_prd.md"
   - "docs/04_governance_and_quality/08_security_strategy.md"
@@ -69,7 +69,7 @@ inputs:
 # Especificación de Estrategia de Pruebas TDD y Calidad
 
 > **Navegación del Framework SDD:**  
-> [← Volver a Estrategia de Seguridad (08_security_strategy.md)](./08_security_strategy.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Pipeline CI/CD (10_cicd_pipeline.md) →](./10_cicd_pipeline.md)
+> [← Volver a Estrategia de Seguridad (08_security_strategy.md)](./08_security_strategy.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Pipeline CI/CD (10_cicd_pipeline.md) →](./10_cicd_pipeline.md)
 
 ---
 ```

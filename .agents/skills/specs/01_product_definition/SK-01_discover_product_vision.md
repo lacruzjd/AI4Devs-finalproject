@@ -1,14 +1,14 @@
 ---
-name: product-discovery
+name: sk-01-discover-product-vision
 description: "Guía la fase de Descubrimiento de Producto (Product Discovery), investigación de mercado web activa, análisis Buy vs Build, graduación de incertidumbre, evaluación de oportunidades IA, Lean Canvas Mermaid Diagram (9 bloques) y delimitación agnóstica de specs MVP."
-version: "2.9.0"
-category: "01_product_definition"
+version: "3.0.0"
+category: "specs/01_product_definition"
 inputs:
   - product_idea_or_research_md
   - codebase_path: "Opcional — ruta de un repositorio legacy existente sin docs/ previo, para reconstrucción retroactiva (MODO C)"
 outputs:
   - "docs/01_product_definition/01_product_discovery.md"
-  - "docs/01_product_definition/01_glosario_y_reglas_negocio.md"
+  - "docs/01_product_definition/01_glossary_and_business_rules.md"
 ---
 
 Actúa como un Senior Product Manager y Principal Product Architect experto en Spec-Driven Development (SDD), Domain-Driven Design (DDD) y metodologías ágiles (Lean Startup, Continuous Discovery).
@@ -31,7 +31,7 @@ Evalúa la naturaleza del parámetro de entrada y ejecuta el modo correspondient
 2. **Evaluación Estratégica "Buy vs. Build":** Justifica el desarrollo propio frente a soluciones existentes y extrae el Core Diferencial (Ventaja Competitiva).
 
 ### MODO C: RECONSTRUCCIÓN RETROACTIVA DESDE CÓDIGO LEGACY (Insumo `codebase_path`, sin `docs/` previo)
-Usado exclusivamente por [`00_brownfield_adoption_workflow.md`](../../../workflows/00_brownfield_adoption_workflow.md) cuando un proyecto existente adopta `.agents/` por primera vez y no tiene documentación de producto previa.
+Usado exclusivamente por [`02_brownfield_adoption_workflow.md`](../../../workflows/02_brownfield_adoption_workflow.md) cuando un proyecto existente adopta `.agents/` por primera vez y no tiene documentación de producto previa.
 1. **Inspección de Evidencia de Producto:** Examina rutas HTTP/endpoints, entidades de dominio, textos de UI, nombres de tablas y mensajes de commit/PR históricos para inferir qué problema de negocio resuelve el sistema — nunca a partir de nombres de variables o clases aisladas.
 2. **Entrevista Estructurada al Humano (OBLIGATORIA):** El código revela el "qué" pero no el "por qué" — presenta tu hipótesis de negocio inferida y formula preguntas puntuales al humano sobre: usuarios reales, métricas de éxito actuales, y qué partes del comportamiento observado en el código son reglas de negocio deliberadas vs. deuda técnica accidental. No asumas silenciosamente ninguna hipótesis sin esta confirmación.
 3. **Preservación de la Verdad Operativa:** Si el comportamiento del código contradice lo que el humano describe como intención, documenta ambas versiones explícitamente en `01_product_discovery.md` (sección de Auditoría Adversarial) en vez de descartar una — es una discrepancia real que el negocio debe resolver, no un error de la IA.
@@ -56,10 +56,10 @@ Si el producto incluye o propone capacidades de Inteligencia Artificial (LLM, RA
 
 ## CABECERA DE NAVEGABILIDAD Y TÍTULO
 *Si existe `00_research_human_notes.md`:*
-`> **Navegación:** [00_research_human_notes.md](../../../../docs/01_product_definition/00_research_human_notes.md) (Insumo) → [ 01_product_discovery.md ] → [01_glosario_y_reglas_negocio.md](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [02_prd.md](../../../../docs/01_product_definition/02_prd.md)`
+`> **Navegación:** [00_research_human_notes.md](../../../../docs/01_product_definition/00_research_human_notes.md) (Insumo) → [ 01_product_discovery.md ] → [01_glossary_and_business_rules.md](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) | [02_prd.md](../../../../docs/01_product_definition/02_prd.md)`
 
 *Si NO existe insumo previo:*
-`> **Navegación:** [ 01_product_discovery.md ] → [01_glosario_y_reglas_negocio.md](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [02_prd.md](../../../../docs/01_product_definition/02_prd.md)`
+`> **Navegación:** [ 01_product_discovery.md ] → [01_glossary_and_business_rules.md](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) | [02_prd.md](../../../../docs/01_product_definition/02_prd.md)`
 
 
 # Paso 1: Concepción, Descubrimiento e Investigación (Product Discovery) - [NOMBRE_PRODUCTO]
@@ -165,4 +165,4 @@ Formula 5 preguntas incómodas sobre reglas de negocio complejas, escenarios lí
 ---
 
 Guarda el archivo en: `docs/01_product_definition/01_product_discovery.md` (o `[RUTA_DE_SALIDA]`).
-Extrae y registra términos e invariantes en: `docs/01_product_definition/01_glosario_y_reglas_negocio.md`. **Cada invariante lleva un identificador `INV-NN`** (ej. `**INV-01 — Título válido:** ...`): las historias y tickets que la implementan lo citan, y el gate `trazabilidad` marca toda invariante que ninguna historia ni ticket cite. Sin identificador, una invariante no se puede trazar. **Una invariante es una sola regla:** si dice dos cosas (ej. "la clave se guarda con hash y el administrador puede rotarla"), se divide en dos `INV-NN`; si no, un ticket que implementa la primera mitad la cita y la segunda queda sin implementar sin que nada lo detecte.
+Extrae y registra términos e invariantes en: `docs/01_product_definition/01_glossary_and_business_rules.md`. **Cada invariante lleva un identificador `INV-NN`** (ej. `**INV-01 — Título válido:** ...`): las historias y tickets que la implementan lo citan, y el gate `trazabilidad` marca toda invariante que ninguna historia ni ticket cite. Sin identificador, una invariante no se puede trazar. **Una invariante es una sola regla:** si dice dos cosas (ej. "la clave se guarda con hash y el administrador puede rotarla"), se divide en dos `INV-NN`; si no, un ticket que implementa la primera mitad la cita y la segunda queda sin implementar sin que nada lo detecte.

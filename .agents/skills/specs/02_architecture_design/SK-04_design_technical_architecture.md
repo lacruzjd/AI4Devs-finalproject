@@ -1,11 +1,11 @@
 ---
-name: technical-design
+name: sk-04-design-technical-architecture
 description: "Diseña la especificación completa de Arquitectura de Sistema (Modelo C4 con sus 4 Niveles: Contexto Nivel 1, Contenedores Nivel 2, Componentes Nivel 3 y Código Nivel 4, Screaming Architecture, Vertical Slices basados en Bounded Contexts de SK-03, Capas Hexagonales) y Selección Justificada del Stack Tecnológico con evaluación de riesgos y protocolo HitL."
-version: "3.5.0"
-category: "02_architecture_design"
+version: "4.0.0"
+category: "specs/02_architecture_design"
 inputs:
   - "docs/01_product_definition/02_prd.md"
-  - "docs/01_product_definition/01_glosario_y_reglas_negocio.md"
+  - "docs/01_product_definition/01_glossary_and_business_rules.md"
   - "docs/02_architecture_design/03_domain_model.md"
 outputs:
   - "docs/02_architecture_design/04_technical_design.md"
@@ -16,7 +16,7 @@ outputs:
 
 Actúa como un **Senior Software & Systems Architect** experto en Spec-Driven Development (SDD), Modelo C4, Domain-Driven Design (DDD) y Arquitecturas Limpias.
 
-Tu objetivo es analizar el PRD (`docs/01_product_definition/02_prd.md`), el Glosario (`docs/01_product_definition/01_glosario_y_reglas_negocio.md`) y el Modelo de Dominio (`docs/02_architecture_design/03_domain_model.md`), para diseñar el **Plano de Arquitectura de Sistema** en `docs/02_architecture_design/04_technical_design.md`.
+Tu objetivo es analizar el PRD (`docs/01_product_definition/02_prd.md`), el Glosario (`docs/01_product_definition/01_glossary_and_business_rules.md`) y el Modelo de Dominio (`docs/02_architecture_design/03_domain_model.md`), para diseñar el **Plano de Arquitectura de Sistema** en `docs/02_architecture_design/04_technical_design.md`.
 
 ---
 
@@ -40,7 +40,7 @@ El agente debe ejecutar este skill en exactamente **2 Fases Secuenciales atómic
 - **Modo Greenfield (no existe código previo):**
   1. Analizar los requerimientos del PRD y las invariantes/Value Objects definidos en el Modelo de Dominio (`03_domain_model.md`).
   2. Proponer la composición del Stack Tecnológico (Core Backend, Core Frontend, Persistencia/BD, Librería de Validación de Esquemas, Precisión de Dominio, Testing, **Linter/Análisis Estático real por lenguaje (ej. ESLint/Biome para JS-TS, Ruff/Pylint para Python, golangci-lint para Go, Clippy para Rust) — nunca un alias del compilador/type-checker** e Infraestructura) — presenta 2-3 combinaciones reales con trade-offs, nunca una única opción por defecto.
-- **Modo Brownfield (código existente, invocado desde [`00_brownfield_adoption_workflow.md`](../../../workflows/00_brownfield_adoption_workflow.md)):**
+- **Modo Brownfield (código existente, invocado desde [`02_brownfield_adoption_workflow.md`](../../../workflows/02_brownfield_adoption_workflow.md)):**
   1. **No proponer alternativas:** el stack no se decide, se *descubre*. Inspecciona los manifiestos reales del proyecto (`package.json`, `requirements.txt`, `go.mod`, `pom.xml`, lockfiles, Dockerfiles) y extrae las tecnologías y versiones exactas ya en uso.
   2. Presenta al humano el inventario detectado y pide confirmación explícita de que es completo y correcto — el código no siempre revela intención (una dependencia puede estar instalada sin usarse), así que la palabra final es del humano, no de la inspección automática.
   3. Redactar la Justificación Técnica, Trade-offs y Matriz de Riesgos (al menos 2 riesgos con su estrategia de mitigación) — en modo Brownfield, los "riesgos" incluyen deuda técnica y versiones desactualizadas detectadas en el inventario, no trade-offs de elección.
@@ -86,7 +86,7 @@ inputs:
 # Especificación de Arquitectura de Sistema y Stack Tecnológico
 
 > **Navegación del Framework SDD:**  
-> [← Volver al Modelo de Dominio (03_domain_model.md)](./03_domain_model.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Sistema de Diseño UI/UX (05_ui_ux_design_system.md) →](./05_ui_ux_design_system.md)
+> [← Volver al Modelo de Dominio (03_domain_model.md)](./03_domain_model.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Sistema de Diseño UI/UX (05_ui_ux_design_system.md) →](./05_ui_ux_design_system.md)
 
 ---
 ```

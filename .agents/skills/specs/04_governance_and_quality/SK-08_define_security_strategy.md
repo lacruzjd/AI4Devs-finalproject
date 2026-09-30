@@ -1,8 +1,8 @@
 ---
-name: security-strategy
+name: sk-08-define-security-strategy
 description: "Define la estrategia de ciberseguridad Enterprise OWASP Top 10, validación Zero Trust con esquemas tipados, cifrado PII, hardening CORS/CSP, rotación JWT, anti-fuerza bruta, logs de auditoría inmutables y cumplimiento GDPR / EU AI Act."
-version: "3.5.0"
-category: "04_governance_and_quality"
+version: "3.5.2"
+category: "specs/04_governance_and_quality"
 inputs:
   - "docs/01_product_definition/02_prd.md"
   - "docs/02_architecture_design/04_technical_design.md"
@@ -92,7 +92,7 @@ inputs:
 # Especificación de Ciberseguridad, PII y Cumplimiento
 
 > **Navegación del Framework SDD:**  
-> [← Volver a Especificación API REST (07_api_specification.md)](../../../../docs/03_persistence_and_api/07_api_specification.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Estrategia de Pruebas (09_testing_strategy.md) →](./09_testing_strategy.md)
+> [← Volver a Especificación API REST (07_api_specification.md)](../../../../docs/03_persistence_and_api/07_api_specification.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Estrategia de Pruebas (09_testing_strategy.md) →](./09_testing_strategy.md)
 
 ---
 ```

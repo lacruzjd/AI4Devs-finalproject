@@ -21,7 +21,7 @@ metadata:
 
 **Entrada:** El identificador del ticket (`TK-XXX`). Si el usuario no lo dio, pídeselo.
 
-Lee y ejecuta `.agents/workflows/02_cascading_dev_workflow.md`.
+Lee y ejecuta `.agents/workflows/05_cascading_dev_workflow.md`.
 
 ## Reglas del comando
 
@@ -38,7 +38,7 @@ class CheckSkillStandardTests(unittest.TestCase):
         self.agents_dir = os.path.join(self.tmp, ".agents")
         os.makedirs(os.path.join(self.agents_dir, "skills"))
         os.makedirs(os.path.join(self.agents_dir, "workflows"))
-        with open(os.path.join(self.agents_dir, "workflows", "02_cascading_dev_workflow.md"), "w") as f:
+        with open(os.path.join(self.agents_dir, "workflows", "05_cascading_dev_workflow.md"), "w") as f:
             f.write("# workflow\n")
         sk_dir = os.path.join(self.agents_dir, "skills", "specs", "02_architecture_design")
         os.makedirs(sk_dir)
@@ -138,7 +138,7 @@ class CheckSkillStandardTests(unittest.TestCase):
 
     def test_command_without_entrypoint_reference_is_detected(self):
         self._write_command("momoy-dev", body=VALID_COMMAND.format(name="momoy-dev").replace(
-            "Lee y ejecuta `.agents/workflows/02_cascading_dev_workflow.md`.", "Implementa el ticket aquí mismo."))
+            "Lee y ejecuta `.agents/workflows/05_cascading_dev_workflow.md`.", "Implementa el ticket aquí mismo."))
 
         checked, violations, messages = run_checks(self.agents_dir)
 
@@ -147,7 +147,7 @@ class CheckSkillStandardTests(unittest.TestCase):
 
     def test_command_referencing_sk_procedure_is_valid(self):
         self._write_command("momoy-adr", body=VALID_COMMAND.format(name="momoy-adr").replace(
-            ".agents/workflows/02_cascading_dev_workflow.md",
+            ".agents/workflows/05_cascading_dev_workflow.md",
             ".agents/skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md"))
 
         checked, violations, messages = run_checks(self.agents_dir)
@@ -156,7 +156,7 @@ class CheckSkillStandardTests(unittest.TestCase):
 
     def test_command_with_broken_sk_procedure_reference_is_detected(self):
         self._write_command("momoy-adr", body=VALID_COMMAND.format(name="momoy-adr").replace(
-            ".agents/workflows/02_cascading_dev_workflow.md",
+            ".agents/workflows/05_cascading_dev_workflow.md",
             ".agents/skills/specs/02_architecture_design/SK-99_missing.md"))
 
         checked, violations, messages = run_checks(self.agents_dir)
@@ -167,7 +167,7 @@ class CheckSkillStandardTests(unittest.TestCase):
     def test_command_referencing_only_another_command_is_detected(self):
         self._write_command("momoy-dev")
         self._write_command("momoy-alias", body=VALID_COMMAND.format(name="momoy-alias").replace(
-            ".agents/workflows/02_cascading_dev_workflow.md", ".agents/skills/momoy-dev/SKILL.md"))
+            ".agents/workflows/05_cascading_dev_workflow.md", ".agents/skills/momoy-dev/SKILL.md"))
 
         checked, violations, messages = run_checks(self.agents_dir)
 
@@ -176,8 +176,8 @@ class CheckSkillStandardTests(unittest.TestCase):
 
     def test_command_with_own_logic_in_body_is_detected(self):
         body = VALID_COMMAND.format(name="momoy-dev").replace(
-            "Lee y ejecuta `.agents/workflows/02_cascading_dev_workflow.md`.",
-            "Lee y ejecuta `.agents/workflows/02_cascading_dev_workflow.md`.\n\n1. Revisa el stub.\n2. Revisa el stack.\n3. Recomienda un comando.")
+            "Lee y ejecuta `.agents/workflows/05_cascading_dev_workflow.md`.",
+            "Lee y ejecuta `.agents/workflows/05_cascading_dev_workflow.md`.\n\n1. Revisa el stub.\n2. Revisa el stack.\n3. Recomienda un comando.")
         self._write_command("momoy-dev", body=body)
 
         checked, violations, messages = run_checks(self.agents_dir)
@@ -208,7 +208,7 @@ class CheckSkillStandardTests(unittest.TestCase):
 
     def test_command_with_broken_workflow_reference_is_detected(self):
         self._write_command("momoy-dev", body=VALID_COMMAND.format(name="momoy-dev").replace(
-            "02_cascading_dev_workflow.md", "99_missing_workflow.md"))
+            "05_cascading_dev_workflow.md", "99_missing_workflow.md"))
 
         checked, violations, messages = run_checks(self.agents_dir)
 

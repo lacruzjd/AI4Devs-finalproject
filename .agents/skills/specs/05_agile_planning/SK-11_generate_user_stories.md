@@ -1,14 +1,14 @@
 ---
-name: user-stories
+name: sk-11-generate-user-stories
 description: "Redacta el backlog de Historias de Usuario bajo la estructura de las 4 Preguntas Clave (Como/Cuando/Quiero/Para), Precondiciones, BDD Gherkin (Happy Path, Error Path, QA Edge Case), NFRs y checklist INVEST."
-version: "3.6.0"
-category: "05_agile_planning"
+version: "4.0.0"
+category: "specs/05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
   - "docs/02_architecture_design/04_technical_design.md"
 outputs:
   - "docs/05_agile_planning/11_user_stories/{modulo}/US-XXX.md"
-  - "docs/05_agile_planning/11_user_stories/indice_user_stories.md"
+  - "docs/05_agile_planning/11_user_stories/user_stories_index.md"
 ---
 
 # SK-11: Historias de Usuario Profesional INVEST y Criterios BDD (v3.6.0)
@@ -52,7 +52,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ### Paso 3: Organización Documental por Módulos
 1. Guardar cada historia en `docs/05_agile_planning/11_user_stories/{modulo}/US-XXX.md`.
-2. Consolidar el índice general del backlog en `docs/05_agile_planning/11_user_stories/indice_user_stories.md`.
+2. Consolidar el índice general del backlog en `docs/05_agile_planning/11_user_stories/user_stories_index.md`.
 
 ---
 
@@ -64,7 +64,7 @@ document: user_story
 id: US-XXX
 version: 1.1.0
 status: approved  # vocabulario cerrado: backlog | approved | in_progress | done | cancelled
-value_risk: medio  # alto | medio | bajo — lo decide el humano en la FASE 1.5 del workflow 01
+value_risk: medio  # alto | medio | bajo — lo decide el humano en la FASE 1.5 del workflow 03
 validation: EXP-NNN  # o bien: exenta — <motivo>. Con value_risk alto la exención no vale
 inputs:
   - docs/01_product_definition/02_prd.md
@@ -74,7 +74,7 @@ inputs:
 # US-XXX: [Título Descriptivo de la Historia]
 
 > **Navegación del Framework SDD:**  
-> [← Volver a CI/CD Pipeline (10_cicd_pipeline.md)](../../../../docs/04_governance_and_quality/10_cicd_pipeline.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Desglose de Tickets (12_tickets/indice_tickets.md) →](../12_tickets/indice_tickets.md)
+> [← Volver a CI/CD Pipeline (10_cicd_pipeline.md)](../../../../docs/04_governance_and_quality/10_cicd_pipeline.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Desglose de Tickets (12_tickets/tickets_index.md) →](../12_tickets/tickets_index.md)
 
 ---
 

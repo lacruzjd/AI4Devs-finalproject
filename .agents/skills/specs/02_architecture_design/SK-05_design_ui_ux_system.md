@@ -1,7 +1,7 @@
 ---
-name: SK-05_design_ui_ux_system
+name: sk-05-design-ui-ux-system
 description: "Detecta la plataforma objetivo (Web/Mobile/Desktop) desde el stack real antes de nada, define la Arquitectura de Información (inventario, sitemap, user flows, wireframes) antes de cualquier decisión visual, facilita la ideación visual, ingesta de specs externa (.md), análisis multimodal de imágenes y cristaliza el Design System (retícula, escala tipográfica y medida, tokens, matriz de estados por componente, mapa de ubicación en código), las reglas de Frontend y el estándar root DESIGN.md (Google Labs spec v1.0.0, cuando la plataforma es Web); en la FASE 4 audita heurísticamente pantallas y mockups contra leyes de Gestalt/UX, ergonomía y WCAG 2.2 con hallazgos fundamentados y falsables."
-version: "3.13.2"
+version: "3.13.4"
 category: "specs/02_architecture_design"
 inputs:
   - "docs/00_stack_manifest.md"
@@ -157,7 +157,7 @@ inputs:
 # Especificación de Sistema de Diseño UI/UX y Ergonomía Táctil
 
 > **Navegación del Framework SDD:**  
-> [← Volver a Arquitectura de Sistema (04_technical_design.md)](./04_technical_design.md) | [Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Modelado de Datos (06_database_schema.md) →](../03_persistence_and_api/06_database_schema.md)
+> [← Volver a Arquitectura de Sistema (04_technical_design.md)](./04_technical_design.md) | [Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Modelado de Datos (06_database_schema.md) →](../03_persistence_and_api/06_database_schema.md)
 
 ---
 ```

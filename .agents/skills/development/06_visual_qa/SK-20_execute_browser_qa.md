@@ -1,7 +1,7 @@
 ---
-name: SK-20_execute_browser_qa
+name: sk-20-execute-browser-qa
 description: "Guía al subagente de navegación de la IA para ejecutar pruebas visuales, de accesibilidad táctil y funcionales sobre la interfaz de usuario local."
-version: "1.1.2"
+version: "1.1.3"
 category: "development/06_visual_qa"
 inputs:
   - target_url: "URL opcional del servidor de desarrollo local — si no se pasa, se infiere de docs/00_stack_manifest.md §7 (Frontend Dev Server); solo si el manifiesto no la declara, se descubre leyendo la config real del proyecto"

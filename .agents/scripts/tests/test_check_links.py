@@ -68,7 +68,7 @@ class CheckLinksTests(unittest.TestCase):
 
     def test_missing_docs_target_is_ignored_pre_bootstrap(self):
         # Sin docs/00_stack_manifest.md, docs/ está vacío por diseño (proyecto recién
-        # instalado, todavía no pasó por 00_greenfield_bootstrap_workflow.md) — un
+        # instalado, todavía no pasó por 01_greenfield_bootstrap_workflow.md) — un
         # required_rules apuntando ahí no debe reportarse como roto.
         self._write_skill("SK-01_a.md", "docs/does_not_exist.md")
 
@@ -168,6 +168,16 @@ class CheckLinksTests(unittest.TestCase):
         self.assertEqual(broken, 0, msg="\n".join(messages))
         self.assertEqual(skill_count, 42)
 
+
+    def test_broken_link_in_extra_source_file_is_detected(self):
+        extra = os.path.join(self.project_root, "CONTRIBUTING.md")
+        with open(extra, "w") as f:
+            f.write("[mapa](.agents/workflows/99_missing_workflow.md)\n")
+
+        _, broken, messages, _ = run_checks(self.agents_dir, self.project_root, extra_files=[extra])
+
+        self.assertEqual(broken, 1)
+        self.assertIn("CONTRIBUTING.md", messages[0])
 
 if __name__ == "__main__":
     unittest.main()

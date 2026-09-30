@@ -80,7 +80,7 @@ Invoca: `/momoy-greenfield [descripción de la idea]`
 **¿Este directorio ya tiene código funcionando?**
 Invoca: `/momoy-brownfield [ruta]`
 
-Si tu asistente no soporta skills, usa el workflow directamente: `@.agents/workflows/00_greenfield_bootstrap_workflow.md Arranca un proyecto nuevo a partir de esta idea: [descripción]` o `@.agents/workflows/00_brownfield_adoption_workflow.md Adopta .agents/ en este código existente: [ruta]`. ¿Dudas? `/momoy` diagnostica el estado del proyecto.
+Si tu asistente no soporta skills, usa el workflow directamente: `@.agents/workflows/01_greenfield_bootstrap_workflow.md Arranca un proyecto nuevo a partir de esta idea: [descripción]` o `@.agents/workflows/02_brownfield_adoption_workflow.md Adopta .agents/ en este código existente: [ruta]`. ¿Dudas? `/momoy` diagnostica el estado del proyecto.
 
 Cualquiera de los dos workflows, al llegar a su fase de contrato operativo, invoca `SK-35_generate_root_contract.md` y **reemplaza este archivo** por el `AGENTS.md` real de 6 secciones. No edites este stub a mano — es autogenerado y desechable.'
 

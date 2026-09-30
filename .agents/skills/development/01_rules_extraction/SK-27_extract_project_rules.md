@@ -1,7 +1,7 @@
 ---
-name: SK-27_extract_project_rules
+name: sk-27-extract-project-rules
 description: "Analiza la documentación técnica del proyecto (PRDs, Arquitectura, Esquemas, ADRs) y deduce/genera automáticamente las reglas de gobernanza y codificación del proyecto en docs/04_governance_and_quality/rules/."
-version: "1.7.0"
+version: "1.7.1"
 category: "development/01_rules_extraction"
 inputs:
   - docs_path: "Ruta raíz de la documentación técnica (ej. docs/)"

@@ -1,7 +1,7 @@
 ---
 framework: "momoy"
 tagline: "Arnés de gobernanza para agentes de IA: primero la especificación, luego el código verificado"
-version: "2.31.0"
+version: "3.0.0"
 author: "Jose Lacruz <lacruzjd@gmail.com>"
 methodology: "Verified Spec-Driven Development (VSDD)"
 transparency: "Evalúa la clasificación de riesgo EU AI Act del producto (SK-01, SK-08); no certifica cumplimiento"
@@ -34,7 +34,7 @@ Desde un repositorio que ya tenga `.agents/` (como este), instala una copia en o
 ```bash
 bash .agents/scripts/install.sh /ruta/al/proyecto/destino
 ```
-Copia `.agents/` completo y genera `AGENTS.md` (stub de arranque, no el contrato final), `CLAUDE.md`, `GEMINI.md` y las copias de los comandos en `.claude/skills/` (vía `sync_claude_skills.sh`) en el destino — sin sobrescribir nada si el destino ya tiene un `.agents/` o entrypoints propios. El stub de `AGENTS.md` indica al agente qué workflow de bootstrap invocar (`00_greenfield_bootstrap_workflow.md` o `00_brownfield_adoption_workflow.md`); ese workflow, vía `SK-35`, reemplaza el stub por el contrato operativo real. También genera `.agents/INSTALLED_FROM.md` con la ruta/remote/commit de origen y la versión copiada, para poder diferenciar esta instalación contra el origen más adelante si se sospecha de drift.
+Copia `.agents/` completo y genera `AGENTS.md` (stub de arranque, no el contrato final), `CLAUDE.md`, `GEMINI.md` y las copias de los comandos en `.claude/skills/` (vía `sync_claude_skills.sh`) en el destino — sin sobrescribir nada si el destino ya tiene un `.agents/` o entrypoints propios. El stub de `AGENTS.md` indica al agente qué workflow de bootstrap invocar (`01_greenfield_bootstrap_workflow.md` o `02_brownfield_adoption_workflow.md`); ese workflow, vía `SK-35`, reemplaza el stub por el contrato operativo real. También genera `.agents/INSTALLED_FROM.md` con la ruta/remote/commit de origen y la versión copiada, para poder diferenciar esta instalación contra el origen más adelante si se sospecha de drift.
 
 Si no tienes acceso a un repo con `.agents/` ya instalado, copia manualmente la carpeta `.agents/` completa al proyecto destino y crea a mano los 3 archivos de entrypoint con el contenido que genera `install.sh` — no hay dependencia de build ni paquete que instalar, son archivos markdown planos.
 
@@ -48,6 +48,7 @@ Comprueba la instalación con `bash .agents/scripts/validate_agents.sh`: ejecuta
 2. Renombra o borra el `.agents/` actual y vuelve a ejecutar `install.sh`. Tus archivos de `docs/` y tu `AGENTS.md` real no se tocan: `install.sh` respeta los entrypoints que ya existen.
 3. Regenera las copias de Claude Code: `bash .agents/scripts/sync_claude_skills.sh`. Solo sobrescribe las copias que llevan su marca de generadas; una que hayas escrito a mano no se toca.
 4. Revisa el diff de `.agents/` antes de darlo por bueno: la regla innegociable de aprobación previa cubre también al propio momoy.
+5. **Si vienes de una versión 2.x**, migra las rutas de `docs/` que cambiaron en 3.0.0: `python3 .agents/scripts/migrate_docs_v3.py` muestra el plan y `--apply` lo ejecuta (renombra los archivos y reescribe sus referencias en `docs/` y `AGENTS.md`). Mientras quede una ruta anterior, el gate `migracion` la informa. Si citas workflows o procedimientos por ruta, la tabla de equivalencias está en [UPGRADING.md](UPGRADING.md).
 
 ### Primeros Pasos (Quickstart)
 
@@ -72,10 +73,10 @@ flowchart TD
     end
 
     subgraph CAPA1 ["1. CAPA DE ORQUESTACION (14 Workflows)"]
-        W00["00_* Bootstrap/Adopción (una sola vez): master, greenfield, brownfield"]
-        W01["01_cascading_spec_workflow.md"]
-        W02["02_cascading_dev_workflow.md"]
-        W0X["03..11: Auditoría, TDD, QA, Observabilidad, Smoke, Verificación en vivo, Release, Mantenimiento"]
+        W00["00 Trazo maestro · 01 Greenfield · 02 Brownfield (una sola vez)"]
+        W01["03_cascading_spec_workflow.md"]
+        W02["05_cascading_dev_workflow.md"]
+        W0X["04, 06..13: Auditoría de specs, TDD, QA, Verificación en vivo, Auditoría de código, Release, Smoke, Observabilidad, Mantenimiento"]
     end
 
     subgraph CAPA2 ["2. CAPA DE HABILIDADES PROCEDIMENTALES (42 Skills)"]
@@ -113,28 +114,28 @@ momoy se usa con **comandos**. Cada comando es una skill del estándar abierto [
 | Comando | Qué hace | Cuándo |
 |:---|:---|:---|
 | `/momoy` | Diagnostica el estado del proyecto y recomienda el siguiente comando (solo lectura) | Punto de entrada; cuando no sabes qué toca |
-| `/momoy-greenfield [idea]` | Bootstrap de proyecto nuevo ([`00_greenfield`](workflows/00_greenfield_bootstrap_workflow.md)) | Una sola vez, directorio vacío |
-| `/momoy-brownfield [ruta]` | Adopción en código existente ([`00_brownfield`](workflows/00_brownfield_adoption_workflow.md)) | Una sola vez, código funcionando |
+| `/momoy-greenfield [idea]` | Bootstrap de proyecto nuevo ([`01_greenfield`](workflows/01_greenfield_bootstrap_workflow.md)) | Una sola vez, directorio vacío |
+| `/momoy-brownfield [ruta]` | Adopción en código existente ([`02_brownfield`](workflows/02_brownfield_adoption_workflow.md)) | Una sola vez, código funcionando |
 | `/momoy-experiment [hipótesis o EXP-NNN]` | Diseña un experimento de validación o registra su resultado ([`SK-37`](skills/specs/01_product_definition/SK-37_design_validation_experiment.md)) | Capacidad con riesgo de valor alto, o al volver con la evidencia |
-| `/momoy-spec [idea]` | Cascada de especificaciones ([`01`](workflows/01_cascading_spec_workflow.md)) | Cada idea o funcionalidad nueva |
+| `/momoy-spec [idea]` | Cascada de especificaciones ([`01`](workflows/03_cascading_spec_workflow.md)) | Cada idea o funcionalidad nueva |
 | `/momoy-adr [decisión]` | Registro de una decisión de arquitectura con 3 opciones ([`SK-36`](skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md)) | Dos o más caminos viables y costosos de revertir |
-| `/momoy-dev TK-XXX` | Desarrollo de un ticket de punta a punta ([`02`](workflows/02_cascading_dev_workflow.md)) | Cada ticket, uno a la vez |
-| `/momoy-characterize [módulo]` | Congela con tests el comportamiento de código legado y luego lo refactoriza ([`SK-24`](skills/development/05_quality_and_lint/SK-24_execute_characterization_testing.md)) | Antes de tocar código existente sin tests |
-| `/momoy-audit-spec [carpeta]` | Auditoría de specs en `docs/` ([`03`](workflows/03_spec_audit_workflow.md)) | Tras cambiar specs, antes de codificar |
-| `/momoy-audit-dev TK-XXX` | Revisión adversarial del código ([`04`](workflows/04_dev_audit_workflow.md)) | Ticket implementado, antes de aprobarlo |
+| `/momoy-dev TK-XXX` | Desarrollo de un ticket de punta a punta ([`02`](workflows/05_cascading_dev_workflow.md)) | Cada ticket, uno a la vez |
+| `/momoy-characterize [módulo]` | Congela con tests el comportamiento de código legado y luego lo refactoriza ([`SK-24`](skills/development/08_testing/SK-24_execute_characterization_testing.md)) | Antes de tocar código existente sin tests |
+| `/momoy-audit-spec [carpeta]` | Auditoría de specs en `docs/` ([`03`](workflows/04_spec_audit_workflow.md)) | Tras cambiar specs, antes de codificar |
+| `/momoy-audit-dev TK-XXX` | Revisión adversarial del código ([`04`](workflows/09_dev_audit_workflow.md)) | Ticket implementado, antes de aprobarlo |
 | `/momoy-external [informe]` | Clasifica cada recomendación de un informe externo contra el producto real: implementada, gap, conflicto con una decisión aprobada, fuera de alcance o no verificable ([`SK-42`](skills/specs/04_governance_and_quality/SK-42_intake_external_review.md)) | Llega una auditoría, consultoría o feedback de fuera del equipo |
-| `/momoy-tdd TK-XXX` | Bucle autónomo Red-Green-Refactor ([`05`](workflows/05_test_runner_workflow.md)) | Fase de pruebas de un ticket |
-| `/momoy-qa [objetivo]` | Pipeline QA completo con mutación ([`06`](workflows/06_full_qa_pipeline.md)) | Antes de cerrar un conjunto de cambios |
-| `/momoy-incident [stacktrace]` | Incidencia de producción → ticket ([`07`](workflows/07_production_observability_workflow.md)) | Llega un error real de producción |
+| `/momoy-tdd TK-XXX` | Bucle autónomo Red-Green-Refactor ([`05`](workflows/06_test_runner_workflow.md)) | Fase de pruebas de un ticket |
+| `/momoy-qa [objetivo]` | Pipeline QA completo con mutación ([`06`](workflows/07_full_qa_workflow.md)) | Antes de cerrar un conjunto de cambios |
+| `/momoy-incident [stacktrace]` | Incidencia de producción → ticket ([`07`](workflows/12_production_observability_workflow.md)) | Llega un error real de producción |
 | `/momoy-postmortem [PM-NNN o incidencia]` | Postmortem sin culpa de una incidencia resuelta ([`SK-38`](skills/development/07_performance_and_observability/SK-38_write_blameless_postmortem.md)) | Incidencia crítica o alta resuelta, en los 5 días siguientes |
 | `/momoy-release [X.Y.Z]` | Release a producción con gates previos, estrategia, rollback ensayado y aprobación humana ([`10`](workflows/10_release_workflow.md)) | Hay tickets cerrados listos para producción |
 | `/momoy-operate [diseñar o ensayar]` | SLOs, alertas con runbook, backups y simulacros de recuperación ([`SK-40`](skills/specs/04_governance_and_quality/SK-40_design_service_operations.md)) | Antes del primer release a producción, o cuando toca un simulacro |
-| `/momoy-smoke [URL]` | Validación post-despliegue; rollback solo con aprobación humana ([`08`](workflows/08_smoke_test_deploy_validation.md)) | Justo después de cada deploy |
-| `/momoy-verify-live [flujo]` | Prueba de la app en vivo con navegador real ([`09`](workflows/09_live_stack_verification_workflow.md)) | Demostrar que un ticket funciona de verdad |
+| `/momoy-smoke [URL]` | Validación post-despliegue; rollback solo con aprobación humana ([`08`](workflows/11_smoke_test_workflow.md)) | Justo después de cada deploy |
+| `/momoy-verify-live [flujo]` | Prueba de la app en vivo con navegador real ([`09`](workflows/08_live_stack_verification_workflow.md)) | Demostrar que un ticket funciona de verdad |
 | `/momoy-pr [PR o rama]` | Documentación veraz de PRs e historial de entregas ([`SK-15`](skills/specs/05_agile_planning/SK-15_document_pull_requests.md)) | Al abrir o cerrar un PR |
-| `/momoy-deps [paquete]` | Auditoría de seguridad de dependencias ([`SK-23`](skills/development/05_quality_and_lint/SK-23_audit_dependency_security.md)) | Se publica una vulnerabilidad, o antes de añadir o actualizar una dependencia |
+| `/momoy-deps [paquete]` | Auditoría de seguridad de dependencias ([`SK-23`](skills/development/05_code_quality/SK-23_audit_dependency_security.md)) | Se publica una vulnerabilidad, o antes de añadir o actualizar una dependencia |
 | `/momoy-outcomes [KPIs]` | Mide los KPIs con fecha de revisión vencida y propone mantener, iterar, pivotar o retirar ([`SK-39`](skills/specs/01_product_definition/SK-39_measure_product_outcomes.md)) | Llega la fecha de revisión de los KPIs |
-| `/momoy-maintain` | Revisión de mantenimiento: dependencias, deuda, flags, operación y especificaciones ([`11`](workflows/11_maintenance_workflow.md)) | Cada 30 días |
+| `/momoy-maintain` | Revisión de mantenimiento: dependencias, deuda, flags, operación y especificaciones ([`11`](workflows/13_maintenance_workflow.md)) | Cada 30 días |
 | `/momoy-retire [funcionalidad]` | Retirada como cascada inversa, con aviso a usuarios y tratamiento de datos ([`SK-41`](skills/specs/05_agile_planning/SK-41_retire_capability.md)) | Un informe recomienda retirar o el humano decide apagar una funcionalidad |
 | `/momoy-validate` | Integridad del propio momoy ([`validate_agents.sh`](scripts/validate_agents.sh)) | Antes de proponer un cambio a `.agents/` |
 
@@ -155,9 +156,10 @@ Las propiedades mecánicas de lo que generan las skills de especificación se ve
 | `mantenimiento` | Mantenimiento | Cada `MNT-NNN` cerrado traza sus hallazgos a tickets o `sin acción — motivo`; con algo desplegado, pasar 30 días sin una revisión cerrada es un hallazgo |
 | `retirada` | Mantenimiento | Cada `RET-NNN` completado tiene aviso de al menos 30 días, tickets de eliminación cerrados e historias con `retired_by`; vencida la retención, exige registrar la anonimización o eliminación de los datos |
 | `externo` | Transversal | Cada `EXT-NNN` con su origen, cada recomendación clasificada con evidencia, y el seguimiento de cada `gap` y `conflicto` en el vocabulario cerrado: un ticket o historia existentes, `pendiente de cascada — motivo`, `pendiente de ADR — motivo`, `pendiente de verificación — motivo` o `sin acción — motivo` |
+| `migracion` | Transversal | Ningún artefacto de `docs/` conserva una ruta anterior a 3.0.0 (el glosario, los índices de historias y tickets, la matriz de trazabilidad y el informe de contrato). Sin este gate, un archivo con el nombre viejo haría que los demás se saltaran sus comprobaciones sin avisar. `migrate_docs_v3.py` los renombra. |
 | `postmortem` | Incidentes | Cada `PM-NNN` con línea de tiempo con horas, análisis de por qué ningún gate lo detectó y, si está cerrado, acciones trazadas a tickets; uno crítico o alto sin cerrar a los 5 días de resolverse es un hallazgo |
 
-Sin argumentos genera un informe del repositorio que **no bloquea** (la deuda documental previa es información); `--verbose` lista cada hallazgo y `--strict` lo convierte en bloqueante. `--changed` revisa solo lo modificado y `--ticket TK-XXX` la Definition of Ready de un ticket; ambos **bloquean** y los invocan `/momoy-spec` (workflow 01) y `/momoy-dev` (workflow 02). `--today AAAA-MM-DD` evalúa los plazos (revisión de KPIs, cadencia de mantenimiento, plazo de un postmortem) como si hoy fuera esa fecha, para simulacros y auditorías retroactivas. Estados válidos de historias y tickets: `backlog`, `approved`, `in_progress`, `done`, `cancelled`.
+Sin argumentos genera un informe del repositorio que **no bloquea** (la deuda documental previa es información); `--verbose` lista cada hallazgo y `--strict` lo convierte en bloqueante. `--changed` revisa solo lo modificado y `--ticket TK-XXX` la Definition of Ready de un ticket; ambos **bloquean** y los invocan `/momoy-spec` (workflow 03) y `/momoy-dev` (workflow 05). `--today AAAA-MM-DD` evalúa los plazos (revisión de KPIs, cadencia de mantenimiento, plazo de un postmortem) como si hoy fuera esa fecha, para simulacros y auditorías retroactivas. Estados válidos de historias y tickets: `backlog`, `approved`, `in_progress`, `done`, `cancelled`.
 
 ### Cómo se invocan según la herramienta
 
@@ -168,7 +170,7 @@ Sin argumentos genera un informe del repositorio que **no bloquea** (la deuda do
 | Codex | `.agents/skills/` | `$momoy-dev TK-XXX` o `/skills` |
 | Gemini CLI | `.agents/skills/` | `/skills`, o pidiéndolo en lenguaje natural (Gemini pide confirmación antes de activarla) |
 
-**Sin soporte de skills:** cualquier asistente puede ejecutar el workflow directamente — `@.agents/workflows/02_cascading_dev_workflow.md Implementa el ticket TK-XXX`.
+**Sin soporte de skills:** cualquier asistente puede ejecutar el workflow directamente — `@.agents/workflows/05_cascading_dev_workflow.md Implementa el ticket TK-XXX`.
 
 > [!WARNING]
 > **Antigravity retira sus "workflows" el 1 de noviembre de 2026** y ofrece `/migrate-workflows` para convertirlos en skills. Los workflows de momoy **no** son workflows de Antigravity aunque vivan en `.agents/workflows/`: no ejecutes `/migrate-workflows` sobre este proyecto: según la documentación de Antigravity, ese comando convierte los workflows que encuentra en skills y archiva los originales con extensión `.bak`, lo que dejaría a los comandos sin los procedimientos de los que dependen. Los comandos `/momoy-*` ya son skills.
@@ -200,18 +202,19 @@ Las 42 habilidades (`SK-01` a `SK-42`) son runbooks especializados organizados p
 *   **05_agile_planning:** [SK-11 Historias de Usuario (INVEST)](skills/specs/05_agile_planning/SK-11_generate_user_stories.md), [SK-12 Planificación de Tickets](skills/specs/05_agile_planning/SK-12_generate_backlog_tickets.md), [SK-13 Matriz de Trazabilidad](skills/specs/05_agile_planning/SK-13_generate_traceability_matrix.md), [SK-14 Mapa del Backlog](skills/specs/05_agile_planning/SK-14_generate_backlog_map.md) y [SK-15 Registro de PRs y Releases](skills/specs/05_agile_planning/SK-15_document_pull_requests.md) y [SK-41 Retirada de una Funcionalidad](skills/specs/05_agile_planning/SK-41_retire_capability.md).
 
 ### Fase DevSecOps & Gobernanza de Seguridad (DevSecOps Lead & Auditor Roles)
-*   **Seguridad Shift-Left & CI/CD:** [SK-08 Estrategia de Seguridad](skills/specs/04_governance_and_quality/SK-08_define_security_strategy.md), [SK-10 Pipeline CI/CD e IaC](skills/specs/04_governance_and_quality/SK-10_configure_cicd_pipeline.md), [SK-23 Seguridad en Dependencias Anti-Slopsquatting](skills/development/05_quality_and_lint/SK-23_audit_dependency_security.md) y [SK-25 Auditoría de Validación de Contratos](skills/development/05_quality_and_lint/SK-25_audit_contract_validation.md) y [SK-40 Operación del Servicio](skills/specs/04_governance_and_quality/SK-40_design_service_operations.md).
-*   **Workflows de Auditoría Adversarial:** [Workflow 03 Auditoría de Especificaciones](workflows/03_spec_audit_workflow.md), [Workflow 04 Auditoría Adversarial DevSecOps](workflows/04_dev_audit_workflow.md) y [Workflow 07 Observabilidad en Producción Shift-Right](workflows/07_production_observability_workflow.md).
+*   **Seguridad Shift-Left & CI/CD:** [SK-08 Estrategia de Seguridad](skills/specs/04_governance_and_quality/SK-08_define_security_strategy.md), [SK-10 Pipeline CI/CD e IaC](skills/specs/04_governance_and_quality/SK-10_configure_cicd_pipeline.md), [SK-23 Seguridad en Dependencias Anti-Slopsquatting](skills/development/05_code_quality/SK-23_audit_dependency_security.md) y [SK-25 Auditoría de Validación de Contratos](skills/development/05_code_quality/SK-25_audit_contract_validation.md) y [SK-40 Operación del Servicio](skills/specs/04_governance_and_quality/SK-40_design_service_operations.md).
+*   **Workflows de Auditoría Adversarial:** [Workflow 04 Auditoría de Especificaciones](workflows/04_spec_audit_workflow.md), [Workflow 09 Auditoría Adversarial DevSecOps](workflows/09_dev_audit_workflow.md) y [Workflow 12 Observabilidad en Producción Shift-Right](workflows/12_production_observability_workflow.md).
 
 ### Fase de Codificación y Calidad (Developer, QA & Automation Roles)
-*   **01_rules_extraction:** [SK-27 Extracción de Reglas Legacy](skills/development/01_rules_extraction/SK-27_extract_project_rules.md), [SK-30 Extractor de Diagramas Legacy (C4/ERD)](skills/development/01_rules_extraction/SK-30_legacy_diagram_extractor.md), [SK-31 Indexador de Deuda Técnica](skills/development/01_rules_extraction/SK-31_technical_debt_indexer.md) y [SK-33 Auditoría de Configuración de Entorno Fail-Fast](skills/development/01_rules_extraction/SK-33_environment_configuration_auditor.md).
+*   **01_rules_extraction:** [SK-27 Extracción de Reglas Legacy](skills/development/01_rules_extraction/SK-27_extract_project_rules.md), [SK-30 Extractor de Diagramas Legacy (C4/ERD)](skills/development/01_rules_extraction/SK-30_extract_legacy_diagrams.md), [SK-31 Indexador de Deuda Técnica](skills/development/01_rules_extraction/SK-31_index_technical_debt.md) y [SK-33 Auditoría de Configuración de Entorno Fail-Fast](skills/development/01_rules_extraction/SK-33_audit_environment_configuration.md).
 *   **02_backend_development:** [SK-16 Desarrollo Backend & Entidades Secundarias](skills/development/02_backend_development/SK-16_develop_backend_ticket.md).
 *   **03_frontend_development:** [SK-17 Desarrollo Frontend & Touch UI](skills/development/03_frontend_development/SK-17_develop_frontend_ticket.md).
 *   **04_persistence_and_db:** [SK-18 Migraciones, Seeds & Anti-Orfandad](skills/development/04_persistence_and_db/SK-18_execute_db_migration.md) y [SK-28 Seeding Profesional Idempotente](skills/development/04_persistence_and_db/SK-28_manage_database_seeding.md).
-*   **05_quality_and_lint:** [SK-19 Refactor & Anti-N+1 / Anti-Mass-Assignment](skills/development/05_quality_and_lint/SK-19_refactor_and_lint.md), [SK-22 DBA Log Analysis & Troubleshooting](skills/development/05_quality_and_lint/SK-22_agent_troubleshooting.md), [SK-24 Characterization Testing](skills/development/05_quality_and_lint/SK-24_execute_characterization_testing.md), [SK-26 Recuperador Dinámico Few-Shot](skills/development/05_quality_and_lint/SK-26_retrieve_few_shot_context.md) y [SK-32 Test Fixture Builder (Object Mother)](skills/development/05_quality_and_lint/SK-32_test_fixture_builder.md).
+*   **05_code_quality:** [SK-19 Refactor & Anti-N+1 / Anti-Mass-Assignment](skills/development/05_code_quality/SK-19_refactor_and_lint.md).
 *   **06_visual_qa:** [SK-20 Browser Visual QA](skills/development/06_visual_qa/SK-20_execute_browser_qa.md) y [SK-21 Auditoría Accesibilidad UI/a11y](skills/development/06_visual_qa/SK-21_audit_ui_accessibility.md).
-*   **07_performance_and_observability:** [SK-29 Load & Performance Testing](skills/development/07_performance_and_observability/SK-29_load_and_performance_testing.md) y [SK-38 Postmortem Sin Culpa](skills/development/07_performance_and_observability/SK-38_write_blameless_postmortem.md).
-*   **08_testing:** [SK-34 Model-Based Testing Designer (MBT & Oracles)](skills/development/08_testing/SK-34_model_based_testing_designer.md).
+*   **07_performance_and_observability:** [SK-29 Load & Performance Testing](skills/development/07_performance_and_observability/SK-29_execute_load_and_performance_testing.md) y [SK-38 Postmortem Sin Culpa](skills/development/07_performance_and_observability/SK-38_write_blameless_postmortem.md).
+*   **08_testing:** [SK-24 Characterization Testing](skills/development/08_testing/SK-24_execute_characterization_testing.md), [SK-32 Test Fixture Builder (Object Mother)](skills/development/08_testing/SK-32_build_test_fixtures.md) y [SK-34 Model-Based Testing Designer (MBT & Oracles)](skills/development/08_testing/SK-34_design_model_based_tests.md).
+*   **09_agent_support:** [SK-22 DBA Log Analysis & Troubleshooting](skills/development/09_agent_support/SK-22_troubleshoot_agent.md) y [SK-26 Recuperador Dinámico Few-Shot](skills/development/09_agent_support/SK-26_retrieve_few_shot_context.md).
 *   **Patrones de Oro (Few-Shot):** [Plantillas y Ejemplos de Referencia](examples/00_few_shot_patterns.md).
 
 
@@ -221,4 +224,10 @@ Las 42 habilidades (`SK-01` a `SK-42`) son runbooks especializados organizados p
 
 Este marco de gobernanza y habilidades (`.agents/`) se distribuye bajo la **[Licencia MIT](LICENSE)**. Es 100% abierto, portátil y reutilizable en cualquier proyecto o repositorio comercial o privado sin restricciones de tipo Copyleft / GPL.
 
-Historial de cambios: [CHANGELOG.md](CHANGELOG.md). Guía para contribuir nuevas skills/workflows: [CONTRIBUTING.md](CONTRIBUTING.md). Política de versionado: [VERSIONING.md](VERSIONING.md).
+## 6. Estudiar o modificar momoy
+
+Esta carpeta es la **copia de distribución** de momoy: contiene solo lo que el agente necesita para trabajar en tu proyecto. La fuente completa —historial de cambios (`CHANGELOG.md`), guía para contribuir (`CONTRIBUTING.md`), política de versionado (`VERSIONING.md`), decisiones de arquitectura de momoy (`docs/adr/`) y el mapa de sistema (`docs/system_map/`)— vive en el repositorio de origen. `INSTALLED_FROM.md` (lo crea `install.sh`) indica cuál es (ruta, remote y commit exacto que se copió).
+
+- **Para estudiarlo**, trabaja sobre el repositorio de origen: su README propone por dónde empezar.
+- **Para modificarlo**, cambia el repositorio de origen, valida con `bash .agents/scripts/validate_agents.sh` y reinstala en los proyectos (sección 0).
+- **Para adaptarlo solo a este proyecto**, puedes editar esta carpeta: la regla de aprobación previa cubre también esos cambios. Pero la próxima actualización reemplaza `.agents/` completo, así que una adaptación que no se lleva al repositorio de origen se pierde o entra en conflicto.

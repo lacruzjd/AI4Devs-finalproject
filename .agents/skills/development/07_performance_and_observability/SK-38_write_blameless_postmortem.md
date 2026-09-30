@@ -1,11 +1,11 @@
 ---
-name: blameless-postmortem
+name: sk-38-write-blameless-postmortem
 description: "Analiza una incidencia ya resuelta con un postmortem sin culpa: reconstruye la línea de tiempo con fuentes verificables, mide el impacto, busca las causas en el sistema y no en las personas, responde por qué ningún gate de momoy la detectó y convierte cada lección en una acción trazada a un ticket o en un candidato a regla permanente."
-version: "1.0.0"
+version: "1.0.2"
 category: "development/07_performance_and_observability"
 inputs:
   - "docs/00_stack_manifest.md"
-  - incident_context: "El PM-NNN en borrador que abrió el workflow 07, o la descripción de la incidencia con su evidencia (logs, commits, alertas)"
+  - incident_context: "El PM-NNN en borrador que abrió el workflow 12, o la descripción de la incidencia con su evidencia (logs, commits, alertas)"
 outputs:
   - "docs/06_release_and_operations/postmortems/PM-NNN-{slug}.md"
 ---
@@ -16,7 +16,7 @@ Actúa como un **Site Reliability Engineer** con experiencia en análisis de inc
 
 Tu objetivo es que cada incidencia importante deje al sistema más difícil de romper del mismo modo. El postmortem no busca a quién culpar: busca qué permitió que el fallo ocurriera, por qué nadie lo vio venir y qué cambia para que no se repita.
 
-**Cuándo es obligatorio:** toda incidencia de severidad `critica` o `alta` lleva postmortem completo, que debe cerrarse en **5 días** desde `resolved_at`. Las de severidad `media` o `baja` solo generan el ticket del [workflow 07](../../../workflows/07_production_observability_workflow.md); un postmortem para ellas es opcional.
+**Cuándo es obligatorio:** toda incidencia de severidad `critica` o `alta` lleva postmortem completo, que debe cerrarse en **5 días** desde `resolved_at`. Las de severidad `media` o `baja` solo generan el ticket del [workflow 12](../../../workflows/12_production_observability_workflow.md); un postmortem para ellas es opcional.
 
 ---
 
@@ -72,7 +72,7 @@ Para cada causa, identificar qué gate de momoy (del proyecto o de `.agents/`) d
 ### Fase 6: Acciones y Candidatos a Regla Permanente
 
 1. Proponer acciones **preventivas** (que no vuelva a pasar) y **detectivas** (que se vea antes), cada una con su ticket o `sin acción — motivo`.
-2. Pasar cada lección por el filtro de sistemicidad del [workflow 04](../../../workflows/04_dev_audit_workflow.md) (FASE 6.1): si puede repetirse en otro contexto, es candidata a regla permanente (Guard, regla de `docs/04_governance_and_quality/rules/` o paso de workflow) y se indica si necesita script de verificación.
+2. Pasar cada lección por el filtro de sistemicidad del [workflow 09](../../../workflows/09_dev_audit_workflow.md) (FASE 6.1): si puede repetirse en otro contexto, es candidata a regla permanente (Guard, regla de `docs/04_governance_and_quality/rules/` o paso de workflow) y se indica si necesita script de verificación.
 
 ### Fase 7: PAUSA HitL Obligatoria
 

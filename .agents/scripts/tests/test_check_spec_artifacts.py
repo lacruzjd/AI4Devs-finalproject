@@ -211,7 +211,7 @@ Blueprint validado con la herramienta de la plataforma; todas las URLs con esque
 Volver a desplegar el commit anterior desde la plataforma, sin cambios de datos.
 
 ## Verificación posterior
-Workflow 08 en PASS: salud 200 y rutas protegidas responden 401.
+Workflow 11 en PASS: salud 200 y rutas protegidas responden 401.
 """
 
 RELEASE_PATH = "docs/06_release_and_operations/releases/v1.0.0.md"
@@ -400,7 +400,7 @@ status: accepted
 """
 
 
-GLOSSARY_PATH = "docs/01_product_definition/01_glosario_y_reglas_negocio.md"
+GLOSSARY_PATH = "docs/01_product_definition/01_glossary_and_business_rules.md"
 GLOSSARY = """# Glosario
 
 ## Invariantes de Negocio
@@ -442,7 +442,7 @@ Revisión preliminar externa; no menciona las recetas ni el registro de temperat
 
 | ID | Recomendación | Clasificación | Evidencia | Seguimiento |
 |---|---|---|---|---|
-| R-01 | Búsqueda visible en inventario | implementado | `docs/05_agile_planning/13_matriz_trazabilidad.md` | — |
+| R-01 | Búsqueda visible en inventario | implementado | `docs/05_agile_planning/13_traceability_matrix.md` | — |
 | R-02 | Mostrar el feed de alertas | gap | No se monta en ninguna ruta | TK-003 |
 | R-03 | Áreas táctiles de 44 px | conflicto | `docs/00_stack_manifest.md` | ADR-001 |
 | R-04 | Modo oscuro | fuera_de_alcance | PRD Non-Goal 2 | sin acción — no aporta al MVP |
@@ -458,7 +458,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         self._write("docs/01_product_definition/02_prd.md", KPI_TABLE)
         self._write("docs/05_agile_planning/11_user_stories/stock/US-001.md", STORY)
         self._write("docs/05_agile_planning/12_tickets/stock/backend/TK-001.md", TICKET)
-        self._write("docs/05_agile_planning/13_matriz_trazabilidad.md", MATRIX)
+        self._write("docs/05_agile_planning/13_traceability_matrix.md", MATRIX)
         self._write("docs/02_architecture_design/adr/ADR-001-decision.md", ADR)
         self._write("docs/01_product_definition/experiments/EXP-001-apertura-duplicada.md", EXPERIMENT)
         self._write(PM_PATH, POSTMORTEM)
@@ -574,7 +574,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
                     TICKET.replace("related_story: US-001", "related_story: US-001 · US-099 · AUDIT-DEV-006"))
         self._write("docs/05_agile_planning/12_tickets/stock/backend/TK-002.md",
                     TICKET.replace("id: TK-001", "id: TK-002").replace("related_story: US-001", "related_story: N/A (Técnico — Deuda)"))
-        self._write("docs/05_agile_planning/13_matriz_trazabilidad.md",
+        self._write("docs/05_agile_planning/13_traceability_matrix.md",
                     MATRIX + "| REQ-002 | — | [TK-002](12_tickets/stock/backend/TK-002.md) |\n")
 
         findings, _ = run_checks(self.root)
@@ -598,7 +598,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
                     TICKET.replace("related_story: US-001", "related_story: AUDIT-SEC-003"))
         self._write("docs/05_agile_planning/12_tickets/stock/backend/TK-002.md",
                     TICKET.replace("id: TK-001", "id: TK-002").replace("related_story: US-001", "related_story: pre-entrega"))
-        self._write("docs/05_agile_planning/13_matriz_trazabilidad.md",
+        self._write("docs/05_agile_planning/13_traceability_matrix.md",
                     MATRIX + "| REQ-002 | — | [TK-002](12_tickets/stock/backend/TK-002.md) |\n")
 
         findings, _ = run_checks(self.root)
@@ -612,7 +612,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
                     TICKET.replace("id: TK-001", "id: TK-001-FE").replace("type: backend", "type: frontend"))
         self._write("docs/05_agile_planning/12_tickets/stock/frontend/TK-002-FE.md",
                     TICKET.replace("id: TK-001", "id: TK-002-FE").replace("type: backend", "type: frontend"))
-        self._write("docs/05_agile_planning/13_matriz_trazabilidad.md", MATRIX + "| REQ-002 | — | `TK-001-FE` |\n")
+        self._write("docs/05_agile_planning/13_traceability_matrix.md", MATRIX + "| REQ-002 | — | `TK-001-FE` |\n")
 
         findings, _ = run_checks(self.root)
 
@@ -623,7 +623,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
     def test_story_not_in_matrix_and_broken_matrix_link_are_detected(self):
         self._write("docs/05_agile_planning/11_user_stories/stock/US-002.md", STORY.replace("id: US-001", "id: US-002"))
-        self._write("docs/05_agile_planning/13_matriz_trazabilidad.md",
+        self._write("docs/05_agile_planning/13_traceability_matrix.md",
                     MATRIX + "| REQ-009 | [US-009](11_user_stories/stock/US-009.md) | — |\n")
 
         findings, _ = run_checks(self.root)
@@ -731,7 +731,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         self._write(self.STORY_PATH, STORY.replace("validation: exenta — mejora interna sin riesgo de valor", "validation: EXP-001"))
         self._write("docs/05_agile_planning/11_user_stories/stock/US-002.md",
                     STORY.replace("id: US-001", "id: US-002").replace("validation: exenta — mejora interna sin riesgo de valor", "validation: EXP-404"))
-        self._write("docs/05_agile_planning/13_matriz_trazabilidad.md",
+        self._write("docs/05_agile_planning/13_traceability_matrix.md",
                     MATRIX + "| REQ-002 | [US-002](11_user_stories/stock/US-002.md) | — |\n")
 
         findings, _ = run_checks(self.root)
@@ -1019,7 +1019,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
     def test_planned_release_does_not_need_deploy_evidence_yet(self):
         planned = (RELEASE.replace("status: deployed", "status: planned").replace("deployed_at: 2026-09-09T18:54:00-03:00", "deployed_at:")
-                   .replace("Workflow 08 en PASS: salud 200 y rutas protegidas responden 401.", ""))
+                   .replace("Workflow 11 en PASS: salud 200 y rutas protegidas responden 401.", ""))
         self._release(planned)
         os.remove(os.path.join(self.root, "CHANGELOG.md"))
 
@@ -1063,8 +1063,8 @@ class CheckSpecArtifactsTests(unittest.TestCase):
 
     # ingesta externa (SK-42)
     def test_recommendation_without_valid_classification_or_evidence_is_detected(self):
-        broken = (EXTERNAL.replace("| R-01 | Búsqueda visible en inventario | implementado | `docs/05_agile_planning/13_matriz_trazabilidad.md` | — |",
-                                   "| R-01 | Búsqueda visible en inventario | ya estaba | `docs/05_agile_planning/13_matriz_trazabilidad.md` | — |")
+        broken = (EXTERNAL.replace("| R-01 | Búsqueda visible en inventario | implementado | `docs/05_agile_planning/13_traceability_matrix.md` | — |",
+                                   "| R-01 | Búsqueda visible en inventario | ya estaba | `docs/05_agile_planning/13_traceability_matrix.md` | — |")
                   .replace("| R-04 | Modo oscuro | fuera_de_alcance | PRD Non-Goal 2 | sin acción — no aporta al MVP |",
                            "| R-04 | Modo oscuro | fuera_de_alcance |  | sin acción — no aporta al MVP |"))
         self._write(EXT_PATH, broken)
@@ -1284,7 +1284,7 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         self._write("docs/05_agile_planning/12_tickets/stock/backend/TK-004.md",
                     TICKET.replace("id: TK-001", "id: TK-004").replace("status: approved", "status: done")
                     .replace("related_story: US-001", "related_story: N/A (Técnico — corrección)"))
-        self._write("docs/05_agile_planning/13_matriz_trazabilidad.md", MATRIX + "| REQ-004 | — | [TK-004](12_tickets/stock/backend/TK-004.md) |\n")
+        self._write("docs/05_agile_planning/13_traceability_matrix.md", MATRIX + "| REQ-004 | — | [TK-004](12_tickets/stock/backend/TK-004.md) |\n")
         self._write("docs/05_agile_planning/12_tickets/stock/backend/TK-003.md",
                     TICKET.replace("id: TK-001", "id: TK-003").replace("status: approved", "status: done"))
         planned = (RELEASE.replace("release: 1.0.0", "release: 1.1.0").replace("# Release v1.0.0", "# Release v1.1.0")
@@ -1427,6 +1427,21 @@ class CheckSpecArtifactsTests(unittest.TestCase):
         self.assertEqual(checked, 1)
         self.assertIn("el ticket no existe: primero la cascada de spec", self._kinds(missing))
 
+
+    # migracion
+    def test_pre_3_0_glossary_path_is_reported_instead_of_silently_skipped(self):
+        self._write("docs/01_product_definition/01_glosario_y_reglas_negocio.md", GLOSSARY)
+
+        findings, _ = run_checks(self.root)
+
+        self.assertIn("ruta anterior a momoy 3.0.0", self._kinds(findings, "migracion"))
+
+    def test_pre_3_0_matrix_path_blocks_the_ticket_definition_of_ready(self):
+        self._write("docs/05_agile_planning/13_matriz_trazabilidad.md", MATRIX)
+
+        findings, _ = run_checks(self.root, ticket="TK-001")
+
+        self.assertIn("ruta anterior a momoy 3.0.0", self._kinds(findings, "migracion"))
 
 if __name__ == "__main__":
     unittest.main()

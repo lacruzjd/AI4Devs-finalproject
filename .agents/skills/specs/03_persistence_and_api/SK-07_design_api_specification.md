@@ -1,8 +1,8 @@
 ---
-name: api-specification
+name: sk-07-design-api-specification
 description: "Diseña la especificación OpenAPI 3.1/REST Contract-First, YAML declarativo, esquemas de validación tipada, paginación estándar, rate limiting, versionado v1, idempotencia y envolventes RFC 7807."
-version: "3.4.0"
-category: "03_persistence_and_api"
+version: "3.4.2"
+category: "specs/03_persistence_and_api"
 inputs:
   - "docs/01_product_definition/02_prd.md"
   - "docs/03_persistence_and_api/06_database_schema.md"
@@ -115,7 +115,7 @@ outputs:
 # Especificación de API REST y Contratos de Dominio
 
 > **Navegación del Framework SDD:**  
-> [← Volver a Esquema de Base de Datos (06_database_schema.md)](./06_database_schema.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Estrategia de Seguridad (08_security_strategy.md) →](../../../../docs/04_governance_and_quality/08_security_strategy.md)
+> [← Volver a Esquema de Base de Datos (06_database_schema.md)](./06_database_schema.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Estrategia de Seguridad (08_security_strategy.md) →](../../../../docs/04_governance_and_quality/08_security_strategy.md)
 
 ---
 ```

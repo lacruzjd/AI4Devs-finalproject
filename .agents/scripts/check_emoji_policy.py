@@ -21,6 +21,8 @@ import os
 import re
 import sys
 
+from source_repo import source_files
+
 # Escritos como escapes para que este archivo no dependa de sí mismo para pasar el chequeo.
 ALLOWED_MARKERS = {
     "\U0001F7E2",  # círculo verde — éxito / completado
@@ -60,7 +62,7 @@ def _describe(chars):
     return " ".join(f"U+{ord(c):04X}" for c in chars)
 
 
-def run_checks(agents_dir):
+def run_checks(agents_dir, extra_files=()):
     """Recorre .agents/ y aplica las dos reglas del módulo.
 
     Devuelve (checked_count, violation_count, messages) sin imprimir ni salir del
@@ -73,41 +75,45 @@ def run_checks(agents_dir):
     if not os.path.isdir(agents_dir):
         return checked_count, violation_count, messages
 
+    targets = []
     for root, dirs, files in os.walk(agents_dir):
         dirs[:] = sorted(d for d in dirs if d not in EXCLUDED_DIR_NAMES)
+        targets.extend(os.path.join(root, fname) for fname in sorted(files))
+    # Archivos del repositorio fuente fuera de .agents/ (source_repo.py); vacío en un proyecto instalado
+    targets.extend(extra_files)
 
-        for fname in sorted(files):
-            _, ext = os.path.splitext(fname)
-            if ext not in CHECKED_EXTENSIONS or fname in EXEMPT_FILENAMES:
+    for file_path in targets:
+        fname = os.path.basename(file_path)
+        _, ext = os.path.splitext(fname)
+        if ext not in CHECKED_EXTENSIONS or fname in EXEMPT_FILENAMES:
+            continue
+
+        rel_path = os.path.relpath(file_path, agents_dir)
+        checked_count += 1
+
+        with open(file_path, encoding="utf-8", errors="ignore") as f:
+            lines = f.readlines()
+
+        for line_idx, line in enumerate(lines, 1):
+            emojis = [c for c in line if is_emoji(c) and c not in MODIFIERS]
+            if not emojis:
                 continue
 
-            file_path = os.path.join(root, fname)
-            rel_path = os.path.relpath(file_path, agents_dir)
-            checked_count += 1
+            if ext == ".md" and HEADING.match(line):
+                violation_count += 1
+                messages.append(
+                    f"❌ Emoji en título en {rel_path} L{line_idx}: {_describe(emojis)} — los títulos "
+                    f"no llevan emoji, ni siquiera marcadores de estado (CONTRIBUTING.md de momoy)."
+                )
+                continue
 
-            with open(file_path, encoding="utf-8", errors="ignore") as f:
-                lines = f.readlines()
-
-            for line_idx, line in enumerate(lines, 1):
-                emojis = [c for c in line if is_emoji(c) and c not in MODIFIERS]
-                if not emojis:
-                    continue
-
-                if ext == ".md" and HEADING.match(line):
-                    violation_count += 1
-                    messages.append(
-                        f"❌ Emoji en título en {rel_path} L{line_idx}: {_describe(emojis)} — los títulos "
-                        f"no llevan emoji, ni siquiera marcadores de estado (CONTRIBUTING.md)."
-                    )
-                    continue
-
-                disallowed = [c for c in emojis if c not in ALLOWED_MARKERS]
-                if disallowed:
-                    violation_count += 1
-                    messages.append(
-                        f"❌ Emoji fuera de la lista permitida en {rel_path} L{line_idx}: {_describe(disallowed)} — "
-                        f"solo se admiten los marcadores semánticos de estado/severidad (CONTRIBUTING.md)."
-                    )
+            disallowed = [c for c in emojis if c not in ALLOWED_MARKERS]
+            if disallowed:
+                violation_count += 1
+                messages.append(
+                    f"❌ Emoji fuera de la lista permitida en {rel_path} L{line_idx}: {_describe(disallowed)} — "
+                    f"solo se admiten los marcadores semánticos de estado/severidad (CONTRIBUTING.md de momoy)."
+                )
 
     return checked_count, violation_count, messages
 
@@ -115,7 +121,7 @@ def run_checks(agents_dir):
 def main():
     agents_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    checked_count, violation_count, messages = run_checks(agents_dir)
+    checked_count, violation_count, messages = run_checks(agents_dir, source_files(agents_dir, CHECKED_EXTENSIONS))
 
     for msg in messages:
         print(msg)

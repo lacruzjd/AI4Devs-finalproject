@@ -4,17 +4,17 @@ description: "Congela con pruebas de caracterización el comportamiento actual d
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # /momoy-characterize
 
 **Entrada:** La ruta del archivo o módulo legado a caracterizar. Si el usuario no la dio, pídesela.
 
-Lee por completo y ejecuta el procedimiento `.agents/skills/development/05_quality_and_lint/SK-24_execute_characterization_testing.md`.
+Lee por completo y ejecuta el procedimiento `.agents/skills/development/08_testing/SK-24_execute_characterization_testing.md`.
 
 ## Reglas del comando
 
-- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/skills/development/05_quality_and_lint/SK-24_execute_characterization_testing.md`. Si ambos discrepan, manda el procedimiento.
+- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/skills/development/08_testing/SK-24_execute_characterization_testing.md`. Si ambos discrepan, manda el procedimiento.
 - Respeta cada pausa de aprobación humana del procedimiento: no guardes ni crees archivos antes de que el humano confirme (regla Human-in-the-Loop de `.agents/README.md`).
 - Si el procedimiento genera código, configuración o infraestructura, lee antes `docs/00_stack_manifest.md` (Fase 0). Si una herramienta o versión no está ahí, detente y pregunta.

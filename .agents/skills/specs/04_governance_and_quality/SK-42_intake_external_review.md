@@ -1,7 +1,7 @@
 ---
-name: external-review-intake
+name: sk-42-intake-external-review
 description: "Convierte un informe externo (auditoría UX, revisión de seguridad, consultoría, feedback de un cliente) en decisiones trazables: contrasta cada recomendación contra el producto real y la clasifica como implementada, gap, conflicto con una decisión aprobada, fuera de alcance o no verificable, con evidencia del repositorio en cada una; solo los gaps se convierten en trabajo, y un conflicto exige un ADR, nunca una edición silenciosa."
-version: "1.1.0"
+version: "1.1.1"
 category: "specs/04_governance_and_quality"
 inputs:
   - report_path: "Ruta o contenido del informe externo (PDF, markdown, correo, notas de una reunión)"

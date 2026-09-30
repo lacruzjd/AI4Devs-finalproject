@@ -1,7 +1,7 @@
 ---
-name: SK-28_manage_database_seeding
+name: sk-28-manage-database-seeding
 description: "Guía procedimental agnóstica para crear, auditar y ejecutar estrategias de sembrado de datos (seeding) bajo los 5 pilares profesionales de ingeniería."
-version: "1.0.2"
+version: "1.0.3"
 category: "development/04_persistence_and_db"
 inputs:
   - seeding_requirements: "Descripción de las entidades, catálogo maestro o fixtures a sembrar"

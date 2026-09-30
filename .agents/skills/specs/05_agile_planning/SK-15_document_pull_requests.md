@@ -1,12 +1,12 @@
 ---
-name: pull-requests
+name: sk-15-document-pull-requests
 description: "Documenta e inspecciona el historial veraz de entregas —Pull Requests, commits y Quality Gates (DoD) de CI/CD— sin invención de metadatos, actualizando README.md y 15_history.md, y es la dueña del Registro de Release que el workflow 10 escribe y el gate release verifica."
-version: "3.2.0"
-category: "05_agile_planning"
+version: "4.0.0"
+category: "specs/05_agile_planning"
 inputs:
   - "git_log_and_pr_data"
   - "docs/05_agile_planning/12_tickets/"
-  - "docs/05_agile_planning/13_matriz_trazabilidad.md"
+  - "docs/05_agile_planning/13_traceability_matrix.md"
 outputs:
   - "README.md"
   - "docs/05_agile_planning/15_history.md"
@@ -96,7 +96,7 @@ rollback_rehearsed_on:       # AAAA-MM-DD; obligatorio si hay migración o cambi
 [Cómo se vuelve a la versión anterior, cuánto tarda, qué pasa con los datos y evidencia del ensayo si aplica.]
 
 ## Verificación posterior
-[Al desplegar: resultado del workflow 08.]
+[Al desplegar: resultado del workflow 11.]
 ```
 
 Las secciones Migraciones y Feature flags solo son obligatorias si hay migraciones o la estrategia es `flag`; Verificación posterior, solo al desplegar.
@@ -114,13 +114,13 @@ version: 1.0.0
 status: approved
 inputs:
   - git_log_and_pr_data
-  - docs/05_agile_planning/13_matriz_trazabilidad.md
+  - docs/05_agile_planning/13_traceability_matrix.md
 ---
 
 # Historial de Pull Requests e Integración Continua
 
 > **Navegación del Framework SDD:**  
-> [← Volver a Mapa Jerárquico (14_backlog_map.md)](./14_backlog_map.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Inicio del Framework (01_glosario_y_reglas_negocio.md) →](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md)
+> [← Volver a Mapa Jerárquico (14_backlog_map.md)](./14_backlog_map.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) | [Inicio del Framework (01_glossary_and_business_rules.md) →](../../../../docs/01_product_definition/01_glossary_and_business_rules.md)
 
 ---
 ```

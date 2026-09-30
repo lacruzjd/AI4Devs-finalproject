@@ -1,11 +1,11 @@
 ---
-name: prd-generation
+name: sk-02-generate-prd
 description: "Genera el Documento de Requisitos de Producto (PRD) agnóstico de alta fidelidad con ejecuciones secuenciales por fases, Naming Strategy, Historias INVEST, BDD Gherkin con códigos HTTP y políticas TDD."
-version: "2.5.0"
-category: "01_product_definition"
+version: "3.0.0"
+category: "specs/01_product_definition"
 inputs:
   - "docs/01_product_definition/01_product_discovery.md"
-  - "docs/01_product_definition/01_glosario_y_reglas_negocio.md"
+  - "docs/01_product_definition/01_glossary_and_business_rules.md"
 outputs:
   - "docs/01_product_definition/02_prd.md"
 ---
@@ -17,9 +17,9 @@ Actúa como un Senior Product Manager y Principal Product Architect experto en m
 ## FASES SECUENCIALES DE EJECUCIÓN DEL AGENTE (WORKFLOW PIPELINE)
 
 ### FASE 1: Ingesta y Validación de Contratos (Tiempo estimado: 3–5 min)
-* **Dependencias Explícitas:** `docs/01_product_definition/01_product_discovery.md` y `01_glosario_y_reglas_negocio.md`.
+* **Dependencias Explícitas:** `docs/01_product_definition/01_product_discovery.md` y `01_glossary_and_business_rules.md`.
 * **Criterio de Aceptación Verificable:** Mapeo completo de los User Personas, la UVP y las Invariantes sin vacíos de dominio.
-* **Lo que NO DEBE cambiar:** Los archivos de entrada `01_product_discovery.md` y `01_glosario_y_reglas_negocio.md` son inmutables y no se alteran.
+* **Lo que NO DEBE cambiar:** Los archivos de entrada `01_product_discovery.md` y `01_glossary_and_business_rules.md` son inmutables y no se alteran.
 
 ### FASE 2: Protocolo de Naming Strategy (Tiempo estimado: 2–5 min)
 * **Dependencias Explícitas:** Términos de Lenguaje Ubicuo y UVP validados en la Fase 1.
@@ -32,7 +32,7 @@ Actúa como un Senior Product Manager y Principal Product Architect experto en m
 ### FASE 3: Generación de Especificación PRD & BDD (Tiempo estimado: 5–10 min)
 * **Dependencias Explícitas:** Nombre confirmado (Fase 2) + Invariantes del Glosario de la Fase 1.
 * **Criterio de Aceptación Verificable:** Archivo `02_prd.md` creado con navegación GFM, 6 secciones 1-indexed, BDD con respuestas HTTP exactas y política TDD anti-Test Theater.
-* **Lo que NO DEBE cambiar:** Las Invariantes de Negocio declaradas en `01_glosario_y_reglas_negocio.md`.
+* **Lo que NO DEBE cambiar:** Las Invariantes de Negocio declaradas en `01_glossary_and_business_rules.md`.
 
 ---
 
@@ -47,7 +47,7 @@ Tu objetivo es procesar los insumos y generar un PRD agnóstico (Aprobado para D
 
 ---
 
-`> **Navegación:** [01_product_discovery.md](../../../../docs/01_product_definition/01_product_discovery.md) → [01_glosario_y_reglas_negocio.md](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) → [ 02_prd.md ]`
+`> **Navegación:** [01_product_discovery.md](../../../../docs/01_product_definition/01_product_discovery.md) → [01_glossary_and_business_rules.md](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) → [ 02_prd.md ]`
 
 
 # Documento de Requisitos de Producto (PRD) - [NOMBRE_PRODUCTO]

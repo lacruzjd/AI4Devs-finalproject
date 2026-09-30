@@ -1,7 +1,7 @@
 ---
-name: service-operations
+name: sk-40-design-service-operations
 description: "Diseña y verifica la operación de un servicio desplegado: SLIs y SLOs de disponibilidad y latencia derivados de los requisitos no funcionales, política de presupuesto de error, una alerta sobre síntomas con su runbook por SLO, backups con RPO y RTO, y simulacros reales de restauración, alerta y runbook con evidencia. Los objetivos los fija el humano y ningún simulacro toca producción sin su aprobación."
-version: "1.2.0"
+version: "1.2.2"
 category: "specs/04_governance_and_quality"
 inputs:
   - "docs/00_stack_manifest.md"
@@ -50,7 +50,7 @@ Durante la ejecución de este skill, el agente TIENE PROHIBIDO:
 
 ### Fase 1: SLIs y SLOs
 1. Por cada SLO, definir el **SLI** (qué se mide exactamente, con qué fuente), el **objetivo** y la **ventana** (ej. 30 días).
-2. Como mínimo: **disponibilidad** del servicio y **latencia** del recorrido crítico. La latencia se contrasta con las pruebas de carga de [`SK-29`](../../development/07_performance_and_observability/SK-29_load_and_performance_testing.md).
+2. Como mínimo: **disponibilidad** del servicio y **latencia** del recorrido crítico. La latencia se contrasta con las pruebas de carga de [`SK-29`](../../development/07_performance_and_observability/SK-29_execute_load_and_performance_testing.md).
 3. Estado inicial del presupuesto de error de cada SLO: `disponible`.
 4. **El SLI mide lo que sufre el usuario atendido.** Un SLI de latencia excluye las respuestas de rechazo que el propio servicio emite para protegerse (`429` por límite de peticiones, `503` por carga): son miles de respuestas de 1 ms que ocultan la latencia de las peticiones reales. Los rechazos se miden aparte, como tasa, y cuentan contra la disponibilidad si afectan a clientes que no superan su límite.
 

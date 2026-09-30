@@ -1,10 +1,10 @@
 ---
-name: capability-retirement
+name: sk-41-retire-capability
 description: "Retira una funcionalidad como cascada inversa: analiza su impacto hacia atrás (historias, tickets, endpoints, datos, flags, documentación), avisa a los usuarios con al menos 30 días de antelación, conserva los datos durante su retención y después los anonimiza o elimina, y crea los tickets de eliminación. Las historias conservan su estado y quedan marcadas con retired_by."
-version: "1.0.1"
+version: "2.0.0"
 category: "specs/05_agile_planning"
 inputs:
-  - "docs/05_agile_planning/13_matriz_trazabilidad.md"
+  - "docs/05_agile_planning/13_traceability_matrix.md"
   - "docs/00_stack_manifest.md"
   - capability: "La funcionalidad a retirar y su motivo (un OUT-NNN con recomendación retirar, o la decisión del humano)"
 outputs:

@@ -1,18 +1,18 @@
 ---
 name: 10_release_workflow
-description: "Workflow de release: lleva un conjunto de tickets cerrados a producción sin riesgo. Fija la versión SemVer, pasa los gates previos, declara la estrategia de liberación, clasifica las migraciones, verifica la configuración de despliegue, planifica y ensaya el rollback cuando corresponde, escribe las notas de versión y solo despliega con aprobación humana, validando después con el workflow 08."
-version: "1.2.0"
+description: "Workflow de release: lleva un conjunto de tickets cerrados a producción sin riesgo. Fija la versión SemVer, pasa los gates previos, declara la estrategia de liberación, clasifica las migraciones, verifica la configuración de despliegue, planifica y ensaya el rollback cuando corresponde, escribe las notas de versión y solo despliega con aprobación humana, validando después con el workflow 11."
+version: "1.2.2"
 category: "workflows/deployment"
 ---
 
-# Workflow 10: Release (v1.2.0)
+# Workflow 10: Release
 
 > **DIRECTIVA PARA EL AGENTE:**
 > Actúa como un **Release Manager** con mentalidad SRE. Desplegar es poner el código en producción; liberar es que el usuario lo vea. Tu trabajo es que ambos pasos sean predecibles, verificados y reversibles.
 >
 > **FASE 0 OBLIGATORIA:** lee `docs/00_stack_manifest.md`: plataforma, entornos, mecanismo de despliegue, mecanismo para volver a la versión anterior y herramienta de feature flags si existe. Si algo de esto no está declarado, detente y pregunta.
 >
-> **Nada llega a producción sin aprobación humana explícita** (Paso 9), y ningún rollback se ejecuta sin ella ([workflow 08](08_smoke_test_deploy_validation.md), Paso 4).
+> **Nada llega a producción sin aprobación humana explícita** (Paso 9), y ningún rollback se ejecuta sin ella ([workflow 11](11_smoke_test_workflow.md), Paso 4).
 
 El registro del release vive en `docs/06_release_and_operations/releases/vX.Y.Z.md` (formato al final) y lo verifica el gate `release` de `.agents/scripts/check_spec_artifacts.py`.
 
@@ -87,9 +87,9 @@ Presentar al humano versión, tickets, estrategia y justificación, migraciones,
 
 ## Paso 11 — Validación Posterior
 
-1. Ejecutar el [workflow 08](08_smoke_test_deploy_validation.md).
+1. Ejecutar el [workflow 11](11_smoke_test_workflow.md).
 2. **PASS:** `status: deployed`, `deployed_at` y la sección "Verificación posterior" con el resultado. El gate `release` comprueba que la etiqueta `vX.Y.Z` y la sección del `CHANGELOG.md` existen.
-3. **FAIL:** el workflow 08 propone el rollback y espera la aprobación humana; tras ejecutarlo, `status: rolled_back` y se abre la incidencia con el workflow 07 (severidad `alta`, con postmortem).
+3. **FAIL:** el workflow 11 propone el rollback y espera la aprobación humana; tras ejecutarlo, `status: rolled_back` y se abre la incidencia con el workflow 12 (severidad `alta`, con postmortem).
 4. Si la estrategia es `flag`, recordar al humano los tickets de retirada de cada flag.
 
 ---

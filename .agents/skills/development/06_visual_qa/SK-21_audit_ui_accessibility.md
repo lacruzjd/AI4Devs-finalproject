@@ -1,7 +1,7 @@
 ---
-name: SK-21_audit_ui_accessibility
+name: sk-21-audit-ui-accessibility
 description: "Guía procedimental para auditar la accesibilidad WCAG 2.2 AA/AAA, contraste HSL, foco visible, tamaños táctiles ergonómicos y regresión visual (screenshot diffing) de la interfaz de usuario."
-version: "1.3.3"
+version: "1.3.5"
 category: "development/06_visual_qa"
 inputs:
   - target_url: "URL del servidor frontend a auditar — si no se pasa explícitamente, se infiere de docs/00_stack_manifest.md §7 (Frontend Dev Server); nunca asumir un puerto por defecto hardcodeado en la skill"
@@ -21,7 +21,7 @@ Sigue estrictamente este flujo de trabajo secuencial:
 
 ## FASE 0 OBLIGATORIA: Descubrimiento de `target_url`
 1. Si `target_url` no fue pasado explícitamente como input, lee `docs/00_stack_manifest.md` §7 ("URLs de Desarrollo Local") para obtener la URL del **Frontend Dev Server** declarada ahí.
-2. Si el manifiesto no declara ninguna URL de frontend todavía, **DETENTE** y pregunta al humano — nunca asumas un puerto por defecto (`5173`, `3000`, u otro) como si fuera universal a cualquier proyecto que instale `.agents/`. Mismo criterio ya establecido en `workflows/08_smoke_test_deploy_validation.md` para `BACKEND_URL`.
+2. Si el manifiesto no declara ninguna URL de frontend todavía, **DETENTE** y pregunta al humano — nunca asumas un puerto por defecto (`5173`, `3000`, u otro) como si fuera universal a cualquier proyecto que instale `.agents/`. Mismo criterio ya establecido en `workflows/11_smoke_test_workflow.md` para `BACKEND_URL`.
 
 ---
 

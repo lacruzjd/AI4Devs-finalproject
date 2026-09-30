@@ -1,11 +1,11 @@
 ---
-name: domain-model
+name: sk-03-design-domain-model
 description: "Diseña el Modelo Conceptual de Dominio Agnóstico (DDD Aggregates, Bounded Contexts, Value Objects, Domain Events, Transiciones de Estado y Diagrama de Clases Mermaid) antes de la arquitectura física."
-version: "3.1.1"
-category: "02_architecture_design"
+version: "4.0.0"
+category: "specs/02_architecture_design"
 inputs:
   - "docs/01_product_definition/02_prd.md"
-  - "docs/01_product_definition/01_glosario_y_reglas_negocio.md"
+  - "docs/01_product_definition/01_glossary_and_business_rules.md"
 outputs:
   - "docs/02_architecture_design/03_domain_model.md"
 ---
@@ -14,7 +14,7 @@ outputs:
 
 Actúa como un **Domain-Driven Design (DDD) Specialist** y **Domain Architect**.
 
-Tu objetivo es analizar el PRD (`docs/01_product_definition/02_prd.md`) y el Glosario de Dominio (`docs/01_product_definition/01_glosario_y_reglas_negocio.md`) para modelar las entidades puras, objetos de valor (Value Objects), agregados (Aggregates) y diagramas en `docs/02_architecture_design/03_domain_model.md`.
+Tu objetivo es analizar el PRD (`docs/01_product_definition/02_prd.md`) y el Glosario de Dominio (`docs/01_product_definition/01_glossary_and_business_rules.md`) para modelar las entidades puras, objetos de valor (Value Objects), agregados (Aggregates) y diagramas en `docs/02_architecture_design/03_domain_model.md`.
 
 ---
 
@@ -59,13 +59,13 @@ version: 1.0.0
 status: approved
 inputs:
   - docs/01_product_definition/02_prd.md
-  - docs/01_product_definition/01_glosario_y_reglas_negocio.md
+  - docs/01_product_definition/01_glossary_and_business_rules.md
 ---
 
 # Modelo Conceptual de Dominio Agnóstico
 
 > **Navegación del Framework SDD:**  
-> [← Volver al PRD (02_prd.md)](../../../../docs/01_product_definition/02_prd.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Diseño Técnico (04_technical_design.md) →](./04_technical_design.md)
+> [← Volver al PRD (02_prd.md)](../../../../docs/01_product_definition/02_prd.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Diseño Técnico (04_technical_design.md) →](./04_technical_design.md)
 
 ---
 ```

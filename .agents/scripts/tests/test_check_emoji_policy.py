@@ -132,5 +132,17 @@ class CheckEmojiPolicyTests(unittest.TestCase):
         self.assertEqual(messages, [])
 
 
+    def test_extra_source_file_is_checked(self):
+        extra_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, extra_dir, True)
+        extra = os.path.join(extra_dir, "CONTRIBUTING.md")
+        with open(extra, "w", encoding="utf-8") as f:
+            f.write("## 🧪 Pruebas\n")
+
+        checked, violations, messages = run_checks(self.agents_dir, extra_files=[extra])
+
+        self.assertEqual((checked, violations), (1, 1))
+        self.assertIn("CONTRIBUTING.md", messages[0])
+
 if __name__ == "__main__":
     unittest.main()

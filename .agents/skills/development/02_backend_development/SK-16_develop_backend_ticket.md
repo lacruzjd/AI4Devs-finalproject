@@ -1,10 +1,10 @@
 ---
-name: SK-16_develop_backend_ticket
+name: sk-16-develop-backend-ticket
 description: "Guía el desarrollo atómico de un ticket backend respetando la Arquitectura Hexagonal en Vertical Slices, TDD, sanitización activa de DTOs, precisión matemática de punto fijo, Eager Loading (Anti-N+1), CRUDs de entidades secundarias/pivotes, transacciones de BD, alineación de contrato y mutation score >= 70%."
-version: "3.11.3"
+version: "3.11.5"
 category: "development/02_backend_development"
 inputs:
-  - ticket_id: "ID o ruta del ticket técnico (ej. TK-001 o docs/05_agile_planning/tickets/TK-001.md)"
+  - ticket_id: "ID o ruta del ticket técnico (ej. TK-001 o docs/05_agile_planning/12_tickets/TK-001.md)"
 required_rules:
   - "docs/04_governance_and_quality/rules/domain_rules.md"
   - "docs/04_governance_and_quality/rules/backend_rules.md"
@@ -28,8 +28,8 @@ Sigue strictly este flujo de trabajo secuencial:
 ---
 
 ## FASE 1: Descubrimiento de Especificaciones y Contratos
-1. **Leer Especificaciones:** Lee el ticket en `docs/05_agile_planning/tickets/{ticket_id}`, el esquema de datos y el contrato de API en `docs/03_persistence_and_api/` (o las rutas declaradas en `AGENTS.md`).
-   - **Fail-Fast Obligatorio (spec antes que código):** si `{ticket_id}` no existe como archivo — porque te pidieron implementar una funcionalidad nueva sin ticket previo — DETENTE. No implementes primero y documentes después: informa al humano que falta la Etapa 1 (`01_cascading_spec_workflow.md`: `SK-02`/`SK-11`/`SK-12`/`SK-13`/`SK-14`) y espera a que exista el `TK-XXX.md` antes de continuar con este skill.
+1. **Leer Especificaciones:** Lee el ticket en `docs/05_agile_planning/12_tickets/{ticket_id}`, el esquema de datos y el contrato de API en `docs/03_persistence_and_api/` (o las rutas declaradas en `AGENTS.md`).
+   - **Fail-Fast Obligatorio (spec antes que código):** si `{ticket_id}` no existe como archivo — porque te pidieron implementar una funcionalidad nueva sin ticket previo — DETENTE. No implementes primero y documentes después: informa al humano que falta la Etapa 1 (`03_cascading_spec_workflow.md`: `SK-02`/`SK-11`/`SK-12`/`SK-13`/`SK-14`) y espera a que exista el `TK-XXX.md` antes de continuar con este skill.
 2. **Consultar Comandos Oficiales:** Lee `AGENTS.md` para extraer los comandos declarados para testing, build, lint, linter de contrato de API y gestión de base de datos.
 3. **Descubrir Reglas del Proyecto:** Lee las directivas declaradas en `required_rules` en `docs/04_governance_and_quality/rules/`.
 

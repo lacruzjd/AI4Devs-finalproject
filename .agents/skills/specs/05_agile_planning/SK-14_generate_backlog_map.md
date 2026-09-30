@@ -1,8 +1,8 @@
 ---
-name: backlog-map
+name: sk-14-generate-backlog-map
 description: "Genera el Mapa Jerárquico del Backlog en formato de diagrama Mermaid (graph TD) conectando Roadmap, Épicas, Historias de Usuario y Tickets Técnicos."
-version: "3.1.1"
-category: "05_agile_planning"
+version: "3.1.3"
+category: "specs/05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
   - "docs/05_agile_planning/11_user_stories/"
@@ -62,7 +62,7 @@ inputs:
 # Mapa Jerárquico del Backlog (<ProjectName>)
 
 > **Navegación del Framework SDD:**  
-> [← Volver a Matriz de Trazabilidad (13_matriz_trazabilidad.md)](./13_matriz_trazabilidad.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Historial de Entregas (15_history.md) →](./15_history.md)
+> [← Volver a Matriz de Trazabilidad (13_traceability_matrix.md)](./13_traceability_matrix.md) | [Glosario & Reglas](../../../../docs/01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Historial de Entregas (15_history.md) →](./15_history.md)
 
 ---
 ```

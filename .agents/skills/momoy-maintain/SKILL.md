@@ -4,16 +4,16 @@ description: "Revisión periódica de mantenimiento cada 30 días: dependencias 
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # /momoy-maintain
 
 **Entrada:** No requiere argumentos. Si el usuario quiere acotar la revisión a un área, respétalo e indícalo en el registro.
 
-Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/11_maintenance_workflow.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/13_maintenance_workflow.md`.
 
 ## Reglas del comando
 
-- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/workflows/11_maintenance_workflow.md`. Si ambos discrepan, manda el workflow.
+- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/workflows/13_maintenance_workflow.md`. Si ambos discrepan, manda el workflow.
 - Respeta cada pausa de aprobación humana del procedimiento: no guardes ni crees archivos antes de que el humano confirme (regla Human-in-the-Loop de `.agents/README.md`).

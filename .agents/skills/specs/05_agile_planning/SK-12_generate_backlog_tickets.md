@@ -1,8 +1,8 @@
 ---
-name: backlog-tickets
+name: sk-12-generate-backlog-tickets
 description: "Desglosa las Historias de Usuario en tickets técnicos atómicos de backend y frontend (máximo 5 SP), Definition of Done (DoD), Matriz Multidimensional de Priorización Cualitativa e instrucciones de ejecución autónoma para agentes IA."
-version: "3.4.0"
-category: "05_agile_planning"
+version: "4.0.0"
+category: "specs/05_agile_planning"
 inputs:
   - "docs/01_product_definition/02_prd.md"
   - "docs/05_agile_planning/11_user_stories/"
@@ -12,14 +12,14 @@ inputs:
 outputs:
   - "docs/05_agile_planning/12_tickets/{modulo}/backend/TK-XXX.md"
   - "docs/05_agile_planning/12_tickets/{modulo}/frontend/TK-XXX-FE.md"
-  - "docs/05_agile_planning/12_tickets/indice_tickets.md"
+  - "docs/05_agile_planning/12_tickets/tickets_index.md"
 ---
 
 # SK-12: Desglose de Tickets Técnicos, Priorización Cualitativa e Instrucciones para IA (v3.4.0)
 
 Actúa como un **Principal Software Architect** y **Technical Lead** experto en descomposición de tareas ágiles, evaluación de prioridades de negocio, arquitectura hexagonal en slices verticales y preparación de tickets listos para ejecución autónoma por agentes de IA codificadores.
 
-Tu objetivo es analizar las Historias de Usuario (`docs/05_agile_planning/11_user_stories/`), la Arquitectura (`docs/02_architecture_design/04_technical_design.md`) y la Persistencia (`docs/03_persistence_and_api/06_database_schema.md`) para estructurar los Tickets Técnicos Atómicos ($\le 5\text{ SP}$) y generar el Índice del Sprint Backlog en `docs/05_agile_planning/12_tickets/indice_tickets.md` con su **Matriz Multidimensional de Criterios de Priorización Cualitativa**.
+Tu objetivo es analizar las Historias de Usuario (`docs/05_agile_planning/11_user_stories/`), la Arquitectura (`docs/02_architecture_design/04_technical_design.md`) y la Persistencia (`docs/03_persistence_and_api/06_database_schema.md`) para estructurar los Tickets Técnicos Atómicos ($\le 5\text{ SP}$) y generar el Índice del Sprint Backlog en `docs/05_agile_planning/12_tickets/tickets_index.md` con su **Matriz Multidimensional de Criterios de Priorización Cualitativa**.
 
 ---
 
@@ -56,7 +56,7 @@ Para cada ticket, evaluar los 4 Criterios de Priorización:
 4. **Riesgos y Dependencias Técnicas Críticas:** Nivel de prioridad (*P0 - Bloqueante*, *P0 - Crítica*, *P1 - Alta*, *P2 - Media*).
 
 ### Paso 3: Publicación del Índice y Fichas Técnicas
-1. Generar la **Matriz Multidimensional de Priorización Cualitativa** e Índice General en `docs/05_agile_planning/12_tickets/indice_tickets.md`.
+1. Generar la **Matriz Multidimensional de Priorización Cualitativa** e Índice General en `docs/05_agile_planning/12_tickets/tickets_index.md`.
 2. Incluir en cada ticket la estructura completa con el bloque de ejecución autónoma para la IA.
 
 ---
@@ -79,7 +79,7 @@ inputs:
 # TK-XXX: [Título Descriptivo del Ticket Técnico]
 
 > **Navegación del Framework SDD:**  
-> [← Volver a US-XXX (11_user_stories/{modulo}/US-XXX.md)](../../11_user_stories/{modulo}/US-XXX.md) | [Índice de Tickets (indice_tickets.md)](../indice_tickets.md) | [Siguiente: Matriz de Trazabilidad (13_matriz_trazabilidad.md) →](../../13_matriz_trazabilidad.md)
+> [← Volver a US-XXX (11_user_stories/{modulo}/US-XXX.md)](../../11_user_stories/{modulo}/US-XXX.md) | [Índice de Tickets (tickets_index.md)](../tickets_index.md) | [Siguiente: Matriz de Trazabilidad (13_traceability_matrix.md) →](../../13_traceability_matrix.md)
 
 ---
 

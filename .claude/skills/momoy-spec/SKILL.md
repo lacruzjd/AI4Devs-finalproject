@@ -6,17 +6,17 @@ description: "Integra una idea o funcionalidad nueva en las especificaciones de 
 license: MIT
 metadata:
   framework: momoy
-  version: "1.0.1"
+  version: "1.0.2"
 ---
 
 # /momoy-spec
 
 **Entrada:** La descripción de la idea o funcionalidad. Si el usuario no la dio, pídesela antes de empezar.
 
-Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/01_cascading_spec_workflow.md`.
+Lee por completo y ejecuta, sin saltarte fases, el workflow `.agents/workflows/03_cascading_spec_workflow.md`.
 
 ## Reglas del comando
 
-- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/workflows/01_cascading_spec_workflow.md`. Si ambos discrepan, manda el workflow.
+- Este archivo es solo un punto de entrada: la fuente de verdad es `.agents/workflows/03_cascading_spec_workflow.md`. Si ambos discrepan, manda el workflow.
 - Respeta cada pausa de aprobación humana del procedimiento: no guardes ni crees archivos antes de que el humano confirme (regla Human-in-the-Loop de `.agents/README.md`).
 - Si el procedimiento genera código, configuración o infraestructura, lee antes `docs/00_stack_manifest.md` (Fase 0). Si una herramienta o versión no está ahí, detente y pregunta.

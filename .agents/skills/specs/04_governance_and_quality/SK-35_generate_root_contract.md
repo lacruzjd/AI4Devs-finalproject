@@ -1,8 +1,8 @@
 ---
-name: root-contract-generation
+name: sk-35-generate-root-contract
 description: "Genera o actualiza el contrato operativo raíz AGENTS.md siguiendo el blueprint de 6 secciones, y los archivos de entrypoint por herramienta de IA (CLAUDE.md, GEMINI.md) que garantizan que AGENTS.md se lea antes de cualquier acción."
-version: "1.0.2"
-category: "04_governance_and_quality"
+version: "1.0.3"
+category: "specs/04_governance_and_quality"
 inputs:
   - "docs/00_stack_manifest.md"
   - "docs/02_architecture_design/04_technical_design.md"

@@ -1,8 +1,8 @@
 ---
-name: database-schema-design
+name: sk-06-design-database-schema
 description: "Diseña el modelo de datos físico/lógico (3NF/NoSQL) en Mermaid erDiagram, diccionario de entidades con tipo Decimal(12,4), políticas ON DELETE de integridad referencial, datos semilla, restricciones CHECK, cifrado PII y esquema declarativo adaptado al ORM/Motor."
-version: "4.3.0"
-category: "03_persistence_and_api"
+version: "4.3.1"
+category: "specs/03_persistence_and_api"
 inputs:
   - "docs/01_product_definition/02_prd.md"
   - "docs/02_architecture_design/03_domain_model.md"

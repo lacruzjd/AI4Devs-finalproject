@@ -4,12 +4,14 @@ import re
 import sys
 from collections import defaultdict
 
+from source_repo import source_files
+
 link_regex = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
 frontmatter_regex = re.compile(r'^---\n(.*?)\n---\n', re.S)
 skill_id_regex = re.compile(r'SK-(\d+)')
 
 
-def run_checks(agents_dir, project_root):
+def run_checks(agents_dir, project_root, extra_files=()):
     """Audita .agents/: enlaces markdown rotos, required_rules huérfanos e IDs de skill duplicados.
 
     Devuelve (checked_count, broken_count, messages) sin imprimir ni salir del proceso,
@@ -27,6 +29,9 @@ def run_checks(agents_dir, project_root):
     serio — así una regresión real (un archivo que debería estar y no está, en una
     carpeta que el framework ya pobló) sigue detectándose. Los enlaces internos de
     .agents/ (skills, workflows, rules) sí deben resolver siempre, en cualquier fase.
+
+    `extra_files` son archivos .md fuera de .agents/ que también se auditan: en el repositorio
+    fuente de momoy, el CHANGELOG, la guía de contribución, los ADR y el mapa de sistema.
     """
     broken_count = 0
     checked_count = 0
@@ -104,37 +109,36 @@ def run_checks(agents_dir, project_root):
             gaps = ', '.join(f"SK-{n:02d}" for n in missing)
             messages.append(f"⚠️  Huecos en la numeración de skills (no bloqueante): {gaps}")
 
-    for root, dirs, files in os.walk(agents_dir):
-        for f in files:
-            if f.endswith('.md'):
-                file_path = os.path.join(root, f)
-                with open(file_path, 'r', encoding='utf-8', errors='ignore') as md_file:
-                    lines = md_file.readlines()
-                    in_code_block = False
-                    for line_idx, line in enumerate(lines, 1):
-                        if line.strip().startswith('```'):
-                            in_code_block = not in_code_block
-                            continue
+    md_files = [os.path.join(root, f) for root, _, files in os.walk(agents_dir) for f in files if f.endswith('.md')]
+    for file_path in md_files + list(extra_files):
+        root = os.path.dirname(file_path)
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as md_file:
+            lines = md_file.readlines()
+            in_code_block = False
+            for line_idx, line in enumerate(lines, 1):
+                if line.strip().startswith('```'):
+                    in_code_block = not in_code_block
+                    continue
 
-                        # Ignore template blockquotes & template code blocks meant for generated docs navigation headers
-                        if in_code_block or line.strip().startswith('>') or '{modulo}' in line or '{ticket_id}' in line or 'US-XXX' in line or '00_research_human_notes' in line:
-                            continue
+                # Ignore template blockquotes & template code blocks meant for generated docs navigation headers
+                if in_code_block or line.strip().startswith('>') or '{modulo}' in line or '{ticket_id}' in line or 'US-XXX' in line or '00_research_human_notes' in line:
+                    continue
 
-                        matches = link_regex.findall(line)
-                        for text, target in matches:
-                            if target.startswith('http://') or target.startswith('https://') or target.startswith('#') or target.startswith('mailto:'):
-                                continue
-                            target_path_clean = target.split('#')[0]
-                            if not target_path_clean:
-                                continue
-                            resolved = os.path.normpath(os.path.join(root, target_path_clean))
-                            resolved_rel_to_project = os.path.relpath(resolved, project_root)
-                            if is_docs_target(resolved_rel_to_project) and not docs_parent_has_content(resolved_rel_to_project):
-                                continue
-                            checked_count += 1
-                            if not os.path.exists(resolved):
-                                messages.append(f"❌ Enlace roto en {os.path.relpath(file_path, agents_dir)} L{line_idx}: [{text}]({target}) -> No existe: {resolved}")
-                                broken_count += 1
+                matches = link_regex.findall(line)
+                for text, target in matches:
+                    if target.startswith('http://') or target.startswith('https://') or target.startswith('#') or target.startswith('mailto:'):
+                        continue
+                    target_path_clean = target.split('#')[0]
+                    if not target_path_clean:
+                        continue
+                    resolved = os.path.normpath(os.path.join(root, target_path_clean))
+                    resolved_rel_to_project = os.path.relpath(resolved, project_root)
+                    if is_docs_target(resolved_rel_to_project) and not docs_parent_has_content(resolved_rel_to_project):
+                        continue
+                    checked_count += 1
+                    if not os.path.exists(resolved):
+                        messages.append(f"❌ Enlace roto en {os.path.relpath(file_path, agents_dir)} L{line_idx}: [{text}]({target}) -> No existe: {resolved}")
+                        broken_count += 1
 
     return checked_count, broken_count, messages, len(skill_ids)
 
@@ -143,7 +147,8 @@ def main():
     agents_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
     project_root = os.path.normpath(os.path.join(agents_dir, ".."))
 
-    checked_count, broken_count, messages, skill_count = run_checks(agents_dir, project_root)
+    extra_files = source_files(agents_dir, {".md"})
+    checked_count, broken_count, messages, skill_count = run_checks(agents_dir, project_root, extra_files)
 
     for msg in messages:
         print(msg)
