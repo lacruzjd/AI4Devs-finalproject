@@ -21,7 +21,7 @@ Resultado: **96 `done`**, **9 pendientes reales**, 1 `not_needed`, 1 `MOSTLY_DON
 | `TK-072`, `TK-072-FE`, `TK-077-FE` | Sin evidencia de cierre en el historial. |
 | `TK-008` | Evidencia débil: solo aparece citado en commits `docs:`, nunca en uno de implementación. Requiere verificación humana contra el código antes de darlo por cerrado. |
 
-> ⚠️ El estado de un ticket se cierra **al terminarlo**, en el mismo commit atómico que lo implementa (`02_cascading_dev_workflow.md` FASE 6). Este saneamiento retroactivo es una excepción puntual, no un procedimiento a repetir.
+> ⚠️ El estado de un ticket se cierra **al terminarlo**, en el mismo commit atómico que lo implementa (`05_cascading_dev_workflow.md` FASE 6). Este saneamiento retroactivo es una excepción puntual, no un procedimiento a repetir.
 
 ### Cierre de los pendientes (2026-09-09)
 
@@ -38,7 +38,7 @@ Residual de calidad de mutation testing (auditoría 2026-09-06, `docs/00_stack_m
 - **`TK-138`** (`done`, 2026-09-09) — el paso de CI `Mutation Testing` es full-scope + `continue-on-error`; `check_mutation_score.sh` no es *base-ref aware*; `apps/frontend` sin config de Stryker. Decisión abierta: gate diff-scoped bloqueante vs informativo.
 
 Residual de gobernanza de `.agents/` (auditoría de patrones de prompt, 2026-09-09) — **cerrado**:
-- **`TK-139`** (`done`) — nueva `SK-36` que genera y gobierna los ADRs, **ejecutada de verdad** contra una decisión abierta real (hallazgo `O-1` de `AUDIT-SEC-004`) → [`ADR-005`](../../02_architecture_design/adr/ADR-005-session-token-storage.md). `SK-13` 3.2.0 audita ADRs huérfanos en ambos sentidos; framework 2.14.0 → 2.15.0. Excluido a propósito: el wiring en `01_cascading_spec_workflow.md`.
+- **`TK-139`** (`done`) — nueva `SK-36` que genera y gobierna los ADRs, **ejecutada de verdad** contra una decisión abierta real (hallazgo `O-1` de `AUDIT-SEC-004`) → [`ADR-005`](../../02_architecture_design/adr/ADR-005-session-token-storage.md). `SK-13` 3.2.0 audita ADRs huérfanos en ambos sentidos; framework 2.14.0 → 2.15.0. Excluido a propósito: el wiring en `03_cascading_spec_workflow.md`.
 - **`TK-141`** (`done`) — hallazgo colateral de la Fase 0 de `SK-36`: el `nginx` del SPA no emitía **ninguna** cabecera de seguridad. CSP calibrada contra el build real + 4 cabeceras más, verificadas contra la imagen construida y corriendo.
 - **`TK-140`** (`approved`, post-entrega) — ejecuta la decisión de `ADR-005`: mover el token de sesión de `localStorage` a cookie `httpOnly`. Cambia el contrato de autenticación de punta a punta, por eso no entra antes del push.
 

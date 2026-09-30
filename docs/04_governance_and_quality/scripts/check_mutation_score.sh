@@ -35,7 +35,7 @@ set -uo pipefail
 # inline en el workflow).
 #
 #   sin argumento  → LOCAL: archivos sin commitear (working tree + staged + nuevos).
-#                    Es el flujo de 02_cascading_dev_workflow.md, sin cambios.
+#                    Es el flujo de 05_cascading_dev_workflow.md, sin cambios.
 #   con un ref     → CI: diff contra ese ref base (`<base>...HEAD`). En un checkout de CI
 #                    no hay nada sin commitear, así que el modo local no encontraría nada
 #                    y el gate pasaría en verde sin mutar un solo archivo — un Gate Hueco.

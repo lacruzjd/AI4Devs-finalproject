@@ -16,7 +16,7 @@ Esta directiva rige las pruebas automatizadas de **RestoStock** y el control de 
    * **Flujo:** Código Legacy $\rightarrow$ Auditoría de Contrato `SK-25` $\rightarrow$ Suite `@characterization` en **VERDE (GREEN)** $\rightarrow$ Refactorización Hexagonal.
    * **Objetivo:** Congelar y documentar el comportamiento actual para refactorizar con cero regresiones.
 
-3. **🔁 Workflow Interactivo QA (`06_full_qa_pipeline.md`):**
+3. **🔁 Workflow Interactivo QA (`07_full_qa_workflow.md`):**
    * Pipeline interactivo en 3 pasos con pausas de confirmación humana (HitL Gates):  
      **Paso 1: Análisis de Riesgo** $\rightarrow$ **Paso 2: Diseño de Tests** $\rightarrow$ **Paso 3: TDD & Stryker Mutation Score $\ge 70\%$**.
 
@@ -68,5 +68,5 @@ Esta directiva rige las pruebas automatizadas de **RestoStock** y el control de 
 ### 9. Tests como Contrato y Catalizador (TDD DORA 2025)
 * Conforme al estudio **DORA 2025 de Google**, el ciclo TDD en 7 Pasos amplifica los beneficios de la IA. El test visto fallar (RED) en consola rige el criterio de salida objetivo.
 
-### 10. Subagentes Especializados de Pruebas (`05_test_runner_workflow` y `06_full_qa_pipeline`)
-* En ejecuciones complejas, se invoca el subagente `.agents/workflows/05_test_runner_workflow.md` (TDD Greenfield) o el workflow interactivo `.agents/workflows/06_full_qa_pipeline.md` (QA Pipeline) para controlar el bucle con pausas de confirmación humana.
+### 10. Subagentes Especializados de Pruebas (`06_test_runner_workflow` y `07_full_qa_workflow`)
+* En ejecuciones complejas, se invoca el subagente `.agents/workflows/06_test_runner_workflow.md` (TDD Greenfield) o el workflow interactivo `.agents/workflows/07_full_qa_workflow.md` (QA Pipeline) para controlar el bucle con pausas de confirmación humana.

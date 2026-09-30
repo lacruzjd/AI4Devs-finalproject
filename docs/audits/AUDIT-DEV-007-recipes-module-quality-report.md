@@ -93,7 +93,7 @@
 | **G-B** | 🟠 Media | backend | F-4 (validar `insumoId` de la IA contra el catálogo), F-11 (delimitar prompt), F-3 (key en header), F-14 (parametrizar timeout/modelo) + tests de los 3 adapters | Remediación técnica (F-4 requiere respuesta a Q2) |
 | **G-C** | 🟡 Baja | backend | F-8 (`IdGenerator` + batch de validación), F-10 (Zod estricto + dedupe), F-5 (`save` persiste ingredientes), F-7 (`findByInsumoIds` + paginación) | Remediación técnica |
 | **G-D** | 🟠 Media | backend | **F-1** — corrección de la métrica `preventedWasteEstimate` | ⚠️ Técnico **o** cascada según Q1 |
-| **G-E** | — | — | F-9 (`Recipe.yieldPortions`), CRUD de recetas (`GET/:id`, `PUT`, soft-delete), costeo por porción, persistir sugerencia aceptada + medir merma evitada real, descubribilidad de `RescueRecipesModal` | **Cascada completa** (`01_cascading_spec_workflow.md`) — nuevas reglas de negocio |
+| **G-E** | — | — | F-9 (`Recipe.yieldPortions`), CRUD de recetas (`GET/:id`, `PUT`, soft-delete), costeo por porción, persistir sugerencia aceptada + medir merma evitada real, descubribilidad de `RescueRecipesModal` | **Cascada completa** (`03_cascading_spec_workflow.md`) — nuevas reglas de negocio |
 | **G-F** | ⚪ Info | backend | F-12 (RBAC fino), F-15 (comportamiento sin riesgo) | Según Q4 / Q5 |
 
 ---
@@ -131,7 +131,7 @@ Consultado vía `AskUserQuestion` (Guard 28):
 | :-- | :-- | :-- |
 | **Q1** (F-1) | Cálculo de `preventedWasteEstimate` | **Valorizar en dinero** (`insumo.unitCost × cantidad`); `null` si el insumo no tiene `unitCost`. Coherente con US-019/US-029. |
 | **Q2** (F-4) | `insumoId` alucinado por la IA | **Descartar ese ingrediente** de la propuesta. Si la propuesta queda sin ingredientes válidos, se descarta entera (invariante `RescueRecipeProposal`). |
-| **Q3** (F-9) | Campo de rendimiento de receta | **Añadir `Recipe.yieldPortions`** — requiere cascada completa (`01_cascading_spec_workflow.md`): PRD → US → `schema.prisma` + migración → OpenAPI → tickets. |
+| **Q3** (F-9) | Campo de rendimiento de receta | **Añadir `Recipe.yieldPortions`** — requiere cascada completa (`03_cascading_spec_workflow.md`): PRD → US → `schema.prisma` + migración → OpenAPI → tickets. |
 | **Q6** | Alcance ahora | **Solo G-A** (F-2, F-6, F-13) — remediación técnica de arquitectura. |
 | Q4 (F-15), Q5 (F-12) | — | Sin responder — quedan como deuda registrada, fuera del alcance actual. |
 

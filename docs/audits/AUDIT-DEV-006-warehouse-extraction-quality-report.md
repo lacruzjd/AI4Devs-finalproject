@@ -74,7 +74,7 @@ Los tres tickets se enmarcan en `US-014` + `US-025` (capacidades ya existentes) 
 | **C-DEV-006-1** | F-1 | `backend_rules.md §4` — *"Frontera Transaccional Inyectada en Casos de Uso Multi-Agregado"*: un caso de uso que muta ≥ 2 agregados / tablas DEBE ejecutar todas sus escrituras dentro de una única frontera transaccional inyectada por puerto (`IUnitOfWork` / `withTransaction`). Encadenar `await repo.a()` + `await repo.b()` sin transacción común es un defecto de integridad. | ✅ Aprobado (humano, 2026-09-03) y escrito |
 | **C-DEV-006-2** | F-2 | `backend_rules.md §4` — *"Deducción de Saldo por UPDATE Condicional Atómico"*: `UPDATE … SET quantity = quantity - :q WHERE quantity >= :q` (o lock optimista con reintento); `rowsAffected === 0` → `InsufficientStockException`. Nunca read-check-then-write del valor absoluto. | ✅ Aprobado y escrito |
 | **C-DEV-006-3** | F-5 | `frontend_rules.md §9.5` — *"Prohibido Sintetizar un Éxito Falso en el `catch` de un Servicio"*: un `catch` en `*.service.ts` nunca devuelve un objeto con forma de respuesta de éxito de una mutación. Fallback de solo-lectura solo tras `VITE_DEMO_MODE`. | ✅ Aprobado y escrito |
-| **C-DEV-006-4** | Encuadre de estos 3 tickets | `AGENTS.md` Guard 26 (carve-out) + `.agents/workflows/04_dev_audit_workflow.md` FASE 0.4 — criterio explícito *"ticket de remediación técnica vs. cascada de spec completa"*: la prueba es *"¿el dueño de producto o un usuario notaría una diferencia en las reglas de negocio o en el comportamiento de cara al usuario?"*. Sí → cascada. No → `TK-XXX` técnico vía `SK-12`, sin reabrir el ticket original. | ✅ Aprobado y escrito |
+| **C-DEV-006-4** | Encuadre de estos 3 tickets | `AGENTS.md` Guard 26 (carve-out) + `.agents/workflows/09_dev_audit_workflow.md` FASE 0.4 — criterio explícito *"ticket de remediación técnica vs. cascada de spec completa"*: la prueba es *"¿el dueño de producto o un usuario notaría una diferencia en las reglas de negocio o en el comportamiento de cara al usuario?"*. Sí → cascada. No → `TK-XXX` técnico vía `SK-12`, sin reabrir el ticket original. | ✅ Aprobado y escrito |
 
 Los gates deterministas asociados (`check_usecase_transaction_boundary`, verificación grep del `catch` sintético) quedan como deuda de tooling: los tickets **TK-098** y **TK-100-FE** los incluyen como tests obligatorios en su DoD; su promoción a script `docs/04_governance_and_quality/scripts/` es un candidato separado a evaluar tras la implementación.
 
@@ -84,7 +84,7 @@ Los gates deterministas asociados (`check_usecase_transaction_boundary`, verific
 
 Decisión del humano: **resolver los puntos A + B + C**.
 
-* **C (commit `8e1c6fb`):** reglas permanentes C-DEV-006-1..4 escritas (tabla de arriba). `.agents/` — `04_dev_audit_workflow.md` FASE 0.4 (carve-out `N/A (Técnico)` ampliado), `README.md` 2.10.0 → 2.11.0.
+* **C (commit `8e1c6fb`):** reglas permanentes C-DEV-006-1..4 escritas (tabla de arriba). `.agents/` — `09_dev_audit_workflow.md` FASE 0.4 (carve-out `N/A (Técnico)` ampliado), `README.md` 2.10.0 → 2.11.0.
 * **A/B:** los 3 tickets implementados en el orden acordado, 1 commit atómico por ticket, TDD.
 
 | Ticket | Commit | Hallazgos | Verificación |
