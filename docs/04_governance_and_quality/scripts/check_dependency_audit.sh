@@ -24,11 +24,24 @@ ALLOWED_GHSAS=(
 
 echo "🔍 Auditando dependencias (pnpm audit --audit-level=high) con riesgo residual documentado..."
 
+# `pnpm audit` sale con código != 0 también cuando SÍ audita y encuentra avisos, así que el código
+# de salida no distingue "auditado" de "no auditado". Lo que lo distingue es la salida (TK-147): una
+# auditoría real devuelve JSON con los contadores de `metadata.vulnerabilities`. Salida vacía, texto
+# de error o `{"error": ...}` significan que no se auditó nada, y el gate no puede pasar en verde.
 AUDIT_JSON=$(pnpm audit --audit-level=high --json 2>/dev/null || true)
 
-if [ -z "$AUDIT_JSON" ]; then
-  echo "✨ 0 vulnerabilidades high/critical encontradas."
-  exit 0
+if ! echo "$AUDIT_JSON" | python3 -c "
+import json,sys
+try:
+    counts = json.load(sys.stdin)['metadata']['vulnerabilities']
+except (json.JSONDecodeError, KeyError, TypeError):
+    sys.exit(1)
+sys.exit(0 if all(isinstance(counts.get(k), int) for k in ('high', 'critical')) else 1)
+"; then
+  echo "❌ La auditoría de dependencias NO se ejecutó: \`pnpm audit --json\` no devolvió un informe válido (sin red, registro caído o error de pnpm)."
+  echo "   Esto no significa que haya vulnerabilidades: reintenta. El gate no puede aprobar lo que no ha auditado."
+  echo "   Salida recibida: $(echo "${AUDIT_JSON:-<vacía>}" | head -c 300)"
+  exit 1
 fi
 
 UNDOCUMENTED=0
@@ -46,10 +59,7 @@ while IFS= read -r ghsa; do
   fi
 done < <(echo "$AUDIT_JSON" | python3 -c "
 import json,sys
-try:
-    data = json.load(sys.stdin)
-except json.JSONDecodeError:
-    sys.exit(0)
+data = json.load(sys.stdin)
 for a in data.get('advisories', {}).values():
     if a.get('severity') in ('high', 'critical'):
         print(a.get('github_advisory_id') or a.get('url', '').rsplit('/', 1)[-1])
