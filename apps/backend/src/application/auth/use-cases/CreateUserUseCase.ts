@@ -3,6 +3,8 @@ import { User, UserRole } from '../../../domain/auth/entities/User.js';
 import { Pin } from '../../../domain/auth/value-objects/Pin.js';
 import { IUserRepository } from '../../../domain/auth/repositories/IUserRepository.js';
 import { DuplicateOperatorCodeException } from '../../../domain/auth/errors/DuplicateOperatorCodeException.js';
+import { IRoleRepository } from '../../../domain/security/repositories/IRoleRepository.js';
+import { assertRoleInCatalog } from './assertRoleInCatalog.js';
 
 export interface CreateUserDTO {
   name: string;
@@ -20,9 +22,14 @@ export interface CreateUserResponseDTO {
 }
 
 export class CreateUserUseCase {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly roleRepository: IRoleRepository
+  ) {}
 
   public async execute(dto: CreateUserDTO): Promise<CreateUserResponseDTO> {
+    await assertRoleInCatalog(this.roleRepository, dto.role);
+
     // Guard 39: camino rápido y legible, NUNCA la defensa. La garantía real es el
     // índice único de la base de datos, que el repositorio traduce a esta misma
     // excepción — si dos altas concurrentes superan ambas esta lectura, solo una fila

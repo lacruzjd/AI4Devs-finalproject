@@ -1,6 +1,8 @@
 import { IUserRepository } from '../../../domain/auth/repositories/IUserRepository.js';
 import { EntityNotFoundException } from '../../../domain/errors/EntityNotFoundException.js';
 import { Pin } from '../../../domain/auth/value-objects/Pin.js';
+import { IRoleRepository } from '../../../domain/security/repositories/IRoleRepository.js';
+import { assertRoleInCatalog } from './assertRoleInCatalog.js';
 
 export interface UpdateUserDTO {
   userId: string;
@@ -17,12 +19,19 @@ export interface UpdateUserResponseDTO {
 }
 
 export class UpdateUserUseCase {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly roleRepository: IRoleRepository
+  ) {}
 
   public async execute(dto: UpdateUserDTO): Promise<UpdateUserResponseDTO> {
     const user = await this.userRepository.findById(dto.userId);
     if (!user) {
       throw new EntityNotFoundException('Usuario', dto.userId);
+    }
+
+    if (dto.role !== undefined) {
+      await assertRoleInCatalog(this.roleRepository, dto.role);
     }
 
     const newPin = dto.pin ? Pin.createFromRaw(dto.pin) : undefined;

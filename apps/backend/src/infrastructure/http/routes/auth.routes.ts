@@ -31,10 +31,10 @@ export function createAuthRouter(
   // (solo para UX del cliente — la autorización real la resuelve authorizePermissions
   // en vivo, por petición, más abajo en este mismo archivo).
   const useCase = new AuthenticateByPinUseCase(userRepository, jwtSecret, roleRepository);
-  const createUserUseCase = new CreateUserUseCase(userRepository);
+  const createUserUseCase = new CreateUserUseCase(userRepository, roleRepository);
   const setUserStatusUseCase = new SetUserStatusUseCase(userRepository);
   const listUsersUseCase = new ListUsersUseCase(userRepository);
-  const updateUserUseCase = new UpdateUserUseCase(userRepository);
+  const updateUserUseCase = new UpdateUserUseCase(userRepository, roleRepository);
   const changePinUseCase = new ChangePinUseCase(userRepository);
   const requestAdminPinResetUseCase = new RequestAdminPinResetUseCase(userRepository, mailer, allowedOrigins);
   const resetAdminPinUseCase = new ResetAdminPinUseCase(userRepository);

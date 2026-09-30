@@ -15,6 +15,13 @@
 #                  libre en un esquema de validación de payload; usar z.enum(...) o validar
 #                  contra el catálogo persistido.
 #
+# TK-174: un catálogo de roles editable en runtime (US-015) no cabe en un z.enum. Para esos
+# campos el gate acepta `z.string()` solo si la misma línea declara dónde se valida:
+#     role: z.string().min(1), // C-SEC-2: catálogo en apps/backend/src/.../CreateUserUseCase.ts
+# y ese fichero existe y llama a `assertRoleInCatalog(` o `findRoleByName(`. Un marcador que
+# apunta a un fichero inexistente o que no valida sigue bloqueando: la excepción se verifica,
+# no se declara.
+#
 # Igual que check_inline_styles.sh / check_dead_code.sh: acotado al diff del ticket en curso
 # (bloqueante), informativo para la deuda preexistente fuera del diff.
 set -uo pipefail
@@ -59,6 +66,17 @@ TERNARY_RE = re.compile(r"\?(?![.?])[^?:\n]*:\s*" + PRIV_LIT)
 ZOD_FREE_RE = re.compile(
     r"\b(role|roleId|isAdmin|permissions?|scopes?)\b\s*:\s*z\.string\("
 )
+CATALOG_MARKER_RE = re.compile(r"//\s*C-SEC-2:\s*catálogo en\s+(\S+\.ts)")
+CATALOG_CHECK_RE = re.compile(r"\b(assertRoleInCatalog|findRoleByName)\(")
+
+
+def catalog_validated(line):
+    """TK-174: el marcador solo cuenta si su fichero existe y valida contra el catálogo."""
+    marker = CATALOG_MARKER_RE.search(line)
+    if not marker or not os.path.isfile(marker.group(1)):
+        return False
+    with open(marker.group(1), "r", encoding="utf-8") as target:
+        return CATALOG_CHECK_RE.search(target.read()) is not None
 
 blocking = []
 informative = 0
@@ -80,7 +98,7 @@ for file_path in all_files:
             ctx = "".join(lines[max(0, i - 3): i + 1]).lower()
             if any(tok in ctx for tok in ("role", "permission", "scope", "isadmin", "privilege")):
                 hit = "fallback de privilegio literal a un rol elevado (C-SEC-1) — resuelve al mínimo privilegio / lanza"
-        if hit is None and ZOD_FREE_RE.search(line):
+        if hit is None and ZOD_FREE_RE.search(line) and not catalog_validated(line):
             hit = "campo de privilegio validado como z.string() libre (C-SEC-2) — usa z.enum(...) o valida contra el catálogo Role"
 
         if hit is None:

@@ -54,14 +54,14 @@ const resetPinSchema = z.object({
 const createUserSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido.'),
   operatorCode: operatorCodeSchema,
-  role: z.string().min(1, 'El rol es requerido.'),
+  role: z.string().min(1, 'El rol es requerido.'), // C-SEC-2: catálogo en apps/backend/src/application/auth/use-cases/CreateUserUseCase.ts
   pin: z.string().regex(/^\d{4,6}$/, 'El PIN debe contener entre 4 y 6 digitos numericos.'),
   email: z.string().email().optional(),
 });
 
 const updateUserSchema = z.object({
   name: z.string().min(1).optional(),
-  role: z.string().min(1).optional(),
+  role: z.string().min(1).optional(), // C-SEC-2: catálogo en apps/backend/src/application/auth/use-cases/UpdateUserUseCase.ts
   pin: z.string().regex(/^\d{4,6}$/, 'El PIN debe contener entre 4 y 6 digitos numericos.').optional(),
   email: z.string().email().optional(),
 });

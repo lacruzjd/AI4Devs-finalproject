@@ -534,7 +534,7 @@ Para determinar la secuencia de desarrollo en el Sprint Backlog y garantizar el 
 
 *   **[TK-173-FE: Hacer Visible el Código de Operario en el Alta, la Lista y el Login](auth/frontend/TK-173-FE.md)** (Frontend) — ✅ Done. `US-051` / `AUDIT-DEV-017` F-2/F-4: las tres superficies que ocultaban la credencial de acceso.
 
-*   **[TK-174: `check_privilege_defaults` No Puede Aprobar un Catálogo de Roles Dinámico](security/backend/TK-174.md)** (Backend) — ⏳ Approved. Hallazgo colateral de `TK-173`: el gate exige `z.enum` para el campo `role`, lo que contradice el catálogo editable de `US-015`. Deuda preexistente, sin hueco de escalada real.
+*   **[TK-174: `check_privilege_defaults` No Puede Aprobar un Catálogo de Roles Dinámico](security/backend/TK-174.md)** (Backend) — ✅ Done. Hallazgo colateral de `TK-173`: el gate exige `z.enum` para el campo `role`, lo que contradice el catálogo editable de `US-015`. Deuda preexistente, sin hueco de escalada real.
 
 
 `TK-056` cerró la deuda residual de listado de operarios; `TK-057`/`TK-057-FE` cierran la deuda de alta de catálogo (insumos y recetas) y la de `TK-008` — `TK-049`/`TK-049-FE`/`TK-050`/`TK-050-FE`/`TK-057`/`TK-057-FE` quedan sin pendientes conocidos. `TK-059` cierra el fix de conectividad Docker frontend↔backend; `TK-060`/`TK-060-FE` cierran el reabastecimiento de bodega (`US-013`); `TK-061` cierra la deuda de `US-012` sobre `RecipeSelectorModal.tsx`; `TK-069`/`TK-069-FE` extraen las recetas de `catalog` a un módulo `recipes` independiente; `TK-070-FE` le da al Recetario la misma estructura que Inventario de Bodega.
