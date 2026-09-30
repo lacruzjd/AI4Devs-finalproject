@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { PinLoginModal } from '../features/auth/components/PinLoginModal.js';
 import { ForceChangePinModal } from '../features/auth/components/ForceChangePinModal.js';
 import { ResetPinModal } from '../features/auth/components/ResetPinModal.js';
@@ -9,6 +9,7 @@ import { AppShellCtx, type AppShellContext } from './session.js';
 import { useFefoTheme } from './useFefoTheme.js';
 import { useSession } from './useSession.js';
 import { useResetPinToken } from './useResetPinToken.js';
+import { landingPathAfterLogin, readPermissions } from '../shared/hooks/usePermissions.js';
 import styles from './AppShell.module.css';
 
 /**
@@ -21,6 +22,12 @@ export const AppShell: React.FC = () => {
   const { theme, setTheme } = useFefoTheme();
   const { currentUser, sessionNotice, login, logout, reloadUser, notify } = useSession();
   const resetToken = useResetPinToken();
+  const navigate = useNavigate();
+
+  const handleLogin = () => {
+    login();
+    navigate(landingPathAfterLogin(readPermissions()), { replace: true });
+  };
 
   if (resetToken.token) {
     return (
@@ -37,7 +44,7 @@ export const AppShell: React.FC = () => {
   }
 
   if (!currentUser) {
-    return <PinLoginModal onSuccess={login} initialNotice={sessionNotice ?? undefined} />;
+    return <PinLoginModal onSuccess={handleLogin} initialNotice={sessionNotice ?? undefined} />;
   }
 
   if (currentUser.mustChangePin) {

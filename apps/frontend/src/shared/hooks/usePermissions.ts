@@ -31,6 +31,13 @@ function decodeTokenPayload(token: string | null): TokenPayload {
 
 export interface PermissionChecker {
   has: (code: string) => boolean;
+  /**
+   * TK-073-FE: alta/edición de insumos, ubicaciones y recetas están protegidas en el
+   * backend por `requireRole('ADMIN')`, no por un permiso del catálogo (decisión de
+   * producto del 2026-09-30). Esto refleja ese guard en un solo sitio, en vez de que
+   * cada vista compare el rol a mano.
+   */
+  isAdmin: boolean;
 }
 
 /**
@@ -47,15 +54,29 @@ export interface PermissionChecker {
  * anterior. Es una rama transitoria: esos tokens caducan a las 12 h.
  */
 export function usePermissions(): PermissionChecker {
+  return readPermissions();
+}
+
+/** Versión no-hook de `usePermissions`, para decidir fuera del render (p. ej. tras el login). */
+export function readPermissions(): PermissionChecker {
   const { permissions } = decodeTokenPayload(AuthService.getToken());
+  // El rol se lee de la sesión almacenada (misma fuente que `useAppShell().currentUser`),
+  // no del token: en la rama de compatibilidad el token puede ni siquiera tener la
+  // forma de un JWT, y el rol guardado sí es la fuente canónica del cliente.
+  const isAdmin = AuthService.getStoredUser()?.role === 'ADMIN';
 
   if (permissions === undefined) {
-    // El rol se lee de la sesión almacenada (misma fuente que `useAppShell().currentUser`),
-    // no del token: en la rama de compatibilidad el token puede ni siquiera tener la
-    // forma de un JWT, y el rol guardado sí es la fuente canónica del cliente.
-    const role = AuthService.getStoredUser()?.role;
-    return { has: (code: string) => (role === 'ADMIN' ? true : !LEGACY_ADMIN_ONLY_CODES.has(code)) };
+    return { isAdmin, has: (code: string) => (isAdmin ? true : !LEGACY_ADMIN_ONLY_CODES.has(code)) };
   }
 
-  return { has: (code: string) => permissions.includes(code) };
+  return { isAdmin, has: (code: string) => permissions.includes(code) };
+}
+
+/**
+ * US-015 Escenario 2 / TK-073-FE: quien prepara recetas aterriza en el Tablero FEFO de
+ * Cocina; cualquier otro rol, en Bodega. Solo se aplica al iniciar sesión — recargar la
+ * página conserva la ruta en la que estaba el operario.
+ */
+export function landingPathAfterLogin(checker: PermissionChecker): string {
+  return checker.has('kitchen:recipe_prepare') ? '/' : '/bodega';
 }
