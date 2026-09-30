@@ -21,7 +21,7 @@ describe('UsersService — gestión de personal (TK-049-FE)', () => {
   });
 
   it('crea un operario nuevo y retorna la cuenta real del backend', async () => {
-    AuthService.saveSession('admin-token', { id: 'usr-admin', name: 'Ana', role: 'ADMIN' });
+    AuthService.saveSession({ id: 'usr-admin', name: 'Ana', role: 'ADMIN' });
     const mockUser = { id: 'usr-new-1', operatorCode: 'NO-01', name: 'Nuevo Operario', role: 'KITCHEN_STAFF', status: 'ACTIVE' };
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 201, json: async () => mockUser }));
 

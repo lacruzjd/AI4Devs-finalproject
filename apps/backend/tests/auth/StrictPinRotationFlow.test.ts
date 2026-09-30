@@ -80,12 +80,15 @@ describe('TK-071 / Guard 36: Flujo de Prueba de Creación de Usuario y Cambio Ob
       .post('/api/v1/auth/login-pin')
       .send({ operatorCode: createResponse.body.operatorCode, pin: '1111' });
 
-    const userToken = loginResponse.body.accessToken;
+    // TK-140: el navegador reenvía las cookies de sesión y devuelve el token CSRF en la cabecera.
+    const cookies = (loginResponse.headers['set-cookie'] as unknown as string[]).map((c) => c.split(';')[0]);
+    const csrfToken = cookies.find((c) => c.startsWith('restostock_csrf='))!.split('=')[1];
 
     // 3. Ejecutar cambio de PIN a '5555'
     const changePinResponse = await request(app)
       .post('/api/v1/auth/change-pin')
-      .set('Authorization', `Bearer ${userToken}`)
+      .set('Cookie', cookies)
+      .set('X-CSRF-Token', csrfToken)
       .send({ userId, currentPin: '1111', newPin: '5555' });
 
     expect(changePinResponse.status).toBe(200);

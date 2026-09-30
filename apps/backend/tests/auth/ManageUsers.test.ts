@@ -55,7 +55,8 @@ describe('TK-049: Gestion Minima de Personal (crear/activar/desactivar operarios
         .send({ operatorCode: createResponse.body.operatorCode, pin: '9999' });
 
       expect(loginResponse.status).toBe(200);
-      expect(loginResponse.body).toHaveProperty('accessToken');
+      // TK-140: la sesión viaja en la cookie httpOnly, no en el cuerpo.
+      expect((loginResponse.headers['set-cookie'] as unknown as string[]).some((c) => c.startsWith('restostock_session='))).toBe(true);
     });
 
     it('rechaza con 403 Forbidden si quien crea NO es ADMIN', async () => {

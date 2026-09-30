@@ -95,6 +95,8 @@ export interface AppOptions {
   enableDevSeeding?: boolean;
   enableSwagger?: boolean;
   requireAuth?: boolean;
+  /** TK-140: cookies de sesión con `Secure` — default: solo en producción (exige HTTPS o localhost). */
+  secureCookies?: boolean;
 }
 
 
@@ -335,7 +337,8 @@ function mountAuthRouter(app: Express, repos: AppRepositories, options: AppOptio
       repos.roleRepo,
       options.emailService,
       resolveLoginRateLimitOptions(options.loginRateLimit),
-      Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin]
+      Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin],
+      options.secureCookies ?? process.env.NODE_ENV === 'production'
     )
   );
 }

@@ -104,21 +104,21 @@ describe('TK-085-FE: Shell de rutas y ProtectedRoute (US-023)', () => {
   });
 
   it('con sesión de operario, la ruta index renderiza el Tablero FEFO dentro del shell', async () => {
-    AuthService.saveSession('t', { id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
+    AuthService.saveSession({ id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
     renderAt('/');
     await waitFor(() => expect(screen.getByText(/Tablero FEFO de Cocina/i)).toBeInTheDocument());
     expect(screen.getByRole('navigation', { name: /Navegación principal/i })).toBeInTheDocument();
   });
 
   it('un operario no-ADMIN que abre /reportes es redirigido a Inventario (US-023 Escenario 2)', async () => {
-    AuthService.saveSession('t', { id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
+    AuthService.saveSession({ id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
     renderAt('/reportes');
     await waitFor(() => expect(screen.getByText(/Tablero FEFO de Cocina/i)).toBeInTheDocument());
     expect(screen.queryByText(/Reporte de Mermas y Eficiencia/i)).not.toBeInTheDocument();
   });
 
   it('la nav de un operario no-ADMIN no incluye Reportes ni Ajustes', async () => {
-    AuthService.saveSession('t', { id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
+    AuthService.saveSession({ id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
     renderAt('/');
     await waitFor(() => expect(screen.getByRole('link', { name: /Inventario/i })).toBeInTheDocument());
     expect(screen.queryByRole('link', { name: /Reportes/i })).not.toBeInTheDocument();
@@ -126,14 +126,14 @@ describe('TK-085-FE: Shell de rutas y ProtectedRoute (US-023)', () => {
   });
 
   it('un ADMIN sí ve Reportes y Ajustes en la nav', async () => {
-    AuthService.saveSession('t', { id: 'a1', name: 'Admin Uno', role: 'ADMIN' });
+    AuthService.saveSession({ id: 'a1', name: 'Admin Uno', role: 'ADMIN' });
     renderAt('/');
     await waitFor(() => expect(screen.getByRole('link', { name: /Reportes/i })).toBeInTheDocument());
     expect(screen.getByRole('link', { name: /Ajustes/i })).toBeInTheDocument();
   });
 
   it('D-1: en /bodega un operario no-ADMIN NO ve acciones de gestión (403 evitado)', async () => {
-    AuthService.saveSession('t', { id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
+    AuthService.saveSession({ id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
     renderAt('/bodega');
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Bodega' })).toBeInTheDocument());
     expect(screen.getByRole('button', { name: /Extraer de Bodega/i })).toBeInTheDocument();
@@ -142,33 +142,33 @@ describe('TK-085-FE: Shell de rutas y ProtectedRoute (US-023)', () => {
   });
 
   it('D-1: en /bodega un ADMIN sí ve "+ Nuevo Insumo" y "Ubicaciones"', async () => {
-    AuthService.saveSession('t', { id: 'a1', name: 'Admin Uno', role: 'ADMIN' });
+    AuthService.saveSession({ id: 'a1', name: 'Admin Uno', role: 'ADMIN' });
     renderAt('/bodega');
     await waitFor(() => expect(screen.getByRole('button', { name: /Nuevo Insumo/i })).toBeInTheDocument());
     expect(screen.getByRole('button', { name: /Ubicaciones/i })).toBeInTheDocument();
   });
 
   it('US-024: /ajustes/personal deep-link renderiza la sección inline (sin overlay); no-ADMIN → /', async () => {
-    AuthService.saveSession('t', { id: 'a1', name: 'Admin Uno', role: 'ADMIN' });
+    AuthService.saveSession({ id: 'a1', name: 'Admin Uno', role: 'ADMIN' });
     const { container, unmount } = renderAt('/ajustes/personal');
     await waitFor(() => expect(screen.getByRole('heading', { name: /Gestión de Personal/i })).toBeInTheDocument());
     expect(screen.getByRole('navigation', { name: /Secciones de Ajustes/i })).toBeInTheDocument();
     expect(container.querySelector('[class*="modal-overlay"]')).toBeNull();
     unmount();
 
-    AuthService.saveSession('t', { id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
+    AuthService.saveSession({ id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
     renderAt('/ajustes/movimientos');
     await waitFor(() => expect(screen.getByText(/Tablero FEFO de Cocina/i)).toBeInTheDocument());
   });
 
   it('D-1: en /recetas el operario ve el recetario sin "+ Nueva Receta"; el ADMIN sí', async () => {
-    AuthService.saveSession('t', { id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
+    AuthService.saveSession({ id: 'u1', name: 'Operario Uno', role: 'KITCHEN_STAFF' });
     const { unmount } = renderAt('/recetas');
     await waitFor(() => expect(screen.getByRole('heading', { name: /Recetario/i })).toBeInTheDocument());
     expect(screen.queryByRole('button', { name: /Nueva Receta/i })).not.toBeInTheDocument();
     unmount();
 
-    AuthService.saveSession('t', { id: 'a1', name: 'Admin Uno', role: 'ADMIN' });
+    AuthService.saveSession({ id: 'a1', name: 'Admin Uno', role: 'ADMIN' });
     renderAt('/recetas');
     await waitFor(() => expect(screen.getByRole('button', { name: /Nueva Receta/i })).toBeInTheDocument());
   });

@@ -28,9 +28,14 @@ test.describe('RestoStock - Segunda Entrega E2E Critical Path Suite', () => {
       expect(response.status()).toBe(200);
     }
 
-    // ASSERT 3: ORACULO ESTADO - Sesión almacenada
-    const token = await page.evaluate(() => localStorage.getItem('restostock_jwt_token'));
-    expect(token).toBeDefined();
+    // ASSERT 3: ORACULO ESTADO (TK-140) - La sesión existe pero ningún script puede leer el token
+    const cookies = await page.context().cookies();
+    const session = cookies.find((c) => c.name === 'restostock_session');
+    expect(session?.httpOnly).toBe(true);
+    expect(session?.sameSite).toBe('Strict');
+    const visibleToScripts = await page.evaluate(() => ({ cookie: document.cookie, storage: JSON.stringify(localStorage) }));
+    expect(visibleToScripts.cookie).not.toContain(session?.value ?? '<sin sesión>');
+    expect(visibleToScripts.storage).not.toContain(session?.value ?? '<sin sesión>');
   });
 
   test('Flujo de Extracción de Insumos con FEFO y Alta TRR', async ({ page }) => {

@@ -9,6 +9,7 @@ import { ChangePinUseCase } from '../../../application/auth/use-cases/ChangePinU
 import { RequestAdminPinResetUseCase } from '../../../application/auth/use-cases/RequestAdminPinResetUseCase.js';
 import { ResetAdminPinUseCase } from '../../../application/auth/use-cases/ResetAdminPinUseCase.js';
 import { handleZodOrNext } from '../utils/responseUtils.js';
+import { clearSessionCookies, setSessionCookies } from '../sessionCookies.js';
 
 /**
  * US-051/TK-173: el código de operario es la credencial tecleable. Se normaliza
@@ -79,7 +80,9 @@ export class AuthController {
     private readonly updateUserUseCase?: UpdateUserUseCase,
     private readonly changePinUseCase?: ChangePinUseCase,
     private readonly requestAdminPinResetUseCase?: RequestAdminPinResetUseCase,
-    private readonly resetAdminPinUseCase?: ResetAdminPinUseCase
+    private readonly resetAdminPinUseCase?: ResetAdminPinUseCase,
+    /** TK-140: secreto que firma el token CSRF y si las cookies llevan `Secure` (producción). */
+    private readonly sessionCookies: { secret: string; secure: boolean } = { secret: '', secure: false }
   ) {}
 
   public forgotPin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -130,11 +133,19 @@ export class AuthController {
   public loginWithPin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const parsedBody = authPinSchema.parse(req.body);
-      const result = await this.authenticateByPinUseCase.execute(parsedBody);
-      res.status(200).json(result);
+      const { accessToken, user } = await this.authenticateByPinUseCase.execute(parsedBody);
+      // TK-140 / ADR-005: el token solo viaja en la cookie `httpOnly`, nunca en el cuerpo.
+      setSessionCookies(res, accessToken, this.sessionCookies.secret, this.sessionCookies.secure);
+      res.status(200).json({ user });
     } catch (error) {
       handleZodOrNext(req, res, next, error);
     }
+  };
+
+  /** TK-140: sin sesión que validar — borrar las cookies es siempre seguro e idempotente. */
+  public logout = (_req: Request, res: Response): void => {
+    clearSessionCookies(res, this.sessionCookies.secure);
+    res.status(204).end();
   };
 
   public createUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

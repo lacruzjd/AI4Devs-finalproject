@@ -30,12 +30,15 @@ describe('TK-002: Authenticate By PIN TDD Suite', () => {
       .send({ operatorCode: 'usr-carlos-1', pin: '1234' });
 
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('accessToken');
+    // TK-140: el token viaja en la cookie httpOnly; el cuerpo trae el usuario con sus permisos.
+    expect(response.body).not.toHaveProperty('accessToken');
+    expect((response.headers['set-cookie'] as unknown as string[]).some((c) => c.startsWith('restostock_session='))).toBe(true);
     expect(response.body.user).toEqual({
       id: 'usr-carlos-1',
       name: 'Carlos Gomez',
       role: 'KITCHEN_STAFF',
       mustChangePin: true,
+      permissions: ['stock:extract', 'stock:restock', 'stock:read', 'kitchen:recipe_prepare', 'kitchen:remanente_consume'],
     });
 
     // Garantizar que el hash del PIN NUNCA se retorna

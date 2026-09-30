@@ -1,23 +1,36 @@
-import { apiRequest } from '../../../shared/http/apiClient.js';
+import { apiRequest, sessionHeaders } from '../../../shared/http/apiClient.js';
 
+export interface SessionUser {
+  id: string;
+  name: string;
+  role: string;
+  mustChangePin?: boolean;
+  /** TK-121/TK-140: códigos de permiso del rol; ausente en sesiones anteriores a TK-121. */
+  permissions?: string[];
+}
+
+/**
+ * TK-140 / ADR-005: la respuesta del login ya no trae el token. El backend lo emite en la
+ * cookie `httpOnly` `restostock_session`, que ningún script puede leer.
+ */
 export interface LoginPinResponse {
-  accessToken: string;
-  user: {
-    id: string;
-    name: string;
-    role: string;
-    mustChangePin?: boolean;
-  };
+  user: SessionUser;
 }
 
 export class AuthService {
-  private static STORAGE_KEY = 'restostock_jwt_token';
+  /**
+   * Token de las sesiones abiertas antes de TK-140, que siguen vivas hasta caducar (12 h) o
+   * cerrarse. Solo se lee, para no expulsar a esos operarios en el despliegue; ningún login
+   * nuevo lo escribe. Retirada: TK-176, a partir del 2026-10-14.
+   */
+  private static LEGACY_TOKEN_KEY = 'restostock_jwt_token';
   private static USER_KEY = 'restostock_user_info';
 
   public static async loginWithPin(operatorCode: string, pin: string, baseUrl: string = '/api/v1'): Promise<LoginPinResponse> {
     try {
       const response = await fetch(`${baseUrl}/auth/login-pin`, {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -25,10 +38,10 @@ export class AuthService {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem(AuthService.STORAGE_KEY, data.accessToken);
+        const data = (await response.json()) as LoginPinResponse;
+        localStorage.removeItem(AuthService.LEGACY_TOKEN_KEY);
         localStorage.setItem(AuthService.USER_KEY, JSON.stringify(data.user));
-        return data as LoginPinResponse;
+        return data;
       }
 
       let errMessage = 'PIN de acceso invalido o incorrecto.';
@@ -45,12 +58,12 @@ export class AuthService {
   }
 
   public static async changePin(userId: string, currentPin: string, newPin: string, baseUrl: string = '/api/v1'): Promise<void> {
-    const token = AuthService.getToken();
     const response = await fetch(`${baseUrl}/auth/change-pin`, {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        ...sessionHeaders('POST'),
       },
       body: JSON.stringify({ userId, currentPin, newPin }),
     });
@@ -74,11 +87,12 @@ export class AuthService {
     }
   }
 
-  public static getToken(): string | null {
-    return localStorage.getItem(AuthService.STORAGE_KEY);
+  /** Solo sesiones anteriores a TK-140 (ver `LEGACY_TOKEN_KEY`). */
+  public static getLegacyToken(): string | null {
+    return localStorage.getItem(AuthService.LEGACY_TOKEN_KEY);
   }
 
-  public static getStoredUser(): { id: string; name: string; role: string; mustChangePin?: boolean } | null {
+  public static getStoredUser(): SessionUser | null {
     const raw = localStorage.getItem(AuthService.USER_KEY);
     if (!raw) return null;
     try {
@@ -89,8 +103,7 @@ export class AuthService {
     }
   }
 
-  public static saveSession(token: string, user: { id: string; name: string; role: string; mustChangePin?: boolean }): void {
-    localStorage.setItem(AuthService.STORAGE_KEY, token);
+  public static saveSession(user: SessionUser): void {
     localStorage.setItem(AuthService.USER_KEY, JSON.stringify(user));
   }
 
@@ -110,9 +123,17 @@ export class AuthService {
     });
   }
 
-  public static logout(): void {
-    localStorage.removeItem(AuthService.STORAGE_KEY);
+  /**
+   * Un script no puede borrar la cookie `httpOnly`: se le pide al servidor (TK-140). La
+   * petición no se espera —el cierre de sesión local no depende de la red— y `keepalive` la
+   * deja terminar aunque la página se esté descargando.
+   */
+  public static logout(baseUrl: string = '/api/v1'): void {
+    localStorage.removeItem(AuthService.LEGACY_TOKEN_KEY);
     localStorage.removeItem(AuthService.USER_KEY);
+    fetch(`${baseUrl}/auth/logout`, { method: 'POST', credentials: 'same-origin', keepalive: true }).catch((err: unknown) => {
+      console.warn('[AuthService] No se pudo cerrar la sesión en el servidor; la cookie caducará sola:', err);
+    });
   }
 }
 

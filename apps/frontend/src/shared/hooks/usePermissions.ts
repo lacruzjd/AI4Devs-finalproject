@@ -59,11 +59,14 @@ export function usePermissions(): PermissionChecker {
 
 /** Versión no-hook de `usePermissions`, para decidir fuera del render (p. ej. tras el login). */
 export function readPermissions(): PermissionChecker {
-  const { permissions } = decodeTokenPayload(AuthService.getToken());
-  // El rol se lee de la sesión almacenada (misma fuente que `useAppShell().currentUser`),
-  // no del token: en la rama de compatibilidad el token puede ni siquiera tener la
-  // forma de un JWT, y el rol guardado sí es la fuente canónica del cliente.
-  const isAdmin = AuthService.getStoredUser()?.role === 'ADMIN';
+  const storedUser = AuthService.getStoredUser();
+  // TK-140: el JWT viaja en una cookie `httpOnly` y el SPA ya no puede leerlo; los permisos
+  // llegan en el cuerpo del login y se guardan con el usuario. Una sesión anterior a TK-140
+  // aún tiene su token en `localStorage` y los permisos solo dentro de él.
+  const permissions = storedUser?.permissions ?? decodeTokenPayload(AuthService.getLegacyToken()).permissions;
+  // El rol se lee de la sesión almacenada (misma fuente que `useAppShell().currentUser`): en
+  // la rama de compatibilidad el token puede ni siquiera tener la forma de un JWT.
+  const isAdmin = storedUser?.role === 'ADMIN';
 
   if (permissions === undefined) {
     return { isAdmin, has: (code: string) => (isAdmin ? true : !LEGACY_ADMIN_ONLY_CODES.has(code)) };

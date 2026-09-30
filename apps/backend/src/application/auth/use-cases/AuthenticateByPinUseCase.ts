@@ -5,6 +5,12 @@ import { EntityNotFoundException } from '../../../domain/errors/EntityNotFoundEx
 import { InvalidPinException } from '../../../domain/auth/errors/InvalidPinException.js';
 import { UserBlockedException } from '../../../domain/auth/errors/UserBlockedException.js';
 
+/**
+ * Vida de la sesión. La comparten el `expiresIn` del JWT y el `Max-Age` de la cookie que lo
+ * transporta (TK-140), para que el navegador no conserve una cookie con un token ya caducado.
+ */
+export const SESSION_TTL_SECONDS = 12 * 60 * 60;
+
 export interface AuthenticateByPinDTO {
   /** US-051/TK-173: el código corto que el operario teclea, no la clave interna. */
   operatorCode: string;
@@ -18,6 +24,8 @@ export interface AuthResponseDTO {
     name: string;
     role: string;
     mustChangePin: boolean;
+    /** TK-140: el SPA ya no puede decodificar el JWT (viaja en cookie `httpOnly`); lo recibe aquí. */
+    permissions?: string[];
   };
 }
 
@@ -70,7 +78,7 @@ export class AuthenticateByPinUseCase {
     };
 
     const accessToken = jwt.sign(payload, this.jwtSecret, {
-      expiresIn: '12h',
+      expiresIn: SESSION_TTL_SECONDS,
     });
 
     return {
@@ -80,6 +88,7 @@ export class AuthenticateByPinUseCase {
         name: user.name,
         role: user.role,
         mustChangePin: user.mustChangePin,
+        ...(permissions !== undefined ? { permissions } : {}),
       },
     };
   }

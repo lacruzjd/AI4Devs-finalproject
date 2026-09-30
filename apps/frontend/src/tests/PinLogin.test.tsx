@@ -86,8 +86,10 @@ describe('TK-007-FE: Tactile PIN Login Screen TDD Suite', () => {
       expect(screen.getByText(/Carlos Gomez \(Cocina\)/i)).toBeInTheDocument();
     });
 
-    // ORACULO ESTADO: Token JWT persistido correctamente en localStorage
-    expect(localStorage.getItem('restostock_jwt_token')).toBe('jwt_token_sample_123456');
+    // ORACULO ESTADO (TK-140): el token nunca queda al alcance de JavaScript — viaja en la
+    // cookie httpOnly; localStorage solo guarda el usuario.
+    expect(localStorage.getItem('restostock_jwt_token')).toBeNull();
+    expect(JSON.stringify(localStorage)).not.toContain('jwt_token_sample_123456');
   });
 });
 

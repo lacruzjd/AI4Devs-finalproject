@@ -49,7 +49,8 @@ describe('TK-173 (US-051): el codigo de operario es la identidad de acceso', () 
 
     // ORACULO RED: el codigo devuelto por el alta ES la credencial, sin consultar la BD
     expect(login.status).toBe(200);
-    expect(login.body.accessToken).toBeTruthy();
+    // TK-140: la sesión viaja en la cookie httpOnly, no en el cuerpo.
+    expect((login.headers['set-cookie'] as unknown as string[]).some((c) => c.startsWith('restostock_session='))).toBe(true);
     expect(login.body.user.name).toBe('Carlos Gomez');
   });
 

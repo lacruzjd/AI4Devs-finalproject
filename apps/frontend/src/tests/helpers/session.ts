@@ -1,19 +1,17 @@
 /**
- * Siembra una sesión en `localStorage` tal como lo haría `AuthService` tras un login
- * real: un JWT cuyo payload lleva `role` y (desde TK-121) `permissions`.
+ * Siembra una sesión en `localStorage` tal como lo hace `AuthService` tras un login real
+ * desde TK-140: el usuario con su `role` y (desde TK-121) sus `permissions`. El token no se
+ * guarda en ningún sitio accesible a JavaScript: viaja en la cookie `httpOnly`.
  *
- * La firma es un relleno: el frontend NUNCA la verifica — decodifica el payload solo
- * para saber qué ofrecer en la interfaz, y la autorización real la impone el backend
- * en cada petición (ver `usePermissions`).
+ * Los permisos solo deciden qué ofrecer en la interfaz; la autorización real la impone el
+ * backend en cada petición (ver `usePermissions`).
  */
 export function seedSession(options: { role?: string; permissions?: string[] } = {}): void {
   const { role = 'ADMIN', permissions } = options;
-  const payload = { sub: 'usr-test', name: 'Usuario de Prueba', role, ...(permissions ? { permissions } : {}) };
-  const encode = (obj: unknown) => btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  const token = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode(payload)}.firma-de-prueba`;
-
-  localStorage.setItem('restostock_jwt_token', token);
-  localStorage.setItem('restostock_user_info', JSON.stringify({ id: 'usr-test', name: 'Usuario de Prueba', role }));
+  localStorage.setItem(
+    'restostock_user_info',
+    JSON.stringify({ id: 'usr-test', name: 'Usuario de Prueba', role, ...(permissions ? { permissions } : {}) })
+  );
 }
 
 export function clearSession(): void {

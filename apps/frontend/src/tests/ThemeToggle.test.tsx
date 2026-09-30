@@ -21,7 +21,7 @@ describe('TK-081-FE: Interruptor Sistema FEFO (turno Dia/Noche, US-022)', () => 
   beforeEach(() => {
     localStorage.clear();
     document.documentElement.removeAttribute('data-theme');
-    AuthService.saveSession('test-token-jwt-12345', {
+    AuthService.saveSession({
       id: 'usr-1',
       name: 'Chef Operario',
       role: 'KITCHEN_STAFF',

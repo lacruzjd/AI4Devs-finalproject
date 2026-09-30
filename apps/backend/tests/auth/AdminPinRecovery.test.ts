@@ -145,7 +145,8 @@ describe('TK-077 / US-018: Recuperacion de PIN de Administrador por Email Token 
         .send({ operatorCode: 'usr-admin-1', pin: '9876' });
 
       expect(loginResponse.status).toBe(200);
-      expect(loginResponse.body).toHaveProperty('accessToken');
+      // TK-140: la sesión viaja en la cookie httpOnly, no en el cuerpo.
+      expect((loginResponse.headers['set-cookie'] as unknown as string[]).some((c) => c.startsWith('restostock_session='))).toBe(true);
     });
 
     it('rechaza el segundo intento de uso del mismo token (One-Time Token Enforcement)', async () => {

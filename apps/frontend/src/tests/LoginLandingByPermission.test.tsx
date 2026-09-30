@@ -6,22 +6,14 @@ import { BodegaRoute } from '../app/routes/BodegaRoute.js';
 import { InventarioRoute } from '../app/routes/InventarioRoute.js';
 import { seedSession, clearSession } from './helpers/session.js';
 
-/** JWT con relleno de firma: el frontend solo decodifica el payload para decidir qué ofrecer. */
-function fakeJwt(payload: object): string {
-  const encode = (obj: unknown) => btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  return `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode(payload)}.firma-de-prueba`;
-}
-
 function mockLoginResponse(role: string, permissions: string[]) {
   vi.spyOn(global, 'fetch').mockImplementation(async (input) => {
     const url = String(input);
     if (url.includes('/auth/login-pin')) {
       return {
         ok: true,
-        json: async () => ({
-          accessToken: fakeJwt({ sub: 'usr-1', name: 'Operario', role, permissions }),
-          user: { id: 'usr-1', name: 'Operario', role },
-        }),
+        // TK-140: la sesión viaja en cookie httpOnly; el cuerpo trae el usuario con sus permisos.
+        json: async () => ({ user: { id: 'usr-1', name: 'Operario', role, permissions } }),
       } as Response;
     }
     return { ok: true, json: async () => [] } as Response;
@@ -52,6 +44,10 @@ describe('TK-073-FE (US-015 Escenario 2): pantalla de aterrizaje tras el login s
     );
   }
 
+  // Bajo `pnpm run test` en paralelo el montaje del tablero supera el segundo por defecto de
+  // `waitFor`; el margen evita el falso rojo sin relajar lo que se comprueba (precedente TK-134).
+  const LANDING_TIMEOUT = { timeout: 5000 };
+
   beforeEach(() => {
     localStorage.clear();
   });
@@ -66,7 +62,7 @@ describe('TK-073-FE (US-015 Escenario 2): pantalla de aterrizaje tras el login s
 
     loginWithPin();
 
-    await waitFor(() => expect(screen.getByText(/Tablero FEFO de Cocina/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Tablero FEFO de Cocina/i)).toBeInTheDocument(), LANDING_TIMEOUT);
     expect(screen.queryByRole('heading', { name: 'Bodega' })).not.toBeInTheDocument();
   });
 
@@ -76,7 +72,7 @@ describe('TK-073-FE (US-015 Escenario 2): pantalla de aterrizaje tras el login s
 
     loginWithPin();
 
-    await waitFor(() => expect(screen.getByRole('heading', { name: 'Bodega' })).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Bodega' })).toBeInTheDocument(), LANDING_TIMEOUT);
     expect(screen.queryByText(/Tablero FEFO de Cocina/i)).not.toBeInTheDocument();
   });
 });

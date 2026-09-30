@@ -7,7 +7,7 @@ describe('Frontend MVP: Tactile FEFO Dashboard & Stock Extraction Suite', () => 
   beforeEach(() => {
     localStorage.clear();
     // Simular sesion activa
-    AuthService.saveSession('test-token-jwt-12345', {
+    AuthService.saveSession({
       id: 'usr-1',
       name: 'Chef Operario',
       role: 'KITCHEN_STAFF',

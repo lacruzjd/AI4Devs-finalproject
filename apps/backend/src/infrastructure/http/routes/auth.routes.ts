@@ -22,7 +22,8 @@ export function createAuthRouter(
   roleRepository: IRoleRepository,
   emailService?: IEmailService,
   loginRateLimit: { windowMs: number; max: number } = { windowMs: 15 * 60 * 1000, max: 10 },
-  allowedOrigins: string[] = ['*']
+  allowedOrigins: string[] = ['*'],
+  secureCookies = false
 ): Router {
   const router = Router();
   const mailer = emailService || new ConsoleEmailService();
@@ -47,7 +48,8 @@ export function createAuthRouter(
     updateUserUseCase,
     changePinUseCase,
     requestAdminPinResetUseCase,
-    resetAdminPinUseCase
+    resetAdminPinUseCase,
+    { secret: jwtSecret, secure: secureCookies }
   );
 
   // Rate Limiting anti-fuerza bruta por IP real (Guard 16). Parametrizable vía
@@ -61,6 +63,7 @@ export function createAuthRouter(
   const manageUsers = authorizePermissions(roleRepository, 'users:manage');
 
   router.post('/login-pin', loginLimiter, controller.loginWithPin);
+  router.post('/logout', controller.logout);
   router.post('/forgot-pin', loginLimiter, controller.forgotPin);
   router.post('/reset-pin', loginLimiter, controller.resetPin);
   router.post('/change-pin', authMiddleware, controller.changePin);

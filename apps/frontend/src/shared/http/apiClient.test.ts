@@ -7,10 +7,45 @@ describe('apiClient — cliente HTTP compartido', () => {
     vi.unstubAllGlobals();
     localStorage.clear();
     setTokenProvider(null);
+    document.cookie = 'restostock_csrf=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
   });
 
-  it('adjunta el header Authorization Bearer cuando hay una sesión guardada', async () => {
-    AuthService.saveSession('token-real-123', { id: 'usr-1', name: 'Ana', role: 'ADMIN' });
+  it('TK-140: con la sesión en cookie no envía Authorization y deja que el navegador adjunte la cookie', async () => {
+    AuthService.saveSession({ id: 'usr-1', name: 'Ana', role: 'ADMIN' });
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await apiRequest('/kitchen/remanentes');
+
+    const [, requestInit] = fetchMock.mock.calls[0];
+    expect(requestInit.headers.Authorization).toBeUndefined();
+    expect(requestInit.credentials).toBe('same-origin');
+  });
+
+  it('TK-140: una mutación devuelve el token CSRF de la cookie en X-CSRF-Token', async () => {
+    document.cookie = 'restostock_csrf=csrf-de-la-sesion; path=/';
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await apiRequest('/stock/extraction', { method: 'POST', body: {} });
+
+    const [, requestInit] = fetchMock.mock.calls[0];
+    expect(requestInit.headers['X-CSRF-Token']).toBe('csrf-de-la-sesion');
+  });
+
+  it('TK-140: una lectura no envía X-CSRF-Token', async () => {
+    document.cookie = 'restostock_csrf=csrf-de-la-sesion; path=/';
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => ({}) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await apiRequest('/stock/insumos');
+
+    const [, requestInit] = fetchMock.mock.calls[0];
+    expect(requestInit.headers['X-CSRF-Token']).toBeUndefined();
+  });
+
+  it('adjunta el header Authorization Bearer cuando queda una sesión heredada (anterior a TK-140)', async () => {
+    localStorage.setItem('restostock_jwt_token', 'token-real-123');
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,

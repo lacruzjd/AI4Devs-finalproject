@@ -10,10 +10,9 @@ describe('AuthService.loginWithPin — sin bypass de autenticación', () => {
     vi.unstubAllGlobals();
   });
 
-  it('guarda la sesión real y retorna los datos del backend cuando la respuesta es 200 OK', async () => {
+  it('guarda el usuario con sus permisos y ningún token: la sesión viaja en la cookie httpOnly (TK-140)', async () => {
     const mockResponse = {
-      accessToken: 'real-jwt-token',
-      user: { id: 'usr-1', name: 'Carlos', role: 'OPERATOR' },
+      user: { id: 'usr-1', name: 'Carlos', role: 'OPERATOR', permissions: ['stock:read'] },
     };
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -23,7 +22,37 @@ describe('AuthService.loginWithPin — sin bypass de autenticación', () => {
     const result = await AuthService.loginWithPin('usr-1', '1234');
 
     expect(result).toEqual(mockResponse);
-    expect(localStorage.getItem('restostock_jwt_token')).toBe('real-jwt-token');
+    expect(AuthService.getStoredUser()).toEqual(mockResponse.user);
+    expect(localStorage.getItem('restostock_jwt_token')).toBeNull();
+    expect(JSON.stringify(localStorage)).not.toMatch(/jwt|token/i);
+  });
+
+  it('un login nuevo descarta el token heredado de localStorage (sesión anterior a TK-140)', async () => {
+    localStorage.setItem('restostock_jwt_token', 'token-heredado');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ user: { id: 'usr-1', name: 'Carlos', role: 'OPERATOR' } }),
+    }));
+
+    await AuthService.loginWithPin('usr-1', '1234');
+
+    expect(localStorage.getItem('restostock_jwt_token')).toBeNull();
+    expect(AuthService.getLegacyToken()).toBeNull();
+  });
+
+  it('logout borra la sesión local y pide al servidor que borre la cookie httpOnly', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 204 });
+    vi.stubGlobal('fetch', fetchMock);
+    AuthService.saveSession({ id: 'usr-1', name: 'Carlos', role: 'OPERATOR' });
+    localStorage.setItem('restostock_jwt_token', 'token-heredado');
+
+    AuthService.logout();
+
+    expect(AuthService.getStoredUser()).toBeNull();
+    expect(localStorage.getItem('restostock_jwt_token')).toBeNull();
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('/api/v1/auth/logout');
+    expect(init.method).toBe('POST');
   });
 
   it('relanza el error real cuando el backend rechaza el PIN (400/401) — comportamiento ya correcto, no debe cambiar', async () => {
