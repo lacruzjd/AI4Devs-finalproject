@@ -68,14 +68,16 @@ describe('TK-121-FE (US-015 Escenario 2): ocultamiento por permiso', () => {
       expect(screen.getByRole('link', { name: /Inventario/i })).toBeInTheDocument();
     });
 
-    it('un token con forma no-JWT (sesión de prueba/legado) no rompe ni deja sin navegación', () => {
-      localStorage.setItem('restostock_jwt_token', 'token-no-jwt');
-      localStorage.setItem('restostock_user_info', JSON.stringify({ id: 'u1', name: 'Ana', role: 'ADMIN' }));
+    it('TK-176: los permisos nunca se leen de un token antiguo que quede en localStorage', () => {
+      const encode = (obj: unknown) => btoa(JSON.stringify(obj)).replace(/=+$/, '');
+      const staleToken = `${encode({ alg: 'HS256' })}.${encode({ role: 'KITCHEN_STAFF', permissions: ['reports:view'] })}.firma`;
+      localStorage.setItem('restostock_jwt_token', staleToken);
+      localStorage.setItem('restostock_user_info', JSON.stringify({ id: 'u1', name: 'Ana', role: 'KITCHEN_STAFF' }));
 
       renderNav();
 
       expect(screen.getByRole('link', { name: /Inventario/i })).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /Reportes/i })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: /Reportes/i })).not.toBeInTheDocument();
     });
   });
 

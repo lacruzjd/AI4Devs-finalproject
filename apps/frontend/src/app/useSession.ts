@@ -12,6 +12,8 @@ type SessionUser = { id: string; name: string; role: string; mustChangePin?: boo
  * inactividad táctil (Guard 37) y el listener global `restostock:unauthorized`.
  */
 export function useSession() {
+  // TK-176: un JWT que una versión anterior dejó en `localStorage` se borra al arrancar.
+  useState(AuthService.purgeStaleToken);
   const [currentUser, setCurrentUser] = useState<SessionUser | null>(() => AuthService.getStoredUser());
   const [sessionNotice, setSessionNotice] = useState<string | null>(null);
 

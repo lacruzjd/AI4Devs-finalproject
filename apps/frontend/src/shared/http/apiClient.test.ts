@@ -44,7 +44,7 @@ describe('apiClient — cliente HTTP compartido', () => {
     expect(requestInit.headers['X-CSRF-Token']).toBeUndefined();
   });
 
-  it('adjunta el header Authorization Bearer cuando queda una sesión heredada (anterior a TK-140)', async () => {
+  it('TK-176: un token antiguo que quede en localStorage nunca se envía como Authorization', async () => {
     localStorage.setItem('restostock_jwt_token', 'token-real-123');
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -56,7 +56,7 @@ describe('apiClient — cliente HTTP compartido', () => {
     await apiRequest('/kitchen/remanentes');
 
     const [, requestInit] = fetchMock.mock.calls[0];
-    expect(requestInit.headers.Authorization).toBe('Bearer token-real-123');
+    expect(requestInit.headers.Authorization).toBeUndefined();
   });
 
   it('permite usar un tokenProvider inyectado desacoplado', async () => {

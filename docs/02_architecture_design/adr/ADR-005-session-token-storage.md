@@ -13,7 +13,7 @@ date: 2026-09-09
 - **Estado:** `Accepted`
 - **Fecha:** 2026-09-09
 - **Autor:** Claude (AI Pair Programmer) — decisión confirmada por el humano en la PAUSA HitL de `SK-36` Fase 3
-- **Implementado por:** [`TK-140`](../../05_agile_planning/12_tickets/auth/frontend/TK-140.md) — `done` (2026-09-30), verificado contra el stack Docker real. Retirada de la compatibilidad del frontend: [`TK-176`](../../05_agile_planning/12_tickets/auth/frontend/TK-176.md)
+- **Implementado por:** [`TK-140`](../../05_agile_planning/12_tickets/auth/frontend/TK-140.md) — `done` (2026-09-30), verificado contra el stack Docker real. compatibilidad del frontend retirada en [`TK-176`](../../05_agile_planning/12_tickets/auth/frontend/TK-176.md) (`done`, mismo despliegue)
 - **Origen:** hallazgo `O-1` de [`AUDIT-SEC-004`](../../audits/AUDIT-SEC-004-hardcoded-credentials-and-auth.md) ("JWT en `localStorage`… httpOnly cookie sería lo correcto"), documentado sin remediar hasta este ADR. Primer ADR generado por [`SK-36`](../../../.agents/skills/specs/02_architecture_design/SK-36_generate_architecture_decision_record.md).
 
 ---

@@ -34,10 +34,7 @@ export function setTokenProvider(provider: TokenProvider | null): void {
 }
 
 function resolveToken(): string | null {
-  if (customTokenProvider) {
-    return customTokenProvider();
-  }
-  return AuthService.getLegacyToken();
+  return customTokenProvider ? customTokenProvider() : null;
 }
 
 const CSRF_COOKIE = 'restostock_csrf';
@@ -52,7 +49,7 @@ function readCsrfCookie(): string | undefined {
 /**
  * TK-140 / ADR-005: cabeceras de sesión de una petición. El navegador adjunta solo la cookie
  * `httpOnly`; aquí se añade el token CSRF que exigen las mutaciones, y `Authorization` solo
- * para una sesión heredada de antes de TK-140 (o un proveedor inyectado).
+ * si se inyectó un proveedor de token (`setTokenProvider`).
  */
 export function sessionHeaders(method: string): Record<string, string> {
   const headers: Record<string, string> = {};

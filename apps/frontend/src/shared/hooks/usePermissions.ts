@@ -8,27 +8,6 @@ import { AuthService } from '../../features/auth/services/auth.service.js';
  */
 const LEGACY_ADMIN_ONLY_CODES = new Set(['reports:view', 'roles:manage', 'users:manage']);
 
-interface TokenPayload {
-  permissions?: string[];
-}
-
-/**
- * Lee el payload del JWT **sin verificar la firma**: aquí solo se decide qué ofrecer
- * en la interfaz, nunca a qué se tiene derecho — de eso responde el servidor en cada
- * petición. Un token corrupto se trata como "sin datos", no como un error.
- */
-function decodeTokenPayload(token: string | null): TokenPayload {
-  if (!token) return {};
-  const segments = token.split('.');
-  if (segments.length !== 3) return {};
-  try {
-    const base64 = segments[1].replace(/-/g, '+').replace(/_/g, '/');
-    return JSON.parse(atob(base64)) as TokenPayload;
-  } catch {
-    return {};
-  }
-}
-
 export interface PermissionChecker {
   has: (code: string) => boolean;
   /**
@@ -48,10 +27,9 @@ export interface PermissionChecker {
  * devolvería `403`). La autorización real la impone `authorizePermissions` en el
  * backend, resolviendo contra el repositorio en cada petición.
  *
- * Compatibilidad (mitigación #1 del ticket): un token emitido antes de `TK-121` no
- * trae `permissions`. En ese caso NO se asume "sin permisos" —eso dejaría sin
- * navegación a todo usuario con sesión viva—, sino que se reproduce el gating por rol
- * anterior. Es una rama transitoria: esos tokens caducan a las 12 h.
+ * Compatibilidad (mitigación #1 del ticket): un usuario guardado sin `permissions` NO se
+ * trata como "sin permisos" —eso dejaría sin navegación a quien tenga sesión viva—, sino
+ * que se reproduce el gating por rol anterior a `TK-121`.
  */
 export function usePermissions(): PermissionChecker {
   return readPermissions();
@@ -60,12 +38,10 @@ export function usePermissions(): PermissionChecker {
 /** Versión no-hook de `usePermissions`, para decidir fuera del render (p. ej. tras el login). */
 export function readPermissions(): PermissionChecker {
   const storedUser = AuthService.getStoredUser();
-  // TK-140: el JWT viaja en una cookie `httpOnly` y el SPA ya no puede leerlo; los permisos
-  // llegan en el cuerpo del login y se guardan con el usuario. Una sesión anterior a TK-140
-  // aún tiene su token en `localStorage` y los permisos solo dentro de él.
-  const permissions = storedUser?.permissions ?? decodeTokenPayload(AuthService.getLegacyToken()).permissions;
-  // El rol se lee de la sesión almacenada (misma fuente que `useAppShell().currentUser`): en
-  // la rama de compatibilidad el token puede ni siquiera tener la forma de un JWT.
+  // TK-140/TK-176: el JWT viaja en una cookie `httpOnly` que el SPA no puede leer; los
+  // permisos llegan en el cuerpo del login y se guardan con el usuario, única fuente.
+  const permissions = storedUser?.permissions;
+  // El rol se lee de la sesión almacenada (misma fuente que `useAppShell().currentUser`).
   const isAdmin = storedUser?.role === 'ADMIN';
 
   if (permissions === undefined) {

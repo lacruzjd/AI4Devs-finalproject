@@ -27,7 +27,7 @@ describe('AuthService.loginWithPin — sin bypass de autenticación', () => {
     expect(JSON.stringify(localStorage)).not.toMatch(/jwt|token/i);
   });
 
-  it('un login nuevo descarta el token heredado de localStorage (sesión anterior a TK-140)', async () => {
+  it('un login nuevo borra el token antiguo de localStorage (sesión anterior a TK-140)', async () => {
     localStorage.setItem('restostock_jwt_token', 'token-heredado');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
@@ -37,7 +37,14 @@ describe('AuthService.loginWithPin — sin bypass de autenticación', () => {
     await AuthService.loginWithPin('usr-1', '1234');
 
     expect(localStorage.getItem('restostock_jwt_token')).toBeNull();
-    expect(AuthService.getLegacyToken()).toBeNull();
+  });
+
+  it('TK-176: purgeStaleToken borra el token antiguo que quede en localStorage', () => {
+    localStorage.setItem('restostock_jwt_token', 'token-heredado');
+
+    AuthService.purgeStaleToken();
+
+    expect(localStorage.getItem('restostock_jwt_token')).toBeNull();
   });
 
   it('logout borra la sesión local y pide al servidor que borre la cookie httpOnly', async () => {

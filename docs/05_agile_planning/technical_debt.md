@@ -15,7 +15,6 @@
 | ID | Componente | Deuda | Sev. | Esfuerzo | Fuente |
 | :-- | :-- | :-- | :-- | :-- | :-- |
 | `TD-001` | Despliegue / `sessionCookies.ts` | Con `NODE_ENV=production` la cookie de sesión lleva `Secure`. Una tablet que abra el stack por `http://<IP-LAN>` inicia sesión (`200`), pero el navegador descarta la cookie y la siguiente petición vuelve al login. `localhost` funciona. Para uso en LAN hace falta HTTPS delante de nginx. Consecuencia aceptada en ADR-005, verificada el 2026-09-30. | Media | 1 | [TK-140](12_tickets/auth/frontend/TK-140.md), [ADR-005](../02_architecture_design/adr/ADR-005-session-token-storage.md) |
-| `TD-002` | `auth.service.ts`, `apiClient.ts`, `usePermissions.ts` | Rama de compatibilidad que lee el token heredado de `localStorage` para las sesiones abiertas antes de TK-140. Tiene ticket y fecha. | Baja | 0.5 | [TK-176](12_tickets/auth/frontend/TK-176.md) (no antes del 2026-10-14) |
 | `TD-003` | `authenticateJWT.ts` | `jwt.verify(token, jwtSecret)` sin fijar `algorithms: ['HS256']`. | Baja | 0.25 | [AUDIT-SEC-004](../audits/AUDIT-SEC-004-hardcoded-credentials-and-auth.md) O-1 |
 | `TD-004` | `AuthenticateByPinUseCase.ts` | La vida de la sesión (12 h) es una constante de código (`SESSION_TTL_SECONDS`, compartida con la cookie desde TK-140), no configuración. | Baja | 0.5 | AUDIT-SEC-004 O-1 |
 | `TD-005` | `Pin.ts` | `scryptSync` con el coste `N` por defecto de Node; sin parámetros explícitos ni migración de hashes si se sube. | Baja | 1 | AUDIT-SEC-004 O-1 |
@@ -30,8 +29,9 @@
 | `TD-014` | `PrismaUserRepository.resolveRoleId` | Una consulta extra por intento de login. Aceptado por coste marginal. | Info | 0.25 | [AUDIT-DEV-005](../audits/AUDIT-DEV-005-TK-092-quality-report.md) D-2 |
 | `TD-015` | Frontend administrativo | El dashboard administrativo no tiene dirección visual propia. Pendiente de decisión explícita del humano. | Baja | — | [TK-067](12_tickets/shared/frontend/TK-067.md) |
 | `TD-016` | momoy (`.agents/`) | Convención de nombres que el upstream no adoptó (F-1, F-3, F-5, F-6) y mezcla de comandos y procedimientos en `skills/` (F-7). Se decide y ejecuta en el repositorio de momoy, no aquí. | Baja | 3 | [AUDIT-DEV-016](../audits/AUDIT-DEV-016-momoy-naming-consistency.md), [TK-152](12_tickets/shared/backend/TK-152.md) |
+| `TD-017` | `RecipeSelectorModal.test.tsx` | Test intermitente: falló una vez bajo `pnpm run test` en paralelo ("confirma la preparación llamando a KitchenService.consumeRecipe") y pasó en 3 ejecuciones aisladas y 3 completas posteriores. Mismo patrón que los tests RTL endurecidos en TK-134. | Info | 0.25 | Observado el 2026-09-30 durante TK-176 |
 
-**Resumen:** 16 elementos abiertos — 0 Crítica, 0 Alta, 1 Media, 12 Baja, 3 Info. Esfuerzo total estimado: ~15 días.
+**Resumen:** 16 elementos abiertos — 0 Crítica, 0 Alta, 1 Media, 11 Baja, 4 Info. Esfuerzo total estimado: ~15 días.
 
 ---
 
@@ -40,6 +40,7 @@
 | Deuda | Fuente | Cerrada por | Comprobación (2026-09-30) |
 | :-- | :-- | :-- | :-- |
 | Token de sesión en `localStorage`, exfiltrable por XSS | [AUDIT-SEC-001](../audits/AUDIT-SEC-001-security-posture-report.md) F-4, AUDIT-SEC-004 O-1 | [TK-140](12_tickets/auth/frontend/TK-140.md) | Cookie `httpOnly` verificada en Chromium contra el stack Docker. |
+| Rama del frontend que leía el token heredado de `localStorage` (antes `TD-002`) | [TK-140](12_tickets/auth/frontend/TK-140.md) | [TK-176](12_tickets/auth/frontend/TK-176.md) | 0 peticiones con `Authorization` en Chromium; el token antiguo se borra al arrancar. |
 | Campo `role` como `z.string()` libre | AUDIT-SEC-001 F-2, AUDIT-DEV-005 D-4 | [TK-174](12_tickets/security/backend/TK-174.md) | `assertRoleInCatalog` en los casos de uso; gate con marcador verificado. |
 | API key de Gemini en la query string | AUDIT-DEV-007 F-3, [AUDIT-DEV-012](../audits/AUDIT-DEV-012-ai-config-leakage-and-crud-coverage.md) L-5 | [TK-126](12_tickets/recipes/backend/TK-126.md), [TK-129](12_tickets/settings/backend/TK-129.md) | 0 apariciones de `?key=` en `apps/backend/src`. |
 | Timeout de 5 s literal por adapter | AUDIT-DEV-007 F-14 | TK-126 | `AI_GENERATION_TIMEOUT_MS` compartido (excepción: `TD-011`). |

@@ -19,11 +19,11 @@ export interface LoginPinResponse {
 
 export class AuthService {
   /**
-   * Token de las sesiones abiertas antes de TK-140, que siguen vivas hasta caducar (12 h) o
-   * cerrarse. Solo se lee, para no expulsar a esos operarios en el despliegue; ningún login
-   * nuevo lo escribe. Retirada: TK-176, a partir del 2026-10-14.
+   * Clave donde las versiones anteriores a TK-140 guardaban el JWT. Desde TK-176 nada la lee:
+   * solo se borra, porque un token todavía válido ahí sería legible por cualquier script
+   * durante las 12 h que dura — justo el riesgo que TK-140 cierra.
    */
-  private static LEGACY_TOKEN_KEY = 'restostock_jwt_token';
+  private static STALE_TOKEN_KEY = 'restostock_jwt_token';
   private static USER_KEY = 'restostock_user_info';
 
   public static async loginWithPin(operatorCode: string, pin: string, baseUrl: string = '/api/v1'): Promise<LoginPinResponse> {
@@ -39,7 +39,7 @@ export class AuthService {
 
       if (response.ok) {
         const data = (await response.json()) as LoginPinResponse;
-        localStorage.removeItem(AuthService.LEGACY_TOKEN_KEY);
+        AuthService.purgeStaleToken();
         localStorage.setItem(AuthService.USER_KEY, JSON.stringify(data.user));
         return data;
       }
@@ -87,9 +87,9 @@ export class AuthService {
     }
   }
 
-  /** Solo sesiones anteriores a TK-140 (ver `LEGACY_TOKEN_KEY`). */
-  public static getLegacyToken(): string | null {
-    return localStorage.getItem(AuthService.LEGACY_TOKEN_KEY);
+  /** TK-176: borra el JWT que una versión anterior a TK-140 pudo dejar en `localStorage`. */
+  public static purgeStaleToken(): void {
+    localStorage.removeItem(AuthService.STALE_TOKEN_KEY);
   }
 
   public static getStoredUser(): SessionUser | null {
@@ -129,7 +129,7 @@ export class AuthService {
    * deja terminar aunque la página se esté descargando.
    */
   public static logout(baseUrl: string = '/api/v1'): void {
-    localStorage.removeItem(AuthService.LEGACY_TOKEN_KEY);
+    AuthService.purgeStaleToken();
     localStorage.removeItem(AuthService.USER_KEY);
     fetch(`${baseUrl}/auth/logout`, { method: 'POST', credentials: 'same-origin', keepalive: true }).catch((err: unknown) => {
       console.warn('[AuthService] No se pudo cerrar la sesión en el servidor; la cookie caducará sola:', err);
