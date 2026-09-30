@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-105-FE: Panel de Reporte de Mermas de Preparación (Frontend)
 
-> [⬅️ US-029](../../../11_user_stories/reports/US-029.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-029](../../../11_user_stories/reports/US-029.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 Nueva sección en el dashboard de reportes: merma de preparación agrupada (receta → ingrediente → motivo, con `$` y % de merma, líneas sobre umbral destacadas) y consumo real vs. teórico por receta. Ajuste del umbral en `/ajustes`.

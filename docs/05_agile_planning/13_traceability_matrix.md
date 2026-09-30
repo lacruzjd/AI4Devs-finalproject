@@ -1,5 +1,5 @@
 ---
-document: matriz_trazabilidad
+document: traceability_matrix
 version: 1.4.0
 status: approved
 inputs:
@@ -12,7 +12,7 @@ inputs:
 # 📊 Matriz de Trazabilidad End-to-End (Verified Spec-Driven Development - VSDD)
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Índice de Tickets (12_tickets/indice_tickets.md)](./12_tickets/indice_tickets.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Mapa Jerárquico del Backlog (14_backlog_map.md) ➡️](./14_backlog_map.md)
+> [⬅️ Volver a Índice de Tickets (12_tickets/tickets_index.md)](./12_tickets/tickets_index.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Mapa Jerárquico del Backlog (14_backlog_map.md) ➡️](./14_backlog_map.md)
 
 ---
 

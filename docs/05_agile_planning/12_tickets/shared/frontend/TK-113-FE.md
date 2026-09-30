@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-113-FE: Chips de Operario Reciente en el Login (Frontend)
 
-> [⬅️ US-031](../../../11_user_stories/shared/US-031.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-031](../../../11_user_stories/shared/US-031.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 Fusión selectiva del mockup `01_login_pinpad.html` (Stitch) — `US-031` Escenario 1. `PinLoginModal` pide hoy el ID de operario como texto libre (deliberadamente, desde que se retiró la lista fija de 2 operarios de fixtures — no hay endpoint que liste operarios reales). Se añaden hasta 3 chips táctiles con los últimos IDs que iniciaron sesión **en ese dispositivo**, para no volver a tipear el ID en cada turno, sin reintroducir ninguna lista simulada de usuarios.

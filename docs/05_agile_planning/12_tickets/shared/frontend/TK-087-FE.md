@@ -14,7 +14,7 @@ inputs:
 # 🎟️ TK-087-FE: Panel "Estado" de 3 Cubetas + Leyenda Numérica + Grid Acciones\|Estado
 
 > **Navegación del Framework SDD:**
-> [📖 Índice de Tickets](../../indice_tickets.md) | [Anterior: TK-086-FE](./TK-086-FE.md) | [Siguiente: TK-088-FE](./TK-088-FE.md)
+> [📖 Índice de Tickets](../../tickets_index.md) | [Anterior: TK-086-FE](./TK-086-FE.md) | [Siguiente: TK-088-FE](./TK-088-FE.md)
 
 ---
 

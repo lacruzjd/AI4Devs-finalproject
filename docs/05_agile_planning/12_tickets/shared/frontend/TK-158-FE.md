@@ -13,7 +13,7 @@ inputs:
 # TK-158-FE: Errores de Validación Junto a su Campo
 
 > **Navegación del Framework SDD:**
-> [Historia US-043](../../../11_user_stories/shared/US-043.md) | [Índice de tickets](../../indice_tickets.md) | [Matriz de trazabilidad](../../../13_matriz_trazabilidad.md)
+> [Historia US-043](../../../11_user_stories/shared/US-043.md) | [Índice de tickets](../../tickets_index.md) | [Matriz de trazabilidad](../../../13_traceability_matrix.md)
 
 ---
 

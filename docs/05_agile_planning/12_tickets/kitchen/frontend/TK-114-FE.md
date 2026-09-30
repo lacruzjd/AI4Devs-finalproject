@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-114-FE: Botón de Acción Rápida Circular en el Tablero de Cocina (Frontend)
 
-> [⬅️ US-031](../../../11_user_stories/shared/US-031.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-031](../../../11_user_stories/shared/US-031.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 Fusión selectiva del mockup `02_kitchen_dashboard.html` (Stitch) — `US-031` Escenario 2. Junto a `FEFOInventoryHealthBar` en Inventario, un botón circular de **72×72px** (mismo tamaño y misma excepción de `border-radius: 9999px` que el botón de acción circular de `US-023`, no un token nuevo) para disparar "Extraer de Bodega" con un solo toque, como atajo adicional a los botones por fila ya existentes.

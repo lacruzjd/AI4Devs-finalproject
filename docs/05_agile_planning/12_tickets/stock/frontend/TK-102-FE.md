@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-102-FE: Destino de Cocina Dinámico y Gestión de Áreas de Cocina (Frontend)
 
-> [⬅️ US-026](../../../11_user_stories/stock/US-026.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-026](../../../11_user_stories/stock/US-026.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 Reemplazar el desplegable de 3 literales fijos (`KITCHEN_FRIDGE/PREP/LINE`) del modal de extracción por uno alimentado del catálogo `StorageLocation` (`type = KITCHEN`, activas). Extender el panel de gestión de ubicaciones para administrar áreas de cocina. Cierra la deuda de `TK-074-FE`.

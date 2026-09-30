@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-109-FE: Selector de Motivo por Línea en el Cierre de Turno (Frontend)
 
-> [⬅️ US-008](../../../11_user_stories/kitchen/US-008.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-008](../../../11_user_stories/kitchen/US-008.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 `ShiftReconciliationWizard`: cuando una línea del conteo físico da una varianza negativa (`diff < 0`), muestra un selector de motivo (catálogo `TK-107-FE`) inline en esa fila; obligatorio para poder enviar el cierre.

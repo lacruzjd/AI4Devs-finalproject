@@ -13,7 +13,7 @@ inputs:
 # 🎟️ TK-084-FE: Sistema FEFO — Backoffice y Administración
 
 > **Navegación del Framework SDD:**
-> [⬅️ Anterior: TK-083-FE](./TK-083-FE.md) | [📖 Índice de Tickets](../../indice_tickets.md)
+> [⬅️ Anterior: TK-083-FE](./TK-083-FE.md) | [📖 Índice de Tickets](../../tickets_index.md)
 
 ---
 

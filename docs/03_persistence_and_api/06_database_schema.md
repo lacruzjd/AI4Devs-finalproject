@@ -11,7 +11,7 @@ inputs:
 # 🗄️ Especificación del Modelo de Datos y Esquema de Persistencia
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Arquitectura de Sistema (04_technical_design.md)](../02_architecture_design/04_technical_design.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Especificación API REST (07_api_specification.md) ➡️](./07_api_specification.md)
+> [⬅️ Volver a Arquitectura de Sistema (04_technical_design.md)](../02_architecture_design/04_technical_design.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Especificación API REST (07_api_specification.md) ➡️](./07_api_specification.md)
 
 ---
 

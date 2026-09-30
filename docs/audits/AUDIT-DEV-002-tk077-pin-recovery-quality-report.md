@@ -35,7 +35,7 @@ Verificado en vivo con `stryker run --mutate` acotado a los 3 archivos domain/ap
 **No es teatro de tests** (Guard 11) — las 4 escenas Gherkin de US-018 están genuinamente cubiertas — pero sí son *aserciones débiles*: verifican que "algo pasó" sin verificar el valor exacto de lo que pasó.
 
 ### FASE 0 / FASE 3 — Estado desactualizado en la matriz de trazabilidad
-`docs/05_agile_planning/13_matriz_trazabilidad.md` línea 42 marca TK-077/TK-077-FE como `📋 Approved Spec`, pero el ticket ya está implementado, testeado y commiteado (`2b44bb5`..`57acd5a`). No bloqueante, pero es exactamente el tipo de drift silencioso entre `docs/` y la realidad que Guard 27 busca prevenir.
+`docs/05_agile_planning/13_traceability_matrix.md` línea 42 marca TK-077/TK-077-FE como `📋 Approved Spec`, pero el ticket ya está implementado, testeado y commiteado (`2b44bb5`..`57acd5a`). No bloqueante, pero es exactamente el tipo de drift silencioso entre `docs/` y la realidad que Guard 27 busca prevenir.
 
 ## 🔁 Candidatos a Regla Permanente (Filtro de Sistemicidad, FASE 6.1):
 

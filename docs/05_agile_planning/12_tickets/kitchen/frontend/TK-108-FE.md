@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-108-FE: Modal de Motivo al Consumir un Remanente (Frontend)
 
-> [⬅️ US-004](../../../11_user_stories/kitchen/US-004.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-004](../../../11_user_stories/kitchen/US-004.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 Hoy `ActiveRemanentesList` consume con un solo toque (`onConsume(id, qty)` directo, sin confirmación). Pasa a abrir un modal liviano — mismo patrón que `DiscardModal` — con la cantidad ya elegida, un selector de motivo (catálogo `TK-107-FE`) y un texto libre opcional, antes de confirmar.

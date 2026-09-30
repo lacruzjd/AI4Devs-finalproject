@@ -13,7 +13,7 @@ inputs:
 # 🎟️ TK-077-FE: Frontend Admin PIN Recovery UI (Modal & Reset Screen)
 
 > **Navegación del Framework SDD:**  
-> [📖 Índice de Tickets](../../indice_tickets.md) | [Anterior: TK-077](../backend/TK-077.md)
+> [📖 Índice de Tickets](../../tickets_index.md) | [Anterior: TK-077](../backend/TK-077.md)
 
 ---
 

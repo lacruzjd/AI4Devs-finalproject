@@ -4,13 +4,13 @@ version: 1.1.0
 status: approved
 inputs:
   - docs/01_product_definition/02_prd.md
-  - docs/01_product_definition/01_glosario_y_reglas_negocio.md
+  - docs/01_product_definition/01_glossary_and_business_rules.md
 ---
 
 # 🧠 Modelo Conceptual de Dominio Agnóstico (RestoStock)
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver al PRD (02_prd.md)](../01_product_definition/02_prd.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Diseño Técnico (04_technical_design.md) ➡️](./04_technical_design.md)
+> [⬅️ Volver al PRD (02_prd.md)](../01_product_definition/02_prd.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Diseño Técnico (04_technical_design.md) ➡️](./04_technical_design.md)
 
 ---
 

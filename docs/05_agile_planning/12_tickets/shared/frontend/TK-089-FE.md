@@ -13,7 +13,7 @@ inputs:
 # 🎟️ TK-089-FE: Reportes Inline (sin `<Modal>` flotante)
 
 > **Navegación del Framework SDD:**
-> [📖 Índice de Tickets](../../indice_tickets.md) | [Anterior: TK-088-FE](./TK-088-FE.md) | [Siguiente: TK-090-FE](./TK-090-FE.md)
+> [📖 Índice de Tickets](../../tickets_index.md) | [Anterior: TK-088-FE](./TK-088-FE.md) | [Siguiente: TK-090-FE](./TK-090-FE.md)
 
 ---
 

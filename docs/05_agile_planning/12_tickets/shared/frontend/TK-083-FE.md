@@ -13,7 +13,7 @@ inputs:
 # 🎟️ TK-083-FE: Sistema FEFO — Autenticación Táctil (PIN)
 
 > **Navegación del Framework SDD:**
-> [⬅️ Anterior: TK-082-FE](./TK-082-FE.md) | [📖 Índice de Tickets](../../indice_tickets.md) | [Siguiente: TK-084-FE](./TK-084-FE.md)
+> [⬅️ Anterior: TK-082-FE](./TK-082-FE.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Siguiente: TK-084-FE](./TK-084-FE.md)
 
 ---
 

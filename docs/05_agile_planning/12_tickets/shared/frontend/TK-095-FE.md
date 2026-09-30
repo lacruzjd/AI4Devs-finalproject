@@ -23,7 +23,7 @@ inputs:
 # 🎟️ TK-095-FE: Pase de Fidelidad Visual y UX vs. el Artefacto "Sistema FEFO"
 
 > **Navegación del Framework SDD:**
-> [📖 Índice de Tickets](../../indice_tickets.md) | [Anterior: TK-090-FE](./TK-090-FE.md)
+> [📖 Índice de Tickets](../../tickets_index.md) | [Anterior: TK-090-FE](./TK-090-FE.md)
 
 ---
 

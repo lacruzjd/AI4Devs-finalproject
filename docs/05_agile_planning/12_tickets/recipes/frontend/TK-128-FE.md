@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-128-FE: Mostrar la Merma Evitada como Valor Monetario en el Modal de Rescate
 
-> **Navegación:** [⬅️ US-035](../../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md) | [📖 Índice de Tickets](../../indice_tickets.md) | [Backend: TK-128](../backend/TK-128.md)
+> **Navegación:** [⬅️ US-035](../../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Backend: TK-128](../backend/TK-128.md)
 
 ---
 

@@ -12,7 +12,7 @@ inputs:
 # TK-170-FE: Eliminar el Respaldo de Unidad por Identificador de Semilla
 
 > **Navegación del Framework SDD:**
-> [Historia US-049](../../../11_user_stories/stock/US-049.md) | [Índice de tickets](../../indice_tickets.md) | [Matriz de trazabilidad](../../../13_matriz_trazabilidad.md)
+> [Historia US-049](../../../11_user_stories/stock/US-049.md) | [Índice de tickets](../../tickets_index.md) | [Matriz de trazabilidad](../../../13_traceability_matrix.md)
 
 ---
 

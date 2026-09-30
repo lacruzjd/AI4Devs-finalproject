@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-104-FE: Pantalla "Cerrar Preparación de Receta" (Frontend)
 
-> [⬅️ US-028](../../../11_user_stories/kitchen/US-028.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-028](../../../11_user_stories/kitchen/US-028.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 Modal/pantalla de cierre: porciones reales + por ingrediente extraído `[sobrante] [¿dónde? ▾] [merma] [motivo]`, con consumo calculado y cuadre visible. Marca "envase sin abrir" que habilita "devolver a bodega". Botón "Abandonar preparación".

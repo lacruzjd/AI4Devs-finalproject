@@ -13,7 +13,7 @@ inputs:
 # TK-156-FE: Ordenar el Catálogo por Nombre o Cantidad
 
 > **Navegación del Framework SDD:**
-> [Historia US-041](../../../11_user_stories/catalog/US-041.md) | [Índice de tickets](../../indice_tickets.md) | [Matriz de trazabilidad](../../../13_matriz_trazabilidad.md)
+> [Historia US-041](../../../11_user_stories/catalog/US-041.md) | [Índice de tickets](../../tickets_index.md) | [Matriz de trazabilidad](../../../13_traceability_matrix.md)
 
 ---
 

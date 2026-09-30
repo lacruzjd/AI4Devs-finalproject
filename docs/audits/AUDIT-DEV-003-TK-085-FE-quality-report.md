@@ -31,7 +31,7 @@
 * **Cascada Spec-Antes-que-Código (Guard 26):**
   * `docs/05_agile_planning/12_tickets/shared/frontend/TK-085-FE.md` existe, `status: approved`, `related_story: US-023`, `points: 8`.
   * `docs/05_agile_planning/11_user_stories/shared/US-023.md` existe con 4 escenarios Gherkin y las 6 decisiones de negocio consultadas con el humano.
-  * Fila `REQ-025` presente en `docs/05_agile_planning/13_matriz_trazabilidad.md` (línea 47), estado `📋 Approved Spec`, enlaza US-023 → TK-085..088.
+  * Fila `REQ-025` presente en `docs/05_agile_planning/13_traceability_matrix.md` (línea 47), estado `📋 Approved Spec`, enlaza US-023 → TK-085..088.
   * Los artefactos de Etapa 1 se commitearon en `24552f6` (`docs(design-system): spec US-023 FEFO app shell...`, 2026-09-02 19:44) **antes** de la implementación (aún staged, sin commitear). Es spec previa real, no reconstrucción retroactiva. ✔️
   * Enmienda al stack manifest (`docs/00_stack_manifest.md` §4 v1.13.0, Guard 24) aprobada por el humano el 2026-09-02 — precondición cumplida.
 

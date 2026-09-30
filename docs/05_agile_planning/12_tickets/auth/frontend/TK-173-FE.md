@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-173-FE: Hacer Visible el Código de Operario en el Alta, la Lista y el Login (US-051, AUDIT-DEV-017 F-2/F-4)
 
-> [⬅️ US-051](../../../11_user_stories/auth/US-051.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-051](../../../11_user_stories/auth/US-051.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 

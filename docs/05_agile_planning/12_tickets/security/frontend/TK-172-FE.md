@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-172-FE: Corregir la Matriz de Permisos que Descarta la Concesión Anterior en Cada Clic (AUDIT-DEV-017 F-1, F-3)
 
-> [⬅️ US-015](../../../11_user_stories/security/US-015.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-015](../../../11_user_stories/security/US-015.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 

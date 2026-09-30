@@ -13,7 +13,7 @@ inputs:
 # 🎟️ TK-079-FE: Frontend Indicador TRR Real en el Dashboard de Reportes
 
 > **Navegación del Framework SDD:**
-> [📖 Índice de Tickets](../../indice_tickets.md) | [Anterior: TK-079](../backend/TK-079.md)
+> [📖 Índice de Tickets](../../tickets_index.md) | [Anterior: TK-079](../backend/TK-079.md)
 
 ---
 

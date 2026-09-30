@@ -13,7 +13,7 @@ inputs:
 # TK-149-FE: Montar el Feed de Alertas FEFO en la Interfaz (Frontend)
 
 > **Navegación del Framework SDD:**
-> [Revisión externa EXT-001](../../../../04_governance_and_quality/external_reviews/EXT-001-auditoria-ux-ui.md) | [Índice de Tickets](../../indice_tickets.md) | [Matriz de Trazabilidad](../../../13_matriz_trazabilidad.md)
+> [Revisión externa EXT-001](../../../../04_governance_and_quality/external_reviews/EXT-001-auditoria-ux-ui.md) | [Índice de Tickets](../../tickets_index.md) | [Matriz de Trazabilidad](../../../13_traceability_matrix.md)
 
 ---
 

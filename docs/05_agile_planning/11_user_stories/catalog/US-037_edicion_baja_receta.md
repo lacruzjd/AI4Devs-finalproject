@@ -10,7 +10,7 @@ inputs:
 
 # 📝 US-037: Edición y Baja de una Receta del Recetario
 
-> **Navegación:** [⬅️ US-036 (catalog/US-036_edicion_insumo.md)](US-036_edicion_insumo.md) | [📖 Índice de Historias](../indice_user_stories.md)
+> **Navegación:** [⬅️ US-036 (catalog/US-036_edicion_insumo.md)](US-036_edicion_insumo.md) | [📖 Índice de Historias](../user_stories_index.md)
 
 ---
 

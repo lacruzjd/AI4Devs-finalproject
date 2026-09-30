@@ -14,7 +14,7 @@ inputs:
 # 🎟️ TK-100-FE: Propagación Real de Errores y Aritmética Decimal en la Pantalla de Extracción (Frontend)
 
 > **Navegación del Framework SDD:**
-> [⬅️ Volver a US-014 (11_user_stories/stock/US-014.md)](../../../11_user_stories/stock/US-014.md) | [📖 Índice de Tickets](../../indice_tickets.md) | [Matriz de Trazabilidad ➡️](../../../13_matriz_trazabilidad.md)
+> [⬅️ Volver a US-014 (11_user_stories/stock/US-014.md)](../../../11_user_stories/stock/US-014.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Matriz de Trazabilidad ➡️](../../../13_traceability_matrix.md)
 
 ---
 

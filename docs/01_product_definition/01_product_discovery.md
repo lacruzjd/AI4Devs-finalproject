@@ -5,7 +5,7 @@ status: approved
 inputs: []
 ---
 
-> **Navegación:** `[ 01_product_discovery.md ]` ➔ [01_glosario_y_reglas_negocio.md](./01_glosario_y_reglas_negocio.md) | [02_prd.md](./02_prd.md)
+> **Navegación:** `[ 01_product_discovery.md ]` ➔ [01_glossary_and_business_rules.md](./01_glossary_and_business_rules.md) | [02_prd.md](./02_prd.md)
 
 ---
 

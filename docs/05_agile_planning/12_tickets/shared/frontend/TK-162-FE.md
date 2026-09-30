@@ -14,7 +14,7 @@ inputs:
 # TK-162-FE: Tramo de Teléfono en Bodega e Historial
 
 > **Navegación del Framework SDD:**
-> [Historia US-045](../../../11_user_stories/shared/US-045.md) | [Índice de tickets](../../indice_tickets.md) | [Matriz de trazabilidad](../../../13_matriz_trazabilidad.md)
+> [Historia US-045](../../../11_user_stories/shared/US-045.md) | [Índice de tickets](../../tickets_index.md) | [Matriz de trazabilidad](../../../13_traceability_matrix.md)
 
 ---
 

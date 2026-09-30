@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-107-FE: Panel de Administración de Motivos de Consumo (Frontend)
 
-> [⬅️ US-030](../../../11_user_stories/kitchen/US-030.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-030](../../../11_user_stories/kitchen/US-030.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 Pantalla de gestión del catálogo en `/ajustes`, mismo patrón que `RolesManagementPanel` (US-015): lista + alta + edición de etiqueta + toggle activar/desactivar. Sin botón de borrar (ADR-004 §3.1).

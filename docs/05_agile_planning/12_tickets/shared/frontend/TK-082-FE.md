@@ -13,7 +13,7 @@ inputs:
 # 🎟️ TK-082-FE: Sistema FEFO — Modales de Operación de Cocina
 
 > **Navegación del Framework SDD:**
-> [⬅️ Anterior: TK-081-FE](./TK-081-FE.md) | [📖 Índice de Tickets](../../indice_tickets.md) | [Siguiente: TK-083-FE](./TK-083-FE.md)
+> [⬅️ Anterior: TK-081-FE](./TK-081-FE.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Siguiente: TK-083-FE](./TK-083-FE.md)
 
 ---
 

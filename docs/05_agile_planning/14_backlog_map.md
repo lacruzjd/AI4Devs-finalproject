@@ -11,7 +11,7 @@ inputs:
 # 🗺️ Mapa Jerárquico del Backlog (RestoStock)
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Matriz de Trazabilidad (13_matriz_trazabilidad.md)](./13_matriz_trazabilidad.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Registro de Pull Requests (15_history.md) ➡️](./15_history.md)
+> [⬅️ Volver a Matriz de Trazabilidad (13_traceability_matrix.md)](./13_traceability_matrix.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Registro de Pull Requests (15_history.md) ➡️](./15_history.md)
 
 ---
 

@@ -11,7 +11,7 @@ inputs:
 
 # 📝 US-036: Edición de un Insumo del Catálogo Maestro
 
-> **Navegación:** [⬅️ US-012 (catalog/US-012.md)](US-012.md) | [📖 Índice de Historias](../indice_user_stories.md) | [Índice de Tickets ➡️](../../12_tickets/indice_tickets.md)
+> **Navegación:** [⬅️ US-012 (catalog/US-012.md)](US-012.md) | [📖 Índice de Historias](../user_stories_index.md) | [Índice de Tickets ➡️](../../12_tickets/tickets_index.md)
 
 ---
 

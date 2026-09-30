@@ -14,7 +14,7 @@ inputs:
 # 🎟️ TK-086-FE: Componentes de la Lámina "Aplicación" (Botón Circular, Chip 4 Niveles, Botón de Fila)
 
 > **Navegación del Framework SDD:**
-> [📖 Índice de Tickets](../../indice_tickets.md) | [Anterior: TK-085-FE](./TK-085-FE.md) | [Siguiente: TK-087-FE](./TK-087-FE.md)
+> [📖 Índice de Tickets](../../tickets_index.md) | [Anterior: TK-085-FE](./TK-085-FE.md) | [Siguiente: TK-087-FE](./TK-087-FE.md)
 
 ---
 

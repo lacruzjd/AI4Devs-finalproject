@@ -14,7 +14,7 @@ inputs:
 # 🎟️ TK-123-FE: Sub-ruta y Panel de Configuración de Agentes IA (Frontend)
 
 > **Navegación del Framework SDD:**
-> [⬅️ Volver a US-034](../../11_user_stories/settings/US-034_configuracion_agente_ia.md) | [📖 Índice de Tickets](../../indice_tickets.md) | [Matriz de Trazabilidad ➡️](../../13_matriz_trazabilidad.md)
+> [⬅️ Volver a US-034](../../11_user_stories/settings/US-034_configuracion_agente_ia.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Matriz de Trazabilidad ➡️](../../13_traceability_matrix.md)
 
 ---
 

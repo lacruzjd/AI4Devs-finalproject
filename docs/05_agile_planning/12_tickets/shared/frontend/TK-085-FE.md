@@ -16,7 +16,7 @@ inputs:
 # 🎟️ TK-085-FE: Adopción de react-router + Shell de Rutas FEFO (`AppShell` + `ProtectedRoute`)
 
 > **Navegación del Framework SDD:**
-> [📖 Índice de Tickets](../../indice_tickets.md) | [Anterior: TK-084-FE](./TK-084-FE.md) | [Siguiente: TK-086-FE](./TK-086-FE.md)
+> [📖 Índice de Tickets](../../tickets_index.md) | [Anterior: TK-084-FE](./TK-084-FE.md) | [Siguiente: TK-086-FE](./TK-086-FE.md)
 
 ---
 

@@ -13,7 +13,7 @@ inputs:
 # 🎟️ TK-078-FE: Frontend Costeo de Insumos y Valorización Monetaria de Mermas
 
 > **Navegación del Framework SDD:**
-> [📖 Índice de Tickets](../../indice_tickets.md) | [Anterior: TK-078](../backend/TK-078.md)
+> [📖 Índice de Tickets](../../tickets_index.md) | [Anterior: TK-078](../backend/TK-078.md)
 
 ---
 

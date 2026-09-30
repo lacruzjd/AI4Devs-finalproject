@@ -13,7 +13,7 @@ inputs:
 # 🎟️ TK-119-FE: Escaneo de Código de Barras en Extracción de Bodega (Frontend)
 
 > **Navegación del Framework SDD:**
-> [⬅️ Volver a US-032 (11_user_stories/stock/US-032.md)](../../../11_user_stories/stock/US-032.md) | [📖 Índice de Tickets (12_indice_tickets.md)](../../indice_tickets.md) | [Siguiente: Matriz de Trazabilidad (13_matriz_trazabilidad.md) ➡️](../../../13_matriz_trazabilidad.md)
+> [⬅️ Volver a US-032 (11_user_stories/stock/US-032.md)](../../../11_user_stories/stock/US-032.md) | [📖 Índice de Tickets (12_tickets_index.md)](../../tickets_index.md) | [Siguiente: Matriz de Trazabilidad (13_traceability_matrix.md) ➡️](../../../13_traceability_matrix.md)
 
 ---
 

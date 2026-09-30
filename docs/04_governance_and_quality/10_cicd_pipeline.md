@@ -13,7 +13,7 @@ outputs:
 # ⚙️ Especificación de Pipeline CI/CD y Automatización DevSecOps
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Estrategia de Pruebas (09_testing_strategy.md)](./09_testing_strategy.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Planificación Ágil (05_agile_planning/11_user_stories.md) ➡️](../05_agile_planning/11_user_stories.md)
+> [⬅️ Volver a Estrategia de Pruebas (09_testing_strategy.md)](./09_testing_strategy.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Planificación Ágil (05_agile_planning/11_user_stories.md) ➡️](../05_agile_planning/11_user_stories.md)
 
 ---
 

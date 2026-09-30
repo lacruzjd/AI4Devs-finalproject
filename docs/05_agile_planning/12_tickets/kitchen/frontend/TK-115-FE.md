@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-115-FE: Resaltado Full-Bleed de Fila con Varianza en Conciliación (Frontend)
 
-> [⬅️ US-031](../../../11_user_stories/shared/US-031.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-031](../../../11_user_stories/shared/US-031.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 Fusión selectiva del mockup `04_shift_reconciliation.html` (Stitch) — `US-031` Escenario 3. `ShiftReconciliationWizard` ya distingue una fila con varianza negativa sin motivo, pero con un tratamiento sutil (borde). Se cambia a un fondo tintado de sangre completa (`margin-inline` negativo hasta el borde del contenedor + `color-mix` sobre `--color-danger`), más visible bajo luz de cocina, sin tocar color de texto ni targets táctiles.

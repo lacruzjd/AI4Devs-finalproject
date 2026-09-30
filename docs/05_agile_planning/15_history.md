@@ -10,7 +10,7 @@ inputs:
 # 📜 Bitácora de Progreso e Historial de Entregas del Proyecto
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Mapa Jerárquico del Backlog (14_backlog_map.md)](./14_backlog_map.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Inicio del Framework (01_glosario_y_reglas_negocio.md) ➡️](../01_product_definition/01_glosario_y_reglas_negocio.md)
+> [⬅️ Volver a Mapa Jerárquico del Backlog (14_backlog_map.md)](./14_backlog_map.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Inicio del Framework (01_glossary_and_business_rules.md) ➡️](../01_product_definition/01_glossary_and_business_rules.md)
 
 ---
 
@@ -83,7 +83,7 @@ inputs:
 - **Acciones Realizadas:**
   - ✅ `US-010` (Gestión de Personal) y `US-011` (Trazabilidad de Movimientos) creadas en `11_user_stories/`, con nota de alcance explícita señalando que el Frontend está pendiente.
   - ✅ `TK-048`, `TK-049`, `TK-050`, `TK-051` creados como fichas técnicas formales en `12_tickets/`, enlazando a sus US correspondientes (o `N/A (Técnico)` para los 2 habilitadores de infraestructura).
-  - ✅ `indice_user_stories.md`, `indice_tickets.md`, `13_matriz_trazabilidad.md` (nuevos `REQ-010` a `REQ-013`, con celda `⚠️ Pendiente` explícita para Frontend — nunca `N/A` ni omitida) y `14_backlog_map.md` (nuevos nodos Mermaid con estilo `pending` diferenciado) actualizados.
+  - ✅ `user_stories_index.md`, `tickets_index.md`, `13_traceability_matrix.md` (nuevos `REQ-010` a `REQ-013`, con celda `⚠️ Pendiente` explícita para Frontend — nunca `N/A` ni omitida) y `14_backlog_map.md` (nuevos nodos Mermaid con estilo `pending` diferenciado) actualizados.
   - ✅ `docs/01_product_definition/02_prd.md` (sección 5, backlog INVEST) y `readme.md` (secciones 1.2, 4, 5, 6) sincronizados con las 3 funcionalidades nuevas y sus endpoints reales (`/api/v1/auth/users`, `/api/v1/auth/users/{id}/status`, `/api/v1/stock/movements`).
   - ✅ Todos los enlaces relativos nuevos verificados programáticamente (no solo `validate_agents.sh`, que solo cubre `.agents/` — la carpeta `docs/` no tiene un linter de enlaces dedicado, deuda a considerar por separado).
 - **Estado:** N/A (cambio documental, no aplica build/test). Deuda registrada: la interfaz de administración de personal y el panel de auditoría de movimientos no están implementados; queda como decisión de alcance pendiente para una futura sesión.
@@ -95,7 +95,7 @@ inputs:
 - **Acciones Realizadas:**
   - ✅ Guard 26 (Spec-Before-Code Cascade) codificado en `AGENTS.md`: prohíbe invocar `SK-16`/`SK-17`/`SK-18` para una capacidad sin `TK-XXX.md` ya existente en `docs/05_agile_planning/12_tickets/`. Wireado como fail-fast real en `02_cascading_dev_workflow.md` FASE 0, `SK-16`/`SK-17` FASE 1, y `04_dev_audit_workflow.md` FASE 0 (nuevo punto 4).
   - ✅ `TK-049-FE.md` (Panel de Gestión de Personal) y `TK-050-FE.md` (Panel de Auditoría de Movimientos) creados como fichas técnicas completas — spec aprobada, DoD, criterios BDD — con `Estado de Implementación: ⚠️ Spec aprobada, sin implementar` explícito.
-  - ✅ `indice_tickets.md`, `13_matriz_trazabilidad.md`, `14_backlog_map.md` y las notas de alcance de `US-010`/`US-011` actualizados para enlazar los tickets reales en vez de texto suelto.
+  - ✅ `tickets_index.md`, `13_traceability_matrix.md`, `14_backlog_map.md` y las notas de alcance de `US-010`/`US-011` actualizados para enlazar los tickets reales en vez de texto suelto.
 - **Estado:** N/A (cambio de gobernanza y specs, no aplica build/test).
 
 ### 2026-08-21 - Implementación del Frontend Pendiente (TK-049-FE, TK-050-FE) y Cierre de Deuda Documental
@@ -140,10 +140,10 @@ inputs:
 - **Acciones Realizadas:**
   - ✅ `docs/README.md` §05: los 5 enlaces reemplazados por las rutas reales.
   - ✅ `TK-049.md`/`TK-050.md`: sección "Deuda Registrada" actualizada a cerrada, enlazando a `TK-049-FE`/`TK-050-FE`.
-  - ✅ 16 tickets de la ola vieja: las 3 rutas relativas del breadcrumb corregidas y verificadas programáticamente (resuelven a un fichero real); `shared/backend/TK-001.md` y `shared/frontend/TK-001-FE.md` además corrigen el nombre de archivo inexistente `11_indice_user_stories.md` → `indice_user_stories.md`.
+  - ✅ 16 tickets de la ola vieja: las 3 rutas relativas del breadcrumb corregidas y verificadas programáticamente (resuelven a un fichero real); `shared/backend/TK-001.md` y `shared/frontend/TK-001-FE.md` además corrigen el nombre de archivo inexistente `11_user_stories_index.md` → `user_stories_index.md`.
   - ✅ `TK-008.md`: Estado corregido a "Completado parcialmente ⚠️" con el detalle exacto de qué falta.
   - ✅ `docs/01_product_definition/` (3 archivos): frontmatter YAML agregado; enlaces de navegación corregidos.
-  - ✅ Hallazgos menores adicionales corregidos en el camino (no parte del top-5, pero en los mismos archivos ya abiertos): enlace roto en el breadcrumb de `13_matriz_trazabilidad.md`, nombre de archivo obsoleto en el nodo Mermaid raíz de `14_backlog_map.md`, fila de `TK-056` faltante en la matriz de priorización de `indice_tickets.md`, y `TK-056` mal ubicado en la tabla de tickets de Frontend (es un ticket de Backend).
+  - ✅ Hallazgos menores adicionales corregidos en el camino (no parte del top-5, pero en los mismos archivos ya abiertos): enlace roto en el breadcrumb de `13_traceability_matrix.md`, nombre de archivo obsoleto en el nodo Mermaid raíz de `14_backlog_map.md`, fila de `TK-056` faltante en la matriz de priorización de `tickets_index.md`, y `TK-056` mal ubicado en la tabla de tickets de Frontend (es un ticket de Backend).
 - **Estado:** N/A (cambio documental, no aplica build/test). 23 archivos modificados.
 
 ### 2026-08-21 - Gestión de Catálogo Maestro: Alta de Insumos y Recetas (US-012 / TK-057 / TK-057-FE)
@@ -193,7 +193,7 @@ inputs:
 - **Acciones Realizadas (commit de gobernanza `docs(governance): … [skip-tk]`):**
   - ✅ `docs/audits/AUDIT-DEV-006-warehouse-extraction-quality-report.md` (mapa del módulo, 10 hallazgos, aspectos correctos, tabla C-DEV-006-1..4 + addendum de resolución).
   - ✅ `TK-098.md` / `TK-099.md` / `TK-100-FE.md` creados (→ `status: done` tras implementar); `TK-101.md` abierto para F-7.
-  - ✅ `indice_tickets.md` (tabla de prioridad + tablas BE/FE + índice `stock/` Post-MVP; de paso, reparada una corrupción preexistente en la fila `TK-071`/`TK-072` que venía fusionada de un commit anterior), `13_matriz_trazabilidad.md` (`REQ-030`), `14_backlog_map.md`.
+  - ✅ `tickets_index.md` (tabla de prioridad + tablas BE/FE + índice `stock/` Post-MVP; de paso, reparada una corrupción preexistente en la fila `TK-071`/`TK-072` que venía fusionada de un commit anterior), `13_traceability_matrix.md` (`REQ-030`), `14_backlog_map.md`.
   - ✅ **Punto C:** `AGENTS.md` Guard 26 gana el carve-out **C-DEV-006-4** (ticket de remediación técnica vs. cascada — prueba decisiva: *"¿el dueño de producto o un usuario notaría una diferencia en las reglas de negocio o en el comportamiento de cara al usuario?"*). `.agents/workflows/04_dev_audit_workflow.md` FASE 0.4: el `N/A (Técnico)` deja de estar limitado a "habilitador de infraestructura". `.agents/README.md` 2.10.0 → 2.11.0, `CHANGELOG.md` [Unreleased].
   - ✅ **Reglas permanentes:** `backend_rules.md §4` gana C-DEV-006-1 (frontera transaccional inyectada en casos de uso multi-agregado) y C-DEV-006-2 (deducción de saldo por `UPDATE` condicional atómico); `frontend_rules.md §9.5` gana C-DEV-006-3 (prohibido sintetizar un éxito falso en el `catch` de un servicio).
 - **Acciones Realizadas (A/B — 3 commits, TDD, 1 por ticket):**
@@ -258,7 +258,7 @@ inputs:
 ### 2026-09-04 (cont.) - ADR-004: análisis de trazabilidad de consumo, a pedido del humano
 - **Hito:** el humano pidió analizar la app contra un principio de negocio explícito — "siempre que hay un consumo debe especificarse el motivo... control del ingrediente desde que entra hasta que es consumido o descargado en su totalidad". Auditoría de todo camino que muta un `Remanente` encontró 2 huecos reales: `ConsumeRemanenteUseCase` (consumo manual de remanente) no registra motivo alguno — ni siquiera texto libre —, y la varianza **negativa** de `PerformShiftReconciliationUseCase` (cierre de turno) queda inexplicada. De paso, un bug: la varianza **positiva** (sobrante encontrado) nunca actualiza `Remanente.currentQuantity` — el ajuste queda solo en el reporte de auditoría, desincronizado del stock real.
 - **Decisiones del humano** (vía `AskUserQuestion`, tras su respuesta inicial): motivo **estructurado** (catálogo administrable por `ADMIN`) **+ texto libre siempre opcional**; varianza negativa de conciliación **sí exige** motivo por línea (mismo catálogo que el consumo); alcance del catálogo por ahora **solo `consume` + varianza de conciliación** (los flujos de descarte existentes no se tocan); catálogo **arranca con semilla editable** de motivos típicos.
-- **Documentación generada:** [ADR-004](../02_architecture_design/adr/ADR-004-consumption-reason-catalog.md) (Guard 28 — 7 decisiones); [US-030](11_user_stories/kitchen/US-030.md) (nueva); `US-004`/`US-008` amendadas a v1.1.0 (Escenario 1-bis/2-bis de rechazo por falta de motivo, 2-ter del bugfix de superávit); `13_matriz_trazabilidad.md` (+REQ-035/036/037); `TK-107`/`TK-107-FE`, `TK-108`/`TK-108-FE`, `TK-109`/`TK-109-FE` (nuevos, `indice_tickets.md` actualizado).
+- **Documentación generada:** [ADR-004](../02_architecture_design/adr/ADR-004-consumption-reason-catalog.md) (Guard 28 — 7 decisiones); [US-030](11_user_stories/kitchen/US-030.md) (nueva); `US-004`/`US-008` amendadas a v1.1.0 (Escenario 1-bis/2-bis de rechazo por falta de motivo, 2-ter del bugfix de superávit); `13_traceability_matrix.md` (+REQ-035/036/037); `TK-107`/`TK-107-FE`, `TK-108`/`TK-108-FE`, `TK-109`/`TK-109-FE` (nuevos, `tickets_index.md` actualizado).
 
 ### 2026-09-04 (cont.) - TK-107: Catálogo de Motivos de Consumo — CRUD (backend)
 - **Hito:** `ConsumptionReason` (entidad nueva: `id`/`label`/`isActive`) con CRUD mínimo tras `/api/v1/consumption-reasons` — `GET` (activos por defecto, cualquier autenticado; `?includeInactive=true` exige `ADMIN`), `POST`/`PUT` (`ADMIN`). **Desactivar, nunca borrar** — mismo patrón que el catálogo de roles (`US-015`); sin endpoint de borrado físico, para no invalidar referencias históricas futuras (`TK-108`/`TK-109`). Migración incluye una semilla editable de 5 motivos (`Preparación de plato`, `Degustación / prueba`, `Cortesía a cliente`, `Error de manipulación`, `Otro`).
@@ -384,7 +384,7 @@ inputs:
 - **Hito:** el humano preguntó "¿está todo implementado?" tras cerrar `TK-112-FE`. Se auditaron todos los tickets/historias con `status: draft`/`BACKLOG` en el proyecto. Resultado: **un solo hueco real** (`TK-101`, ver entrada siguiente) y **una deuda de documentación** — 4 historias con código genuinamente implementado pero `status` nunca actualizado. Verificado contra el código real antes de tocar cualquier documento, **no** se asumió por lectura superficial.
 - **Correcciones aplicadas:**
   - ✅ `US-020` (indicador TRR real), `US-021` (aviso de apertura duplicada) — genuinamente completas (`TK-079`/`TK-079-FE`, `TK-080`/`TK-080-FE`); la matriz ya los marcaba `✅ Done`, solo el documento de la historia individual seguía en `BACKLOG`. Corregido a `done` + nota de estado.
-  - ✅ `US-026` — genuinamente completa (`TK-102`/`TK-102-FE` + el bugfix de `TK-112-FE` de hoy mismo). Corregido a `done`; de paso se corrigió `TK-102` (backend) en la tabla de prioridades de `indice_tickets.md`, que decía `📝 Draft` mientras el propio archivo del ticket y el resto del índice ya decían `done`.
+  - ✅ `US-026` — genuinamente completa (`TK-102`/`TK-102-FE` + el bugfix de `TK-112-FE` de hoy mismo). Corregido a `done`; de paso se corrigió `TK-102` (backend) en la tabla de prioridades de `tickets_index.md`, que decía `📝 Draft` mientras el propio archivo del ticket y el resto del índice ya decían `done`.
   - 🟡 **`US-015` (RBAC dinámico) — NO se marcó `done`, se corrigió a `MOSTLY_DONE` con hallazgo real:** verificar el código reveló que solo el Escenario 1 (CRUD de roles/permisos, `TK-073`/`TK-073-FE`) está implementado. El JWT de login **nunca incluye permisos** (solo `role`), y el middleware `authorizePermissions` — bien implementado — **nunca se usa en ninguna ruta real**: es código 100% muerto, confirmado por `check_dead_code.sh` en cada corrida de esta sesión. Toda la protección de rutas real sigue siendo `requireRole` por rol grueso (`TK-093`). Documentado en `US-015.md`/`TK-073.md`/`TK-073-FE.md` con el hueco exacto, sin ticket nuevo abierto (no fue pedido).
 - **Estado:** solo cambios de documentación (`*.md`), sin tocar código. Matriz (`REQ-017` acotado a su alcance literal, ya cumplido) y ambos índices actualizados.
   - **Sin push / sin PR** — el push = PR está programado para el 10 de septiembre (instrucción del humano).
@@ -423,7 +423,7 @@ inputs:
   - ✅ `05_ui_ux_design_system.md` → v4.2.0: nueva sección "Fusión Selectiva de Patrones Explorados (Stitch)" documentando los 4 patrones (chips de operario reciente, botón de acción rápida circular reusando el token 72×72px de `US-023`, resaltado full-bleed de fila con varianza, barra de herramientas acoplada del catálogo).
   - ✅ `US-031.md` (nueva): 5 escenarios Gherkin (uno por patrón + no-regresión).
   - ✅ 4 tickets nuevos en estado `draft`: `TK-113-FE` (chips operario reciente, `auth`), `TK-114-FE` (FAB acción rápida, `kitchen`), `TK-115-FE` (resaltado fila varianza, `kitchen`), `TK-116-FE` (toolbar catálogo, `stock`).
-  - ✅ Matriz de trazabilidad (`REQ-039` a `REQ-042`, estado "📝 Especificado, Sin Implementar"), ambos índices (`indice_user_stories.md`, `indice_tickets.md`) actualizados.
+  - ✅ Matriz de trazabilidad (`REQ-039` a `REQ-042`, estado "📝 Especificado, Sin Implementar"), ambos índices (`user_stories_index.md`, `tickets_index.md`) actualizados.
 - **Estado:**
   - Solo documentación — cero código todavía, cumpliendo Guard 26 (Stage 1 completa antes de `SK-16`/`SK-17`).
   - **Sin push / sin PR** — el push = PR está programado para el 10 de septiembre (instrucción del humano).

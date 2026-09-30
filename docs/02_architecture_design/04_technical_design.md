@@ -4,14 +4,14 @@ version: 1.1.0
 status: approved
 inputs:
   - docs/01_product_definition/02_prd.md
-  - docs/01_product_definition/01_glosario_y_reglas_negocio.md
+  - docs/01_product_definition/01_glossary_and_business_rules.md
   - docs/02_architecture_design/03_domain_model.md
 ---
 
 # 🏛️ Especificación de Arquitectura de Sistema y Stack Tecnológico
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver al Modelo de Dominio (03_domain_model.md)](./03_domain_model.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Sistema de Diseño UI/UX (05_ui_ux_design_system.md) ➡️](./05_ui_ux_design_system.md)
+> [⬅️ Volver al Modelo de Dominio (03_domain_model.md)](./03_domain_model.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Sistema de Diseño UI/UX (05_ui_ux_design_system.md) ➡️](./05_ui_ux_design_system.md)
 
 ---
 

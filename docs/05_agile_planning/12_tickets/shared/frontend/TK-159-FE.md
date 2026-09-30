@@ -13,7 +13,7 @@ inputs:
 # TK-159-FE: Shell Instalable y Caché de la Aplicación
 
 > **Navegación del Framework SDD:**
-> [Historia US-044](../../../11_user_stories/shared/US-044.md) | [Índice de tickets](../../indice_tickets.md) | [Matriz de trazabilidad](../../../13_matriz_trazabilidad.md)
+> [Historia US-044](../../../11_user_stories/shared/US-044.md) | [Índice de tickets](../../tickets_index.md) | [Matriz de trazabilidad](../../../13_traceability_matrix.md)
 
 ---
 

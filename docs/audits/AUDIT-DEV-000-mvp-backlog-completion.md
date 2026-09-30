@@ -38,7 +38,7 @@ Este documento detalla el resultado de la auditoría técnica y funcional exhaus
 *   **Contrato API (`docs/04_persistence_and_api/10_restostock_api_specification.md`):** El endpoint `POST /api/kitchen/shift-reconciliation` recibe las cantidades físicas ingresadas por el operario, permitiendo al backend calcular la varianza y guardarla históricamente.
 
 ### 3. Trazabilidad del Backlog e INVEST
-*   **Historias de Usuario (`US-007` y `US-008`):** Se crearon como archivos independientes y se incorporaron en `docs/05_agile_planning/user_stories/indice_user_stories.md`. Ambas cumplen con la evaluación **INVEST** de manera estructurada.
+*   **Historias de Usuario (`US-007` y `US-008`):** Se crearon como archivos independientes y se incorporaron en `docs/05_agile_planning/user_stories/user_stories_index.md`. Ambas cumplen con la evaluación **INVEST** de manera estructurada.
 *   **Tickets Técnicos (`TK-008` y `TK-009`):** Creados y vinculados a su correspondiente US, detallando el alcance de modificación en las 3 capas de la Arquitectura Hexagonal (Domain, Application, Infrastructure).
 *   **DoD (Definition of Done) Estricto:** Ambos tickets exigen expresamente cumplir con la política TDD (`docs/03_governance_and_quality/08_restostock_testing_strategy.md`) y Seguridad (`docs/03_governance_and_quality/07_restostock_security_strategy.md`), garantizando la preservación de la gobernanza del código.
 

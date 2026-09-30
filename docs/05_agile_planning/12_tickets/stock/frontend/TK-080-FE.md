@@ -13,7 +13,7 @@ inputs:
 # 🎟️ TK-080-FE: Frontend Advertencia de Apertura Duplicada en Extracción
 
 > **Navegación del Framework SDD:**
-> [📖 Índice de Tickets](../../indice_tickets.md) | [Anterior: TK-080](../backend/TK-080.md)
+> [📖 Índice de Tickets](../../tickets_index.md) | [Anterior: TK-080](../backend/TK-080.md)
 
 ---
 

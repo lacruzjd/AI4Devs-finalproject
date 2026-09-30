@@ -32,8 +32,8 @@
 | :-- | :-- |
 | `docs/05_agile_planning/12_tickets/shared/backend/TK-092.md` | ✅ presente, `status: approved`, `related_story: US-010 · AUDIT-SEC-001 F-1/F-2` |
 | User Story enlazada | ✅ `US-010` (Gestión de Personal) + `US-015` (RBAC dinámico) — ambos ficheros existen |
-| Fila en `13_matriz_trazabilidad.md` | ✅ `REQ-027` añadida (User/Role, endpoints `POST/PUT /auth/users`, TK-092 → TK-093) |
-| `indice_tickets.md` | ✅ 3 entradas (tabla de prioridad, tabla backend, índice `security/`) |
+| Fila en `13_traceability_matrix.md` | ✅ `REQ-027` añadida (User/Role, endpoints `POST/PUT /auth/users`, TK-092 → TK-093) |
+| `tickets_index.md` | ✅ 3 entradas (tabla de prioridad, tabla backend, índice `security/`) |
 | `AUDIT-SEC-001-security-posture-report.md` | ✅ presente (motiva el ticket) |
 | `TK-093.md` (F-3, fuera de alcance de este ticket) | ✅ presente |
 

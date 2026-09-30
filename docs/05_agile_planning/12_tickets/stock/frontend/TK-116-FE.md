@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-116-FE: Barra de Herramientas Acoplada en el Catálogo de Bodega (Frontend)
 
-> [⬅️ US-031](../../../11_user_stories/shared/US-031.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-031](../../../11_user_stories/shared/US-031.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 Fusión selectiva del mockup `05_bodega_catalog.html` (Stitch) — `US-031` Escenario 4. `BodegaRoute` gana una franja de búsqueda + filtro + alternador de vista (grid/lista) anclada directamente sobre la tabla del catálogo, en vez de que cada control viva por separado. El alternador persiste la preferencia por dispositivo, igual patrón que el interruptor de turno día/noche (`useFefoTheme`).

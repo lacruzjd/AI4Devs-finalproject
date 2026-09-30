@@ -20,7 +20,7 @@
 
 ## FASE 0 — Reglas y cascada
 
-* Guard 26: `TK-126.md` con `related_story: N/A (Técnico … · AUDIT-DEV-007 F-3/F-4/F-11/F-14)`, cita el informe. Test decisivo: el contrato de `POST /recipes/rescue-suggestions` no cambia de forma; el modo CATALOG (Zero Data Leakage) no se toca. **F-4 elimina de las propuestas CREATIVE ingredientes que la IA no debió proponer** — la regla del prompt siempre fue "usa EXCLUSIVAMENTE insumos de la lista"; es endurecimiento de un comportamiento ya especificado mal implementado, con la política de descarte (Q2) consultada con el humano (Guard 28). Carve-out C-DEV-006-4 aplica. Fila en `indice_tickets.md` + `13_matriz_trazabilidad.md` + `14_backlog_map.md`. **PASÓ.**
+* Guard 26: `TK-126.md` con `related_story: N/A (Técnico … · AUDIT-DEV-007 F-3/F-4/F-11/F-14)`, cita el informe. Test decisivo: el contrato de `POST /recipes/rescue-suggestions` no cambia de forma; el modo CATALOG (Zero Data Leakage) no se toca. **F-4 elimina de las propuestas CREATIVE ingredientes que la IA no debió proponer** — la regla del prompt siempre fue "usa EXCLUSIVAMENTE insumos de la lista"; es endurecimiento de un comportamiento ya especificado mal implementado, con la política de descarte (Q2) consultada con el humano (Guard 28). Carve-out C-DEV-006-4 aplica. Fila en `tickets_index.md` + `13_traceability_matrix.md` + `14_backlog_map.md`. **PASÓ.**
 * Aplica la regla `C-DEV-007-2` (`backend_rules.md §7`) escrita en el commit `a2488b3`.
 
 ## FASE 1 — Mutation (scoped)

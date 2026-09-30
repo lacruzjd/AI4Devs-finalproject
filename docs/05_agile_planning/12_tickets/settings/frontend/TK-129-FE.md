@@ -11,7 +11,7 @@ inputs:
 
 # 🎟️ TK-129-FE: Quitar el Toggle de Reabastecimiento Inerte de la Pantalla de Configuración de IA
 
-> **Navegación:** [📖 Índice de Tickets](../../indice_tickets.md) | [Backend: TK-129](../backend/TK-129.md)
+> **Navegación:** [📖 Índice de Tickets](../../tickets_index.md) | [Backend: TK-129](../backend/TK-129.md)
 
 ---
 

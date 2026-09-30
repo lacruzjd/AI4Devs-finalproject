@@ -12,7 +12,7 @@ inputs:
 
 # 🎟️ TK-103-FE: Extracción para Receta con Preparación + Tablero "Preparaciones en Curso" (Frontend)
 
-> [⬅️ US-027](../../../11_user_stories/kitchen/US-027.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-027](../../../11_user_stories/kitchen/US-027.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 En el modal de extracción: receta obligatoria en modo RECIPE, campo "porciones planificadas", y opción "añadir a preparación en curso". Nueva vista/tablero de preparaciones abiertas.

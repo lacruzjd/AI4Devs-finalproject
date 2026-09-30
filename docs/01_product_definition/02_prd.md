@@ -4,10 +4,10 @@ version: 1.1.0
 status: approved
 inputs:
   - docs/01_product_definition/01_product_discovery.md
-  - docs/01_product_definition/01_glosario_y_reglas_negocio.md
+  - docs/01_product_definition/01_glossary_and_business_rules.md
 ---
 
-> **Navegación:** [01_product_discovery.md](./01_product_discovery.md) ➔ [01_glosario_y_reglas_negocio.md](./01_glosario_y_reglas_negocio.md) ➔ [ 02_prd.md ]
+> **Navegación:** [01_product_discovery.md](./01_product_discovery.md) ➔ [01_glossary_and_business_rules.md](./01_glossary_and_business_rules.md) ➔ [ 02_prd.md ]
 
 ---
 
@@ -262,28 +262,28 @@ A continuación se resume el backlog del MVP de RestoStock, estructurado bajo el
 *   **Historia:** Como Administrador, quiero dar de alta operarios y bloquear/reactivar cuentas existentes sin depender de un redeploy de código, para mantener el control de acceso al día a medida que cambia el personal del restaurante.
 *   **Complejidad:** S
 *   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
-*   **Estado:** ✅ Done — Backend (`TK-049`, `TK-056`) y Frontend (`TK-049-FE`) implementados — ver [Matriz de Trazabilidad](../05_agile_planning/13_matriz_trazabilidad.md).
+*   **Estado:** ✅ Done — Backend (`TK-049`, `TK-056`) y Frontend (`TK-049-FE`) implementados — ver [Matriz de Trazabilidad](../05_agile_planning/13_traceability_matrix.md).
 
 
 ### US-011: Trazabilidad y Auditoría de Movimientos de Stock
 *   **Historia:** Como Administrador, quiero consultar el historial completo de movimientos de stock filtrado por insumo y rango de fechas, para investigar discrepancias de inventario y auditar quién movió qué y cuándo.
 *   **Complejidad:** S
 *   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
-*   **Estado:** ✅ Done — Backend (`TK-050`) y Frontend (`TK-050-FE`) implementados — ver [Matriz de Trazabilidad](../05_agile_planning/13_matriz_trazabilidad.md).
+*   **Estado:** ✅ Done — Backend (`TK-050`) y Frontend (`TK-050-FE`) implementados — ver [Matriz de Trazabilidad](../05_agile_planning/13_traceability_matrix.md).
 
 
 ### US-012: Gestión de Catálogo Maestro (Alta de Insumos y Recetas)
 *   **Historia:** Como Administrador, quiero dar de alta insumos y recetas en el catálogo maestro desde la API, sin depender del script de seed, para que el restaurante opere con su propio inventario real y no solo con datos de demostración.
 *   **Complejidad:** M
 *   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
-*   **Estado:** ✅ Done — Backend (`TK-057`) y Frontend (`TK-057-FE`) implementados — ver [Matriz de Trazabilidad](../05_agile_planning/13_matriz_trazabilidad.md).
+*   **Estado:** ✅ Done — Backend (`TK-057`) y Frontend (`TK-057-FE`) implementados — ver [Matriz de Trazabilidad](../05_agile_planning/13_traceability_matrix.md).
 
 
 ### US-013: Reabastecimiento de Bodega
 *   **Historia:** Como Administrador, quiero sumar la cantidad recibida al stock de bodega de un insumo ya existente cuando llega una entrega de un proveedor, para que el restaurante pueda operar más allá de la carga inicial de inventario — sin esto, un insumo que llega a 0 en bodega queda inutilizable para siempre.
 *   **Complejidad:** S
 *   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
-*   **Estado:** ✅ Done — Backend (`TK-060`) y Frontend (`TK-060-FE`) implementados — ver [Matriz de Trazabilidad](../05_agile_planning/13_matriz_trazabilidad.md).
+*   **Estado:** ✅ Done — Backend (`TK-060`) y Frontend (`TK-060-FE`) implementados — ver [Matriz de Trazabilidad](../05_agile_planning/13_traceability_matrix.md).
 
 
 ### US-014: Trazabilidad de Extracción de Bodega por Propósito y Autoría
@@ -374,7 +374,7 @@ A continuación se resume el backlog del MVP de RestoStock, estructurado bajo el
 ### US-019: Costeo de Insumos y Valorización Monetaria de Mermas
 *   **Historia:** Como Administrador, quiero registrar el costo unitario de cada insumo y visualizar el valor monetario de las mermas en el dashboard de reportes, para auditar la pérdida financiera real y no solo las cantidades físicas descartadas.
 *   **Complejidad:** S
-*   **Estado:** ✅ Done — Backend (`TK-078`) y Frontend (`TK-078-FE`) implementados y aprobados por revisión adversarial independiente — ver [Matriz de Trazabilidad](../05_agile_planning/13_matriz_trazabilidad.md).
+*   **Estado:** ✅ Done — Backend (`TK-078`) y Frontend (`TK-078-FE`) implementados y aprobados por revisión adversarial independiente — ver [Matriz de Trazabilidad](../05_agile_planning/13_traceability_matrix.md).
 *   **Evaluación INVEST:** Independiente, Negociable, Valiosa, Estimable, Small, Testeable.
 *   **Decisiones de negocio consultadas con el humano:** El costo se captura por unidad de compra (ej. costo de 1 kg completo), no por unidad de consumo — coincide con `unitOfMeasure`, sin factor de conversión intermedio.
 *   **Criterios de Aceptación (BDD - Sintaxis Gherkin):**

@@ -10,7 +10,7 @@ inputs:
 # 🔌 Especificación de API REST y Contratos de Dominio
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Esquema de Base de Datos (06_database_schema.md)](./06_database_schema.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Estrategia de Seguridad (08_security_strategy.md) ➡️](../04_governance_and_quality/08_security_strategy.md)
+> [⬅️ Volver a Esquema de Base de Datos (06_database_schema.md)](./06_database_schema.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Estrategia de Seguridad (08_security_strategy.md) ➡️](../04_governance_and_quality/08_security_strategy.md)
 
 ---
 

@@ -15,7 +15,7 @@ inputs:
 # 🎟️ TK-096-FE: Selector de Sub-Sector de Bodega y Desglose de Stock (Frontend)
 
 > **Navegación del Framework SDD:**
-> [⬅️ Volver a US-025 (11_user_stories/stock/US-025.md)](../../../11_user_stories/stock/US-025.md) | [📖 Índice de Tickets](../../indice_tickets.md) | [Matriz de Trazabilidad ➡️](../../../13_matriz_trazabilidad.md)
+> [⬅️ Volver a US-025 (11_user_stories/stock/US-025.md)](../../../11_user_stories/stock/US-025.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Matriz de Trazabilidad ➡️](../../../13_traceability_matrix.md)
 
 ---
 

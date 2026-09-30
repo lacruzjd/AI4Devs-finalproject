@@ -11,7 +11,7 @@ inputs:
 
 # 🎟️ TK-111-FE: Vista Previa de Disponibilidad en "Preparar Receta" (Frontend)
 
-> [⬅️ US-007](../../../11_user_stories/kitchen/US-007.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-007](../../../11_user_stories/kitchen/US-007.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 `RecipeSelectorModal`: al elegir receta y/o cambiar las porciones, consulta `GET /kitchen/recipes/:id/availability?portions=N` (`TK-111`) y muestra, por ingrediente, requerido vs. disponible. Si falta algo, lo marca visualmente y deshabilita "Confirmar Preparación" — hoy el cocinero solo se entera del quiebre de stock cuando el envío falla con `422`.

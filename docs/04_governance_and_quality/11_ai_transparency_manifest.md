@@ -10,7 +10,7 @@ inputs:
 # 🤖 Manifesto de Transparencia de IA y Gobernanza Ética (EU AI Act 2024/1689 & GDPR)
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a CI/CD Pipeline (10_cicd_pipeline.md)](./10_cicd_pipeline.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Historias de Usuario (11_user_stories) ➡️](../05_agile_planning/11_user_stories/)
+> [⬅️ Volver a CI/CD Pipeline (10_cicd_pipeline.md)](./10_cicd_pipeline.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Historias de Usuario (11_user_stories) ➡️](../05_agile_planning/11_user_stories/)
 
 ---
 

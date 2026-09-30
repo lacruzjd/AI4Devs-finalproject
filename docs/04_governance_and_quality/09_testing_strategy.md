@@ -10,7 +10,7 @@ inputs:
 # 🧪 Especificación de Estrategia de Pruebas TDD y Calidad
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Estrategia de Seguridad (08_security_strategy.md)](./08_security_strategy.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Pipeline CI/CD (10_cicd_pipeline.md) ➡️](./10_cicd_pipeline.md)
+> [⬅️ Volver a Estrategia de Seguridad (08_security_strategy.md)](./08_security_strategy.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Pipeline CI/CD (10_cicd_pipeline.md) ➡️](./10_cicd_pipeline.md)
 
 ---
 

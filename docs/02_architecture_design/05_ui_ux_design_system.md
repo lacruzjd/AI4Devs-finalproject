@@ -14,7 +14,7 @@ inputs:
 # 🎨 Especificación de Sistema de Diseño UI/UX y Ergonomía Táctil
 
 > **Navegación del Framework SDD:**
-> [⬅️ Volver a Arquitectura de Sistema (04_technical_design.md)](./04_technical_design.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Modelado de Datos (06_database_schema.md) ➡️](../03_persistence_and_api/06_database_schema.md)
+> [⬅️ Volver a Arquitectura de Sistema (04_technical_design.md)](./04_technical_design.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Modelado de Datos (06_database_schema.md) ➡️](../03_persistence_and_api/06_database_schema.md)
 
 > **Migración a Índice Fijo de Secciones (v5.0.0, SK-05 ≥ 3.10.0, Guard 9):** este documento vivía organizado cronológicamente por versión (`## v4.0.0`, `## v4.1.0`, `## v4.2.0`). Esta revisión consolida ese mismo contenido por categoría — cada tema vive en un único lugar de aquí en adelante; la traza de qué cambió y cuándo se preserva íntegra en la §10 Historial de Versiones, no se pierde.
 

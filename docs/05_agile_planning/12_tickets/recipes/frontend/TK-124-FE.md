@@ -14,7 +14,7 @@ inputs:
 # 🎟️ TK-124-FE: Selector de Modo Dual y Badge de Privacidad Zero-Leakage (Frontend)
 
 > **Navegación del Framework SDD:**
-> [⬅️ Volver a US-035](../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md) | [📖 Índice de Tickets](../../indice_tickets.md) | [Matriz de Trazabilidad ➡️](../../13_matriz_trazabilidad.md)
+> [⬅️ Volver a US-035](../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Matriz de Trazabilidad ➡️](../../13_traceability_matrix.md)
 
 ---
 

@@ -10,7 +10,7 @@ La documentación está organizada cronológicamente en 5 fases coincidentes con
 
 ### 01. Concepción y Alcance de Producto (`docs/01_product_definition/`)
 * [01_product_discovery.md](01_product_definition/01_product_discovery.md): Documento inicial de descubrimiento, investigación de mercado y análisis Buy vs Build.
-* [01_glosario_y_reglas_negocio.md](01_product_definition/01_glosario_y_reglas_negocio.md): Glosario de términos de dominio, acrónimos (FEFO, TRR) e invariantes innegociables.
+* [01_glossary_and_business_rules.md](01_product_definition/01_glossary_and_business_rules.md): Glosario de términos de dominio, acrónimos (FEFO, TRR) e invariantes innegociables.
 * [02_prd.md](01_product_definition/02_prd.md): Documento de Requerimientos de Producto (PRD), épicas, historias preliminares y edge cases.
 
 ### 02. Diseño de Arquitectura y Sistema (`docs/02_architecture_design/`)
@@ -29,8 +29,8 @@ La documentación está organizada cronológicamente en 5 fases coincidentes con
 * [10_cicd_pipeline.md](04_governance_and_quality/10_cicd_pipeline.md): Pipeline de CI/CD DevSecOps en GitHub Actions (`.github/workflows/ci.yml`).
 
 ### 05. Gestión Ágil y Planificación (`docs/05_agile_planning/`)
-* [11_user_stories/indice_user_stories.md](05_agile_planning/11_user_stories/indice_user_stories.md): Historias de usuario INVEST con criterios BDD Gherkin.
-* [12_tickets/indice_tickets.md](05_agile_planning/12_tickets/indice_tickets.md): Tickets técnicos atómicos con DoD y estimaciones (`TK-XXX`).
-* [13_matriz_trazabilidad.md](05_agile_planning/13_matriz_trazabilidad.md): Matriz de trazabilidad Requerimiento → US → TK (Backend/Frontend).
+* [11_user_stories/user_stories_index.md](05_agile_planning/11_user_stories/user_stories_index.md): Historias de usuario INVEST con criterios BDD Gherkin.
+* [12_tickets/tickets_index.md](05_agile_planning/12_tickets/tickets_index.md): Tickets técnicos atómicos con DoD y estimaciones (`TK-XXX`).
+* [13_traceability_matrix.md](05_agile_planning/13_traceability_matrix.md): Matriz de trazabilidad Requerimiento → US → TK (Backend/Frontend).
 * [14_backlog_map.md](05_agile_planning/14_backlog_map.md): Mapa jerárquico del backlog (Epic → US → TK) con diagrama Mermaid.
 * [15_history.md](05_agile_planning/15_history.md): Bitácora cronológica de entregas e historial de progreso del proyecto.

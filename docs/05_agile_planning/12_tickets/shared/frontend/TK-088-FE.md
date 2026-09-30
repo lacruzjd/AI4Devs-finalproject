@@ -14,7 +14,7 @@ inputs:
 # 🎟️ TK-088-FE: Auditoría de Contraste AAA 7:1 del Sistema FEFO (Ambos Turnos)
 
 > **Navegación del Framework SDD:**
-> [📖 Índice de Tickets](../../indice_tickets.md) | [Anterior: TK-087-FE](./TK-087-FE.md)
+> [📖 Índice de Tickets](../../tickets_index.md) | [Anterior: TK-087-FE](./TK-087-FE.md)
 
 ---
 

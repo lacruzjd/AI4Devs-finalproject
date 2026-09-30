@@ -10,7 +10,7 @@ inputs:
 # 🛡️ Especificación de Ciberseguridad, PII y Cumplimiento
 
 > **Navegación del Framework SDD:**  
-> [⬅️ Volver a Especificación API REST (07_api_specification.md)](../03_persistence_and_api/07_api_specification.md) | [📖 Glosario & Reglas](../01_product_definition/01_glosario_y_reglas_negocio.md) | [Siguiente: Estrategia de Pruebas (09_testing_strategy.md) ➡️](./09_testing_strategy.md)
+> [⬅️ Volver a Especificación API REST (07_api_specification.md)](../03_persistence_and_api/07_api_specification.md) | [📖 Glosario & Reglas](../01_product_definition/01_glossary_and_business_rules.md) | [Siguiente: Estrategia de Pruebas (09_testing_strategy.md) ➡️](./09_testing_strategy.md)
 
 ---
 

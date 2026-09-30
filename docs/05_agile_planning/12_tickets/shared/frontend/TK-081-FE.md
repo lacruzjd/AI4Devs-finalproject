@@ -14,7 +14,7 @@ inputs:
 # 🎟️ TK-081-FE: Núcleo del Sistema FEFO (Tokens Día/Noche + Interruptor) — Tablero Principal
 
 > **Navegación del Framework SDD:**
-> [📖 Índice de Tickets](../../indice_tickets.md) | [Siguiente: TK-082-FE](./TK-082-FE.md)
+> [📖 Índice de Tickets](../../tickets_index.md) | [Siguiente: TK-082-FE](./TK-082-FE.md)
 
 ---
 

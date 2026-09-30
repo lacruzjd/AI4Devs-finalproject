@@ -151,4 +151,4 @@ RecipePreparationItem            -- materializado al cerrar (uno por ingrediente
 3. `03_domain_model.md`, `schema.prisma`, `openapi.yaml`, `07_api_specification.md` actualizados. ✅
 4. Tickets (9, todos `done`), matriz de trazabilidad y backlog map actualizados. ✅
 
-> Nota de auditoría (2026-09-09): este ADR figuró como `Proposed — pendiente de aprobación` hasta esta fecha, cuando la épica llevaba cerrada desde el 2026-09-06. Misma clase de deriva de estado que el saneamiento retroactivo de `indice_tickets.md`; corregida contra la evidencia real (`status` de las 4 US y de los 9 tickets).
+> Nota de auditoría (2026-09-09): este ADR figuró como `Proposed — pendiente de aprobación` hasta esta fecha, cuando la épica llevaba cerrada desde el 2026-09-06. Misma clase de deriva de estado que el saneamiento retroactivo de `tickets_index.md`; corregida contra la evidencia real (`status` de las 4 US y de los 9 tickets).

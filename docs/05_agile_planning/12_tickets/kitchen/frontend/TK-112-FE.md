@@ -11,7 +11,7 @@ inputs:
 
 # 🎟️ TK-112-FE: Las Pestañas de Filtro por Área de Cocina Dejaron de Coincidir con los Remanentes Reales (Frontend)
 
-> [⬅️ US-026](../../../11_user_stories/stock/US-026.md) | [📖 Índice](../../indice_tickets.md)
+> [⬅️ US-026](../../../11_user_stories/stock/US-026.md) | [📖 Índice](../../tickets_index.md)
 
 ## 📝 Descripción
 **Remediación técnica** (C-DEV-006-4 — no cambia ninguna regla de negocio, corrige la UI para reflejar el modelo de áreas de cocina de `US-026`/`TK-102` ya vigente). Detectado en el análisis de hardcodeos pedido por el humano y **confirmado contra la base real**: `LocationFilterTabs`/`InventarioRoute` filtran y cuentan remanentes comparando `Remanente.location` contra los literales fijos `'KITCHEN_FRIDGE'`/`'KITCHEN_PREP'`/`'KITCHEN_LINE'`. Pero desde que `TK-102-FE` volvió dinámico el destino de la extracción, `Remanente.location` guarda el **nombre real** del área (`"Refrigerador Principal Cocina"`, `"Mesa de Preparación"`, `"Línea de Servicio"`) — nunca el literal. Verificado en la base viva: los 3 remanentes activos actuales tienen exactamente esos nombres, ninguno el literal. Resultado: **las pestañas "Refrigerador"/"Mesa Prep"/"Línea" del tablero FEFO muestran 0 remanentes siempre**, aunque existan — solo "Todos" funciona. Además, si el admin da de alta una cuarta área de cocina (ya posible desde `US-016`), esa área nunca tendría pestaña propia.
