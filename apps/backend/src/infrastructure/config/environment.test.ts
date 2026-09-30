@@ -46,3 +46,62 @@ describe('AUDIT-SEC-004: fail-fast de ENCRYPTION_KEY y CLIENT_ORIGIN en producci
     ).not.toThrow();
   });
 });
+
+describe('TK-145: CORS_ALLOWED_ORIGINS se valida como lista de orígenes con esquema', () => {
+  it('Escenario 1: acepta una lista de orígenes https separada por comas y con espacios', () => {
+    const env = getEnvironment({
+      ...PROD_BASE,
+      CORS_ALLOWED_ORIGINS: 'https://app.example.com, https://admin.example.com',
+    });
+    expect(env.CORS_ALLOWED_ORIGINS).toBe('https://app.example.com, https://admin.example.com');
+  });
+
+  it('acepta orígenes http con puerto (valores locales de .env)', () => {
+    expect(() =>
+      getEnvironment({
+        ...PROD_BASE,
+        CORS_ALLOWED_ORIGINS: 'http://localhost,http://localhost:8080,http://localhost:5173',
+      })
+    ).not.toThrow();
+  });
+
+  it('Escenario 2: ABORTA con un hostname sin esquema y nombra la variable y el valor', () => {
+    expect(() => getEnvironment({ ...PROD_BASE, CORS_ALLOWED_ORIGINS: 'app.example.com' })).toThrow(
+      /CORS_ALLOWED_ORIGINS[\s\S]*app\.example\.com/
+    );
+  });
+
+  it('ABORTA si un solo elemento de la lista es inválido', () => {
+    expect(() =>
+      getEnvironment({ ...PROD_BASE, CORS_ALLOWED_ORIGINS: 'https://app.example.com,admin.example.com' })
+    ).toThrow(/admin\.example\.com/);
+  });
+
+  it('ABORTA con un esquema que no es http ni https', () => {
+    expect(() => getEnvironment({ ...PROD_BASE, CORS_ALLOWED_ORIGINS: 'ftp://app.example.com' })).toThrow(
+      /CORS_ALLOWED_ORIGINS/
+    );
+  });
+
+  it('ABORTA con una ruta o una barra final (el header Origin nunca las lleva)', () => {
+    expect(() => getEnvironment({ ...PROD_BASE, CORS_ALLOWED_ORIGINS: 'https://app.example.com/' })).toThrow(
+      /CORS_ALLOWED_ORIGINS/
+    );
+    expect(() => getEnvironment({ ...PROD_BASE, CORS_ALLOWED_ORIGINS: 'https://app.example.com/app' })).toThrow(
+      /CORS_ALLOWED_ORIGINS/
+    );
+  });
+
+  it('Escenario 3: en desarrollo sin definir usa el comodín por defecto', () => {
+    const env = getEnvironment({
+      NODE_ENV: 'development',
+      DATABASE_URL: 'postgresql://u:p@localhost:5432/dev?schema=public',
+      JWT_SECRET: 'dev-secret-16-chars-min',
+    });
+    expect(env.CORS_ALLOWED_ORIGINS).toBe('*');
+  });
+
+  it('trata el valor vacío (docker-compose sin la variable) como ausente → en producción aborta por comodín', () => {
+    expect(() => getEnvironment({ ...PROD_BASE, CORS_ALLOWED_ORIGINS: '' })).toThrow(/comodin/);
+  });
+});

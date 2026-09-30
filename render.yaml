@@ -81,8 +81,8 @@ services:
       # el hostname pelado, sin esquema. El despliegue #2 abortó con
       #   Guard 14: "CLIENT_ORIGIN debe ser una URL válida"
       # porque `environment.ts` lo valida con `z.string().url()`. CORS_ALLOWED_ORIGINS
-      # no reventó —es `z.string()` sin validar— pero habría roto el CORS en silencio,
-      # que es peor. Los dos se fijan enteros, con esquema.
+      # no reventó entonces —era `z.string()` sin validar— pero habría roto el CORS en
+      # silencio; desde TK-145 también aborta el arranque. Los dos se fijan enteros, con esquema.
       #
       # ⚠️ Si Render asigna al frontend un hostname distinto (por colisión de nombre),
       # corregir AMBOS aquí con la URL real que muestre el dashboard.
@@ -133,8 +133,9 @@ services:
 #      Guard 14: "CLIENT_ORIGIN debe ser una URL válida"
 #    `property: host` devuelve el hostname pelado y `environment.ts` valida con
 #    `z.string().url()`. CORS_ALLOWED_ORIGINS compartía el defecto sin dar la cara
-#    (es `z.string()` sin validar) — habría roto el CORS en silencio, peor que el
-#    fallo ruidoso. Los dos pasan a literal con `https://`.
+#    (era `z.string()` sin validar) — habría roto el CORS en silencio, peor que el
+#    fallo ruidoso. Los dos pasan a literal con `https://`. TK-145 cierra la clase de
+#    defecto: un origen sin esquema aborta ahora el arranque.
 #
 #    LECCIÓN: en este blueprint, NINGUNA referencia `fromService` sirve donde se
 #    espera una URL — `host` y `hostport` devuelven siempre valores sin esquema.

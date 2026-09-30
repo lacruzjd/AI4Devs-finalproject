@@ -14,12 +14,38 @@ dotenv.config({ path: path.resolve(process.cwd(), 'apps/backend/.env') });
 const optionalEnv = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess((value) => (value === '' ? undefined : value), schema.optional());
 
+function isHttpOrigin(candidate: string): boolean {
+  if (!URL.canParse(candidate)) return false;
+  const url = new URL(candidate);
+  return (url.protocol === 'http:' || url.protocol === 'https:') && url.origin === candidate;
+}
+
 const environmentSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform((val) => parseInt(val, 10)).default('3000'),
   DATABASE_URL: z.string().url('DATABASE_URL debe ser una URI valida de PostgreSQL'),
   JWT_SECRET: z.string().min(16, 'JWT_SECRET debe contener al menos 16 caracteres para alta entropia.'),
-  CORS_ALLOWED_ORIGINS: z.string().default('*'),
+  // `*` o una lista de orígenes separada por comas. El middleware `cors` compara el header
+  // `Origin` por igualdad exacta, así que un hostname sin esquema o con barra final no falla:
+  // rechaza en silencio al frontend legítimo (PM-001). Cada elemento debe ser ya su propio
+  // `URL.origin`. Vacío (docker-compose sin la variable) cuenta como ausente.
+  CORS_ALLOWED_ORIGINS: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z
+      .string()
+      .default('*')
+      .superRefine((value, ctx) => {
+        if (value === '*') return;
+        for (const origin of value.split(',').map((item) => item.trim()).filter((item) => item.length > 0)) {
+          if (!isHttpOrigin(origin)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `CORS_ALLOWED_ORIGINS contiene "${origin}", que no es un origen http(s) exacto (esquema + host [+ puerto], sin ruta ni barra final). Ejemplo: https://app.example.com`,
+            });
+          }
+        }
+      })
+  ),
   // Clave dedicada para el cifrado AES-256-GCM de credenciales de terceros (API keys de IA).
   // Separada de JWT_SECRET a propósito (AUDIT-SEC-004): rotar el JWT no debe volver ilegibles
   // las credenciales cifradas, y una fuga de una no compromete la otra.
