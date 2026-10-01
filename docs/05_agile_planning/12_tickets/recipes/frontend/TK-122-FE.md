@@ -14,14 +14,14 @@ inputs:
 # 🎟️ TK-122-FE: Modal y Visualización de Recetas Anti-Desperdicio (Frontend)
 
 > **Navegación del Framework SDD:**
-> [⬅️ Volver a US-035](../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Matriz de Trazabilidad ➡️](../../13_traceability_matrix.md)
+> [⬅️ Volver a US-035](../../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Matriz de Trazabilidad ➡️](../../../13_traceability_matrix.md)
 
 ---
 
 ## 📝 Descripción
 Implementar el componente de visualización de recetas de aprovechamiento (`RescueRecipesModal.tsx`) accesible desde `/reportes` (sección Mermas) y `/recetas`, permitiendo solicitar sugerencias al backend, visualizar las tarjetas de platos con los ingredientes en riesgo destacados, y accionar el botón "Guardar en Catálogo" para convertir la propuesta en una receta utilizable en cocina.
 
-*   **ID US Relacionada:** [`US-035`](../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md)
+*   **ID US Relacionada:** [`US-035`](../../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md)
 *   **Módulo / Vertical Slice:** `recipes` / `reports` (frontend)
 *   **Estimación (Story Points):** 3
 *   **Prioridad MoSCoW:** Should Have

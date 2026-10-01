@@ -14,14 +14,14 @@ inputs:
 # 🎟️ TK-123-FE: Sub-ruta y Panel de Configuración de Agentes IA (Frontend)
 
 > **Navegación del Framework SDD:**
-> [⬅️ Volver a US-034](../../11_user_stories/settings/US-034_configuracion_agente_ia.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Matriz de Trazabilidad ➡️](../../13_traceability_matrix.md)
+> [⬅️ Volver a US-034](../../../11_user_stories/settings/US-034_configuracion_agente_ia.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Matriz de Trazabilidad ➡️](../../../13_traceability_matrix.md)
 
 ---
 
 ## 📝 Descripción
 Implementar la interfaz de usuario para la sub-ruta `/ajustes/ia` dentro del módulo de Ajustes, permitiendo al Administrador seleccionar proveedor, editar parámetros (modelo, endpoint, temperatura), ingresar o rotar la API key con indicador enmascarado, probar la conexión ("Ping") y activar/desactivar módulos de IA, en estricto cumplimiento de diseño táctil (targets >=48px, Guard 29 sin estilos inline).
 
-*   **ID US Relacionada:** [`US-034`](../../11_user_stories/settings/US-034_configuracion_agente_ia.md)
+*   **ID US Relacionada:** [`US-034`](../../../11_user_stories/settings/US-034_configuracion_agente_ia.md)
 *   **Módulo / Vertical Slice:** `settings` (frontend)
 *   **Estimación (Story Points):** 3
 *   **Prioridad MoSCoW:** Should Have

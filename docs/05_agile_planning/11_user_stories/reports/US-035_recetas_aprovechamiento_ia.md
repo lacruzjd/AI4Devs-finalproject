@@ -71,5 +71,5 @@ Actualmente, el sistema alerta sobre remanentes por vencer mediante notificacion
 *   Tickets Técnicos:
     *   [`TK-122`](../../12_tickets/recipes/backend/TK-122.md) & [`TK-122-FE`](../../12_tickets/recipes/frontend/TK-122-FE.md): Generador Inicial IA & Heurístico.
     *   [`TK-124`](../../12_tickets/recipes/backend/TK-124.md) & [`TK-124-FE`](../../12_tickets/recipes/frontend/TK-124-FE.md): Modo Dual & Matching Local Catálogo con Zero Data Leakage.
-*   Historias Relacionadas: [`US-003`](../stock/US-003.md) (Remanentes FEFO), [`US-007`](../kitchen/US-007.md) (Consumo por Receta), [`US-034`](../settings/US-034_configuracion_agente_ia.md) (Configuración IA)
+*   Historias Relacionadas: [`US-003`](../kitchen/US-003.md) (Remanentes FEFO), [`US-007`](../kitchen/US-007.md) (Consumo por Receta), [`US-034`](../settings/US-034_configuracion_agente_ia.md) (Configuración IA)
 

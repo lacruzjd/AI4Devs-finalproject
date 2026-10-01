@@ -4,7 +4,7 @@
 * **Fecha:** 2026-09-18
 * **Reviewer:** Agente principal (análisis solicitado por el humano — *"en cuanto a momoy hay un desorden en los prefijos de los archivos, no hay consistencia"*)
 * **Alcance:** los 120 archivos versionados bajo `.agents/` — `skills/`, `workflows/`, `rules/`, `examples/`, `scripts/` y la raíz.
-* **Método:** inventario exhaustivo (`find`), verificación de la convención declarada en [`.agents/CONTRIBUTING.md`](../../.agents/CONTRIBUTING.md), y medición del radio de impacto de cada renombrado con `grep -rl` / `grep -rho` sobre todo el repositorio (excluyendo `node_modules`).
+* **Método:** inventario exhaustivo (`find`), verificación de la convención declarada en `.agents/CONTRIBUTING.md` (en el repositorio de momoy; desde 3.0.0 no se instala), y medición del radio de impacto de cada renombrado con `grep -rl` / `grep -rho` sobre todo el repositorio (excluyendo `node_modules`).
 
 ---
 

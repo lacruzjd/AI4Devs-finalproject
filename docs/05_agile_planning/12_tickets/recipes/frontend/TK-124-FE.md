@@ -14,7 +14,7 @@ inputs:
 # 🎟️ TK-124-FE: Selector de Modo Dual y Badge de Privacidad Zero-Leakage (Frontend)
 
 > **Navegación del Framework SDD:**
-> [⬅️ Volver a US-035](../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Matriz de Trazabilidad ➡️](../../13_traceability_matrix.md)
+> [⬅️ Volver a US-035](../../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md) | [📖 Índice de Tickets](../../tickets_index.md) | [Matriz de Trazabilidad ➡️](../../../13_traceability_matrix.md)
 
 ---
 
@@ -23,7 +23,7 @@ Incorporar en el modal de sugerencias de aprovechamiento (`RescueRecipesModal.ts
 1. **Recetas del Restaurante (100% Privado)**: Utiliza exclusivamente las recetas registradas en el local. Despliega un badge de garantía `"🔒 100% Local / Zero Data Leakage"`.
 2. **Generación Creativa (IA)**: Activa la propuesta libre con IA externa (Gemini/OpenAI/Ollama o Heurístico).
 
-*   **ID US Relacionada:** [`US-035`](../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md)
+*   **ID US Relacionada:** [`US-035`](../../../11_user_stories/reports/US-035_recetas_aprovechamiento_ia.md)
 *   **Módulo / Vertical Slice:** `recipes` / `kitchen`
 *   **Estimación (Story Points):** 2
 *   **Prioridad MoSCoW:** Must Have

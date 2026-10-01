@@ -197,7 +197,7 @@ Desplegado con el Blueprint de [`render.yaml`](render.yaml) según la topología
 | Arranque del backend con `NODE_ENV=production` | ✅ `healthy` — la validación *Fail-Fast* (Guard 14) acepta la configuración |
 | Migraciones de base de datos | ✅ **18 migraciones aplicadas automáticamente** por `docker-entrypoint.sh` sobre una BD vacía |
 | `GET /health` | ✅ `200` |
-| `POST /api/v1/auth/login-pin` con `bootstrap-admin` | ✅ devuelve un JWT válido con la matriz de permisos del rol `ADMIN` |
+| `POST /api/v1/auth/login-pin` con `bootstrap-admin` | ✅ emite la sesión en una cookie `httpOnly` (`Secure` en producción) y devuelve el usuario con la matriz de permisos del rol `ADMIN` (`TK-140`) |
 | Cabeceras de seguridad del SPA | ✅ CSP + `X-Content-Type-Options` + `Referrer-Policy` + `X-Frame-Options` + `Permissions-Policy` |
 | Fallback de rutas del SPA (`/estaciones`) | ✅ `200`, no 404 |
 
@@ -233,13 +233,13 @@ graph TB
         DB[("🗄️ Base de Datos Relacional<br/>[PostgreSQL]<br/>Modelo en 3NF con Decimales y Enums")]
     end
 
-    Admin -->|"Gestiona catálogos e inventario<br/>[HTTPS / REST JSON + Bearer JWT]"| WebBO
+    Admin -->|"Gestiona catálogos e inventario<br/>[HTTPS / REST JSON]"| WebBO
     Staff -->|"Registra consumos y mermas<br/>[Interacción Táctil + PIN 4 dígitos]"| TabletUI
 
     TabletUI <-->|Almacena/Lee eventos offline| OfflineQueue
 
-    WebBO -->|"API Requests<br/>[HTTPS / REST JSON + Bearer JWT]"| API
-    TabletUI -->|"API Requests<br/>[HTTPS / REST JSON + PIN Auth Token]"| API
+    WebBO -->|"API Requests<br/>[HTTPS / REST JSON + cookie de sesión httpOnly + CSRF]"| API
+    TabletUI -->|"API Requests<br/>[HTTPS / REST JSON + cookie de sesión httpOnly + CSRF]"| API
 
     API -->|"Orquesta Casos de Uso<br/>[Tipos de TypeScript / DTOs]"| Core
     Core -->|"Llama Puertos (Interfaces)<br/>[Invocación de Dominio]"| Prisma
@@ -255,7 +255,7 @@ graph TB
 ```
 
 ### **2.2. Descripción de componentes principales:**
-*   **Presentation Layer (Frontend):** SPA única en React 18 + Vite con `react-router-dom` 7 (shell de rutas `AppShell` + `ProtectedRoute` por rol). Implementa llamadas seguras interceptando y enviando los tokens JWT/PIN. En la tablet, incluye una cola local en **IndexedDB** para encolar transacciones en escenarios de inestabilidad de red (conmutación offline).
+*   **Presentation Layer (Frontend):** SPA única en React 18 + Vite con `react-router-dom` 7 (shell de rutas `AppShell` + `ProtectedRoute` por rol). La sesión viaja en una cookie `httpOnly` que ningún script puede leer, y el cliente HTTP añade el token CSRF de la sesión en cada operación que modifica datos (`TK-140`, `ADR-005`). En la tablet, incluye una cola local en **IndexedDB** para encolar transacciones en escenarios de inestabilidad de red (conmutación offline).
 *   **API & Processing Layer (Backend):** Servidor HTTP Express estructurado en TypeScript. Implementa la lógica de puertos de entrada a través de controladores Express y middlewares de sanitización activa (`Zod`).
 *   **Domain & Application Layer:** Capa pura libre de librerías de infraestructura. Define las entidades (`Remanente`, `Insumo`, `User`) y los casos de uso (`RecordExtraction`, `RecordConsumption`, `AuthenticatePin`).
 *   **Persistence Layer:** PostgreSQL y Prisma ORM encargados del mapeo físico e integridad transaccional (CASCADE y RESTRICT).
@@ -311,7 +311,7 @@ El `nginx` que sirve el SPA hace de proxy inverso hacia el backend (`/api/`), pr
 ### **2.6. Tests y Gobernanza Agéntica:**
 El proyecto sigue la directiva de **Desarrollo Guiado por Pruebas (TDD)** y **Gobernanza Agéntica v2.15.0**:
 *   Se prohíbe escribir código de producción sin un test unitario/integración que falle previamente (`RED` a `GREEN`).
-*   Suite completa verificada: **898 tests al 100 % de éxito (608 backend + 290 frontend)**, ejecutados en cada corrida de CI. El recuento exacto cambia con cada ticket; la cifra vigente es la que reporta `pnpm test`.
+*   Suite completa verificada: **946 tests al 100 % de éxito (638 backend + 308 frontend)**, ejecutados en cada corrida de CI. El recuento exacto cambia con cada ticket; la cifra vigente es la que reporta `pnpm test`.
 *   Patrón de **3 Oráculos** (UI, RED, ESTADO) para aserciones deterministas en Playwright E2E y pruebas unitarias/integración.
 *   Uso de **Fake Repositories** en memoria para pruebas de la capa de aplicación con sincronización dinámica entre modelos de lectura y escritura.
 *   **Mutation testing (Stryker) — alcance real, declarado sin adornos ([`TK-138`](docs/05_agile_planning/12_tickets/shared/backend/TK-138.md)):** el gate corre **acotado al diff** y aplica el umbral del 70 % **por archivo**, nunca agregado — agrupar dejaría que un archivo con tests fuertes compense estadísticamente a uno débil, algo confirmado en vivo en `AUDIT-DEV-002`. Funciona igual en local (archivos sin commitear) y en CI (`git diff <base>...HEAD`), con **una sola implementación** para ambos.
@@ -469,29 +469,34 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 > Corregido en `TK-166` (`US-047`) tras la revisión externa `EXT-002`: una ruta apuntaba a `/catalog/recipes`, que devuelve 404, y tres ejemplos omitían campos obligatorios o usaban un campo inexistente. Se corrigieron uno a uno contra el contrato.
 
 ### **4.1. POST `/api/v1/auth/login-pin` (Autenticación)**
-*   **Propósito:** Valida el PIN de 4-6 dígitos de un operario y genera un token JWT temporal.
+*   **Propósito:** Valida el PIN de 4-6 dígitos de un operario, identificado por su código de operario (`TK-173`), y abre la sesión.
 *   **Request Body (application/json):**
     ```json
     {
-      "userId": "usr-maria-2",
+      "operatorCode": "MS-02",
       "pin": "1234"
     }
     ```
-*   **Response Success (`200 OK`):**
+*   **Response Success (`200 OK`):** el token de sesión **no viaja en el cuerpo** (`TK-140`, `ADR-005`). Llega en dos cookies:
+    *   `restostock_session`: el JWT, `HttpOnly; SameSite=Strict; Path=/api; Max-Age=43200`, más `Secure` en producción.
+    *   `restostock_csrf`: legible por el cliente, que debe devolverlo en la cabecera `X-CSRF-Token` en toda petición que modifique datos.
     ```json
     {
-      "accessToken": "eyJhbGciOiJIUzI1NiIsIn...",
       "user": {
         "id": "usr-maria-2",
         "name": "Maria Gomez",
-        "role": "KITCHEN_STAFF"
+        "role": "KITCHEN_STAFF",
+        "mustChangePin": false,
+        "permissions": ["stock:extract", "stock:restock", "stock:read", "kitchen:recipe_prepare", "kitchen:remanente_consume"]
       }
     }
     ```
+*   **Cierre de sesión:** `POST /api/v1/auth/logout` borra las dos cookies (`204`).
+*   **Autenticación en el resto de rutas:** desde el navegador, la cookie de sesión (y `X-CSRF-Token` en las mutaciones). Los clientes que no son navegador (scripts, `curl`) pueden enviar el mismo JWT como `Authorization: Bearer <JWT>`, que no requiere CSRF.
 
 ### **4.2. POST `/api/v1/stock/extraction` (Registro de Extracción)**
 *   **Propósito:** Registra traslado de bodega a cocina y crea un remanente activo calculando su vencimiento acelerado.
-*   **Headers:** `Authorization: Bearer <JWT_TOKEN>`
+*   **Autenticación:** cookie de sesión o `Authorization: Bearer <JWT>` (ver §4.1)
 *   **Request Body (application/json):**
     ```json
     {
@@ -517,7 +522,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 
 ### **4.3. GET `/api/v1/kitchen/remanentes-activos` (Listar Remanentes FEFO)**
 *   **Propósito:** Retorna la lista de ingredientes abiertos en cocina ordenados por fecha de expiración acelerada de menor a mayor.
-*   **Headers:** `Authorization: Bearer <JWT_TOKEN>`
+*   **Autenticación:** cookie de sesión o `Authorization: Bearer <JWT>` (ver §4.1)
 *   **Response Success (`200 OK`):**
     ```json
     [
@@ -539,7 +544,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 
 ### **4.4. GET `/api/v1/reports/waste` (Reporte de Mermas)**
 *   **Propósito:** Consulta y consolidación agregada de mermas físicas descartadas en un rango temporal.
-*   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
+*   **Autenticación:** cookie de sesión o `Authorization: Bearer <JWT>` (ver §4.1) (Rol requerido: `ADMIN`)
 *   **Query Parameters:**
     *   `startDate` (opcional): Fecha inicial ISO 8601 (ej. `2026-07-01T00:00:00Z`).
     *   `endDate` (opcional): Fecha final ISO 8601 (ej. `2026-07-11T23:59:59Z`).
@@ -558,7 +563,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 
 ### **4.5. POST `/api/v1/auth/users` (Alta de Operario — Rol `ADMIN`)**
 *   **Propósito:** Crea una cuenta de operario nueva (nombre, rol, PIN), reutilizando el mismo hash con salt de `US-001`.
-*   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
+*   **Autenticación:** cookie de sesión o `Authorization: Bearer <JWT>` (ver §4.1) (Rol requerido: `ADMIN`)
 *   **Request Body (application/json):**
     ```json
     {
@@ -579,7 +584,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 
 ### **4.6. PATCH `/api/v1/auth/users/{id}/status` (Bloqueo/Reactivación — Rol `ADMIN`)**
 *   **Propósito:** Bloquea o reactiva la cuenta de un operario existente.
-*   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
+*   **Autenticación:** cookie de sesión o `Authorization: Bearer <JWT>` (ver §4.1) (Rol requerido: `ADMIN`)
 *   **Request Body (application/json):**
     ```json
     {
@@ -596,7 +601,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 
 ### **4.7. GET `/api/v1/stock/movements` (Historial de Movimientos — Rol `ADMIN`)**
 *   **Propósito:** Consulta el historial de movimientos de stock (extracciones, consumos, descartes) con filtros opcionales.
-*   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
+*   **Autenticación:** cookie de sesión o `Authorization: Bearer <JWT>` (ver §4.1) (Rol requerido: `ADMIN`)
 *   **Query Parameters:**
     *   `insumoId` (opcional): filtra por insumo.
     *   `startDate` / `endDate` (opcional): rango de fechas ISO 8601.
@@ -618,7 +623,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 
 ### **4.8. POST `/api/v1/stock/insumos` (Alta de Insumo — Rol `ADMIN`)**
 *   **Propósito:** Da de alta un insumo nuevo en el catálogo maestro con stock inicial en `0`.
-*   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
+*   **Autenticación:** cookie de sesión o `Authorization: Bearer <JWT>` (ver §4.1) (Rol requerido: `ADMIN`)
 *   **Request Body** (`unitOfMeasure` es lista cerrada: `KG` | `L` | `UNITS`):
     ```json
     { "name": "Harina 000", "unitOfMeasure": "KG", "storageLocationId": "9d2b7c41-5ea3-4f18-8b77-1c0d9e4a6b52" }
@@ -630,7 +635,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 
 ### **4.9. POST `/api/v1/recipes` (Alta de Receta — Rol `ADMIN`)**
 *   **Propósito:** Crea una receta nueva con sus ingredientes, validando que cada `insumoId` exista en el catálogo (`GET /api/v1/stock/insumos`).
-*   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
+*   **Autenticación:** cookie de sesión o `Authorization: Bearer <JWT>` (ver §4.1) (Rol requerido: `ADMIN`)
 *   **Request Body:**
     ```json
     {
@@ -647,7 +652,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 
 ### **4.10. PATCH `/api/v1/stock/insumos/{id}/restock` (Reabastecimiento de Bodega — Rol `ADMIN`)**
 *   **Propósito:** Suma la cantidad recibida al `warehouseStock` actual de un insumo ya existente (incremental, no un total absoluto) cuando llega una entrega nueva del proveedor.
-*   **Headers:** `Authorization: Bearer <JWT_TOKEN>` (Rol requerido: `ADMIN`)
+*   **Autenticación:** cookie de sesión o `Authorization: Bearer <JWT>` (ver §4.1) (Rol requerido: `ADMIN`)
 *   **Request Body:**
     ```json
     { "quantity": 20, "storageLocationId": "9d2b7c41-5ea3-4f18-8b77-1c0d9e4a6b52" }
@@ -662,7 +667,7 @@ La API REST opera bajo el estándar OpenAPI 3.1.0. A continuación se detallan l
 
 ## 5. Historias de Usuario
 
-Se detallan a continuación las 13 historias de usuario críticas del MVP (§5.1–5.13), y §5.14 resume las que añadió el desarrollo posterior. **Esta sección es una selección representativa, no el listado completo:** el conjunto vigente —que sigue creciendo— vive en el [Índice de Historias de Usuario](docs/05_agile_planning/11_user_stories/indice_user_stories.md), que es la fuente. Aquí no se repite un recuento porque caducaría con la siguiente historia:
+Se detallan a continuación las 13 historias de usuario críticas del MVP (§5.1–5.13), y §5.14 resume las que añadió el desarrollo posterior. **Esta sección es una selección representativa, no el listado completo:** el conjunto vigente —que sigue creciendo— vive en el [Índice de Historias de Usuario](docs/05_agile_planning/11_user_stories/user_stories_index.md), que es la fuente. Aquí no se repite un recuento porque caducaría con la siguiente historia:
 
 ### **5.1. US-001: Autenticación por PIN del Personal de Cocina**
 *   **Formato de Negocio:** Como operario de cocina (Staff), quiero autenticarme en la terminal táctil ingresando mi PIN personal de 4 dígitos, para registrar mis movimientos de insumos y consumos de forma rápida y segura sin interrumpir el ritmo del servicio.
@@ -761,7 +766,7 @@ Se detallan a continuación las 13 historias de usuario críticas del MVP (§5.1
 
 ### **5.14. Historias de Usuario Adicionales (US-014 – US-037)**
 
-Las 13 historias anteriores son el núcleo del MVP (Entregas 1 y 2). El desarrollo posterior (Entrega Final) añadió las siguientes, cada una con su ficha completa — formato de negocio, criterios Gherkin y trazabilidad — en el [Índice de Historias de Usuario](docs/05_agile_planning/11_user_stories/indice_user_stories.md):
+Las 13 historias anteriores son el núcleo del MVP (Entregas 1 y 2). El desarrollo posterior (Entrega Final) añadió las siguientes, cada una con su ficha completa — formato de negocio, criterios Gherkin y trazabilidad — en el [Índice de Historias de Usuario](docs/05_agile_planning/11_user_stories/user_stories_index.md):
 
 | US | Título | Como… quiero… para… (resumen) | Estado |
 | :-- | :-- | :-- | :--: |
@@ -798,7 +803,7 @@ Las 13 historias anteriores son el núcleo del MVP (Entregas 1 y 2). El desarrol
 
 El backlog técnico y funcional contiene las especificaciones exactas para el desarrollo de cada sprint, organizado en subcarpetas por módulo/epic (ej: `12_tickets/{modulo}/backend/` y `12_tickets/{modulo}/frontend/`).
 
-**Lo que sigue es una selección de los tickets más representativos, no el backlog completo.** El listado vigente y completo está en el [Índice de Tickets de Trabajo](docs/05_agile_planning/12_tickets/indice_tickets.md), que es la fuente; esta sección recoge los que mejor ilustran el recorrido del proyecto:
+**Lo que sigue es una selección de los tickets más representativos, no el backlog completo.** El listado vigente y completo está en el [Índice de Tickets de Trabajo](docs/05_agile_planning/12_tickets/tickets_index.md), que es la fuente; esta sección recoge los que mejor ilustran el recorrido del proyecto:
 
 ### ⚙️ 6.1. Tickets de Backend (en subcarpetas `docs/05_agile_planning/12_tickets/{modulo}/backend/`)
 
@@ -966,7 +971,7 @@ La Entrega Final agrupa **108 tickets** (backend + frontend + gobernanza) sobre 
 | 25 | **Gobernanza de Decisiones de Arquitectura y Hardening del SPA** | Contrastar un catálogo de patrones de prompt contra `.agents/` expuso que los 4 ADRs existentes se habían creado sin ninguna skill que los gobernara (tres vocabularios de estado, uno marcado `Proposed` con su épica cerrada). Nueva `SK-36` (framework v2.15.0) con test anti-ceremonia, mínimo de 3 opciones, guard anti-*strawman*, columna de coste de reversión y pausa HitL; `SK-13` audita ADRs huérfanos. **Ejecutada de verdad** → `ADR-005` (token de sesión a cookie `httpOnly`, decisión del humano). Su Fase 0 destapó que el `nginx` del SPA no emitía **ninguna** cabecera de seguridad → CSP calibrada contra el build real, verificada contra la imagen corriendo. | TK-139, TK-141, TK-142 · *pendiente:* TK-140 |
 | 26 | **Cierre de Deuda de Gates de Calidad** | Los tres tickets que quedaban abiertos, cerrados con verificación medida: `ci_local.sh` **no reproducía** `ci.yml` —le faltaban Semgrep y el SBOM— y por eso daba 38 pasos verdes mientras el pipeline real fallaba en 2 de 3 jobs (`TK-144`, criterio demostrado introduciendo una divergencia deliberada); el gate de mutación pasa de full-scope + `continue-on-error` decorativo a **diff-scoped y real**, con el umbral aplicado por archivo (`TK-138`); y se documenta la frontera entre los dos módulos de seed independientes, cuya ambigüedad ya había inducido un error de análisis real (`TK-143`). En `TK-138` la decisión sobre el frontend **se revirtió por una medición**: 10 min 42 s por fichero y 24 de 89 mutantes en *timeout* —que Stryker cuenta como detectados— desaconsejan cablearlo. | TK-138, TK-143, TK-144 |
 
-> Algunos números de ticket intermedios (p. ej. TK-125-FE) no llegaron a existir o quedaron fuera de alcance — no hay huecos funcionales, solo saltos de numeración durante la planificación en cascada. La lista canónica y su estado están en el [Índice de Tickets](docs/05_agile_planning/12_tickets/indice_tickets.md).
+> Algunos números de ticket intermedios (p. ej. TK-125-FE) no llegaron a existir o quedaron fuera de alcance — no hay huecos funcionales, solo saltos de numeración durante la planificación en cascada. La lista canónica y su estado están en el [Índice de Tickets](docs/05_agile_planning/12_tickets/tickets_index.md).
 
 ---
 
@@ -996,7 +1001,7 @@ A continuación se registra el histórico de Pull Requests de este repositorio:
 ### 🔄 PR #3: `feat: RestoStock — Entrega Final`
 *   **URL:** [github.com/LIDR-academy/AI4Devs-finalproject/pull/316](https://github.com/LIDR-academy/AI4Devs-finalproject/pull/316)
 *   **Ramas:** `lacruzjd:finalproject-JDLM` ➡️ `LIDR-academy:main`
-*   **Ticket Relacionado:** TK-063 a TK-144 (108 tickets backend + frontend + gobernanza) — ver §6.3 y el [Índice de Tickets](docs/05_agile_planning/12_tickets/indice_tickets.md).
+*   **Ticket Relacionado:** TK-063 a TK-144 (108 tickets backend + frontend + gobernanza) — ver §6.3 y el [Índice de Tickets](docs/05_agile_planning/12_tickets/tickets_index.md).
 *   **Descripción del Cambio:** Entrega final del producto sobre la base funcional de la Entrega 2. Nuevas capacidades de negocio: trazabilidad completa de extracciones con propósito y responsable (US-014), RBAC dinámico con matriz de permisos y *gating* de UI por permiso (US-015), sectores físicos de almacenamiento y stock multi-sector (US-016/US-025), recuperación de PIN por email (US-018), reportes de costeo y valorización monetaria de mermas + TRR real (US-019/US-020), navegación por rutas con *shell* de aplicación y turno Día/Noche (US-022/US-023/US-024), trazabilidad de preparación de recetas y mermas (US-026→US-029), catálogo administrable de motivos de consumo (US-030), escaneo de código de barras (US-032), registro de temperatura de refrigeración (US-033), configuración del agente de IA con credenciales cifradas (US-034), recetas de rescate anti-desperdicio con IA opcional y *zero-leakage* de datos del restaurante (US-035), y edición/baja del catálogo maestro (US-036/US-037). Remediaciones de auditoría: escalada de privilegios Crítica y RBAC por ruta (AUDIT-SEC-001/002), rate limiting por cliente real y clave de cifrado dedicada (AUDIT-SEC-003/004), y varias auditorías de calidad de módulo (AUDIT-DEV-006/007/012/013/014/015). Gobernanza: framework `.agents/` a v2.15.0 — incluida la nueva `SK-36` que genera y gobierna los ADRs, **ejecutada de verdad** para producir [`ADR-005`](docs/02_architecture_design/adr/ADR-005-session-token-storage.md) (almacenamiento del token de sesión) —, Design System "Sistema FEFO" a v5.9.1, `ci_local.sh` para reproducir CI antes del push, y endurecimiento del `nginx` que sirve el SPA con CSP calibrada contra el build real (TK-141). Despliegue: `nginx` parametrizado y Blueprint de Render declarado en [`render.yaml`](render.yaml) (TK-142, `ADR-006`). **Etiqueta de release:** `v1.0-final-JDLM`.
 *   **Quality Gates (DoD):**
     *   `pnpm run build && pnpm run lint` — 0 errores.
