@@ -40,7 +40,9 @@ Detalle de la verificación contra el despliegue real y de la puesta en marcha l
 
 **Repositorio:** https://github.com/lacruzjd/AI4Devs-finalproject
 
-**Rama de la entrega final:** [`finalproject-JDLM`](https://github.com/lacruzjd/AI4Devs-finalproject/tree/finalproject-JDLM) · etiqueta de release [`v1.0-final-JDLM`](https://github.com/lacruzjd/AI4Devs-finalproject/releases/tag/v1.0-final-JDLM)
+**Versión vigente:** [`main`](https://github.com/lacruzjd/AI4Devs-finalproject/tree/main). Incluye la entrega final más las correcciones de la revisión del tutor y el endurecimiento posterior (sesión en cookie `httpOnly`, identidad por código de operario, validación de roles contra el catálogo y correcciones de seguridad de dependencias).
+
+**Rama de la entrega final (congelada tal como se calificó):** [`finalproject-JDLM`](https://github.com/lacruzjd/AI4Devs-finalproject/tree/finalproject-JDLM) · etiqueta de release [`v1.0-final-JDLM`](https://github.com/lacruzjd/AI4Devs-finalproject/releases/tag/v1.0-final-JDLM)
 
 **Pull Request:** [LIDR-academy/AI4Devs-finalproject#316](https://github.com/LIDR-academy/AI4Devs-finalproject/pull/316)
 
