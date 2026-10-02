@@ -48,6 +48,9 @@ services:
       LOGIN_RATE_LIMIT_MAX: ${LOGIN_RATE_LIMIT_MAX:-10}
       SEED_ADMIN_PIN: ${SEED_ADMIN_PIN}
       SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-Administrador}
+      # Correo del administrador sembrado: destino del correo de recuperación de PIN (TK-179).
+      # Con default explícito porque la semilla usa `??` y un valor vacío dejaría al admin sin correo.
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@restostock.com}
     depends_on:
       postgres:
         condition: service_healthy
