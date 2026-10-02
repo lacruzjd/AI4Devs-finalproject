@@ -14,6 +14,8 @@ import { PrismaSettingsRepository } from '../settings/repositories/PrismaSetting
 import { PrismaConsumptionReasonRepository } from '../kitchen/repositories/PrismaConsumptionReasonRepository.js';
 import { PrismaTemperatureLogRepository } from '../kitchen/repositories/PrismaTemperatureLogRepository.js';
 import { PrismaAiConfigurationRepository } from '../settings/repositories/PrismaAiConfigurationRepository.js';
+import { SmtpEmailService } from '../notifications/SmtpEmailService.js';
+import { Environment } from '../config/environment.js';
 
 /**
  * Composición root real de infraestructura: fuera de "production" no fuerza nada (createApp
@@ -46,3 +48,25 @@ export function buildRepositoriesForEnvironment(
   };
 }
 
+
+/**
+ * TK-179 / INC-002: servicio de correo real si hay `SMTP_HOST`. Sin él devuelve `undefined` y
+ * `createApp` mantiene `ConsoleEmailService` con su aviso de arranque. No depende de NODE_ENV:
+ * en desarrollo también se puede apuntar a un servidor SMTP de pruebas.
+ */
+export function buildEmailServiceForEnvironment(
+  env: Pick<Environment, 'SMTP_HOST' | 'SMTP_PORT' | 'SMTP_SECURE' | 'SMTP_REQUIRE_TLS' | 'SMTP_USER' | 'SMTP_PASS' | 'SMTP_FROM'>
+): SmtpEmailService | undefined {
+  if (!env.SMTP_HOST || !env.SMTP_FROM) {
+    return undefined;
+  }
+  return SmtpEmailService.fromConfig({
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
+    secure: env.SMTP_SECURE,
+    requireTLS: env.SMTP_REQUIRE_TLS,
+    user: env.SMTP_USER,
+    pass: env.SMTP_PASS,
+    from: env.SMTP_FROM,
+  });
+}

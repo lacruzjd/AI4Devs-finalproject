@@ -81,3 +81,13 @@ Motivado por un prompt de auditoría AppSec externo que el humano compartió pid
 * **Límite explícito de tamaño de cuerpo HTTP:** `express.json()` (o el parser de body equivalente) DEBE declarar un `limit` explícito y documentado (ej. `express.json({ limit: '1mb' })`), nunca depender del default implícito de la librería sin que sea una decisión consciente — un límite no declarado es indistinguible de "nadie lo pensó" en una auditoría futura, aunque el default de hoy no sea peligroso.
 * **Revisión Anti-ReDoS de expresiones regulares:** toda expresión regular que procese texto de longitud no acotada proveniente de un input externo (payload HTTP, archivo subido, parámetro de búsqueda) debe revisarse contra patrones de *catastrophic backtracking* (grupos anidados con cuantificadores `(a+)+`, alternancia solapada) antes de aceptarse — especialmente si en algún momento se construye la expresión dinámicamente (`new RegExp(...)` con un fragmento derivado de input de usuario), lo cual queda además prohibido salvo justificación explícita y sanitización previa del fragmento.
 
+
+---
+
+## 🔐 11. TLS Obligatorio en Adaptadores de Salida (AUDIT-DEV-018, aprobado por el humano 2026-10-02)
+
+Descubierto auditando `TK-179`: el adaptador SMTP se creó sin `requireTLS`, y nodemailer solo cifra si el servidor anuncia STARTTLS. Un atacante en la ruta podía quitar ese anuncio y leer en claro la contraseña SMTP y el token de recuperación de PIN.
+
+* **Regla:** todo adaptador de salida que transporte secretos, credenciales o tokens (SMTP, HTTP a terceros, colas, webhooks) DEBE exigir TLS por defecto: `requireTLS` (o TLS implícito) en SMTP, solo `https://` en HTTP. El cifrado oportunista, que se degrada en silencio a texto plano, no cuenta como TLS.
+* **Excepción acotada:** desactivarlo solo se permite fuera de producción (p. ej. un servidor de pruebas local sin TLS), con una variable explícita cuyo valor por defecto sea el seguro y que el esquema de entorno rechace con Fail-Fast cuando `NODE_ENV=production` (Guard 14). Precedente: `SMTP_REQUIRE_TLS` en `environment.ts`.
+* **Verificación:** el test del adaptador debe probar el comportamiento, no solo la opción: contra un servidor que no ofrece TLS, con la configuración por defecto, no sale ni credencial ni mensaje (precedente: `tests/auth/AdminPinResetEmailDelivery.test.ts`).

@@ -14,7 +14,7 @@
 | :-- | :-- | :-- | :-- |
 | **F-1** | 🟠 **Alta** | `CredentialEncryptionService` cae a una clave hardcodeada y, antes de eso, **reutiliza `JWT_SECRET`** como clave de cifrado de credenciales; `ENCRYPTION_KEY` no existía en env/validación | **Corregida en `TK-133`** |
 | **F-2** | 🟠 **Alta** | Password-reset origin injection: `req.headers.origin` (atacante-controlable) construía la URL del email de recuperación → reset-poisoning | **Corregida en `TK-133`** |
-| **F-3** | 🟡 Media | `ConsoleEmailService` (adaptador de dev) es el servicio de email de producción por defecto y **volcaba el token de reseteo a los logs**; sin fail-fast/aviso | **Corregida en `TK-133`** |
+| **F-3** | 🟡 Media | `ConsoleEmailService` (adaptador de dev) es el servicio de email de producción por defecto y **volcaba el token de reseteo a los logs**; sin fail-fast/aviso | **Parcial:** `TK-133` corrigió la fuga del token; el efecto (a), «la recuperación no funciona en producción», quedó abierto hasta `INC-002` → **`TK-179`** ([`PM-002`](../06_release_and_operations/postmortems/PM-002-correo-recuperacion-pin-nunca-enviado.md)) |
 | **O-1** | Info | JWT en `localStorage` (exfiltrable por XSS), `jwt.verify` sin pinnear algoritmo, `expiresIn: '12h'` hardcodeado, `scryptSync` con `N` por defecto de Node | Documentado, no remediado (trade-offs / hardening menor) |
 | **O-2** | Info | `seedEssentialUsers` (`src/infrastructure/seeds/seed.ts`) usa `SEED_ADMIN_PIN ?? '1234'` sin guard propio de producción — hoy inalcanzable en prod (el caller no lo invoca), pero frágil | Documentado |
 

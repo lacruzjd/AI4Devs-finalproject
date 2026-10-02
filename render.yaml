@@ -90,6 +90,11 @@ services:
         value: https://restostock-frontend.onrender.com
       - key: CLIENT_ORIGIN
         value: https://restostock-frontend.onrender.com
+      # Correo de recuperación de PIN (TK-179 / INC-002): sin declarar a propósito. Sin
+      # SMTP_HOST el backend arranca igual y solo avisa en logs. Para activarlo, añadir en el
+      # dashboard SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_FROM (STARTTLS es obligatorio en
+      # producción: SMTP_REQUIRE_TLS no se puede poner a false) y, si el servidor exige
+      # autenticación, SMTP_USER + SMTP_PASS (como secretos, nunca en este fichero).
       # El private service escucha en su puerto interno; Render inyecta PORT.
       - key: PORT
         value: 3000

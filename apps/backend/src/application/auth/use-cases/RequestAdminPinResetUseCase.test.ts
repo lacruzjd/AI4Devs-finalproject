@@ -4,6 +4,7 @@ import { InMemoryUserRepository } from '../../../infrastructure/auth/repositorie
 import { ConsoleEmailService } from '../../../infrastructure/notifications/ConsoleEmailService.js';
 import { User } from '../../../domain/auth/entities/User.js';
 import { Pin } from '../../../domain/auth/value-objects/Pin.js';
+import { IEmailService } from '../../../domain/auth/ports/IEmailService.js';
 
 function buildRepoWithAdmin(): InMemoryUserRepository {
   const repo = new InMemoryUserRepository();
@@ -123,5 +124,67 @@ describe('RequestAdminPinResetUseCase — Expiracion y Resolucion de Origin (AUD
 
       expect(emailService.getLastSentEmail()?.resetUrl.startsWith('https://canonical.restostock.com?resetToken=')).toBe(true);
     });
+  });
+});
+
+describe('TK-179 / INC-002: el envío del correo no altera la respuesta anti-enumeración', () => {
+  const GENERIC = 'Si el correo coincide con un administrador registrado, se enviaron instrucciones de recuperación.';
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('responde el mensaje genérico aunque el servidor de correo falle, y registra el fallo sin el token', async () => {
+    let sentToken = '';
+    const failingEmail: IEmailService = {
+      sendPasswordResetEmail: async (dto) => {
+        sentToken = dto.resetToken;
+        throw new Error('connect ECONNREFUSED 127.0.0.1:587');
+      },
+    };
+    const errorLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const useCase = new RequestAdminPinResetUseCase(buildRepoWithAdmin(), failingEmail);
+
+    const result = await useCase.execute({ email: 'admin@restostock.com' });
+
+    // ORACULO RED: misma respuesta que para un correo inexistente (US-018 Escenario 2)
+    expect(result.message).toBe(GENERIC);
+    // ORACULO ESTADO: el fallo queda registrado (Guard 2) sin volcar el token (AUDIT-SEC-004)
+    await vi.waitFor(() => expect(errorLog).toHaveBeenCalledTimes(1));
+    const logged = errorLog.mock.calls[0].join(' ');
+    expect(logged).toContain('ECONNREFUSED');
+    expect(sentToken).toMatch(/^[0-9a-f]{64}$/);
+    expect(logged).not.toContain(sentToken);
+  });
+
+  it('responde el mensaje genérico aunque el adaptador lance de forma síncrona (no async)', async () => {
+    const throwingEmail: IEmailService = {
+      sendPasswordResetEmail: () => {
+        throw new Error('adaptador mal configurado');
+      },
+    };
+    const errorLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const useCase = new RequestAdminPinResetUseCase(buildRepoWithAdmin(), throwingEmail);
+
+    const result = await useCase.execute({ email: 'admin@restostock.com' });
+
+    expect(result.message).toBe(GENERIC);
+    await vi.waitFor(() => expect(errorLog).toHaveBeenCalledTimes(1));
+  });
+
+  it('responde sin esperar a que termine el envío (sin oráculo de tiempo)', async () => {
+    let started = false;
+    const hangingEmail: IEmailService = {
+      sendPasswordResetEmail: () => {
+        started = true;
+        return new Promise<void>(() => undefined);
+      },
+    };
+    const useCase = new RequestAdminPinResetUseCase(buildRepoWithAdmin(), hangingEmail);
+
+    const result = await useCase.execute({ email: 'admin@restostock.com' });
+
+    expect(result.message).toBe(GENERIC);
+    expect(started).toBe(true);
   });
 });

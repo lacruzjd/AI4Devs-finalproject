@@ -37,6 +37,50 @@ variable "client_origin" {
   default     = ""
 }
 
+variable "smtp_host" {
+  description = "Servidor SMTP del correo de recuperación de PIN (TK-179). Vacío = el correo no se envía, solo un aviso en logs."
+  type        = string
+  default     = ""
+}
+
+variable "smtp_port" {
+  description = "Puerto SMTP: 587 con STARTTLS o 465 con smtp_secure = \"true\"."
+  type        = string
+  default     = "587"
+}
+
+variable "smtp_secure" {
+  description = "\"true\" para TLS implícito (puerto 465)."
+  type        = string
+  default     = "false"
+}
+
+variable "smtp_require_tls" {
+  description = "Exigir STARTTLS sin TLS implícito (AUDIT-DEV-018). El backend aborta en producción si es \"false\" con smtp_host definido."
+  type        = string
+  default     = "true"
+}
+
+variable "smtp_user" {
+  description = "Usuario SMTP; va junto con smtp_pass."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "smtp_pass" {
+  description = "Contraseña SMTP — inyectada vía TF_VAR_smtp_pass, nunca hardcodeada."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "smtp_from" {
+  description = "Remitente del correo; obligatorio si smtp_host no está vacío."
+  type        = string
+  default     = ""
+}
+
 variable "postgres_user" {
   description = "Usuario de PostgreSQL — inyectado vía TF_VAR_postgres_user, nunca hardcodeado (Guard 23/25)."
   type        = string
@@ -182,6 +226,13 @@ resource "docker_container" "backend" {
     "JWT_SECRET=${var.jwt_secret}",
     "ENCRYPTION_KEY=${var.encryption_key}",
     "CLIENT_ORIGIN=${var.client_origin}",
+    "SMTP_HOST=${var.smtp_host}",
+    "SMTP_PORT=${var.smtp_port}",
+    "SMTP_SECURE=${var.smtp_secure}",
+    "SMTP_REQUIRE_TLS=${var.smtp_require_tls}",
+    "SMTP_USER=${var.smtp_user}",
+    "SMTP_PASS=${var.smtp_pass}",
+    "SMTP_FROM=${var.smtp_from}",
     "DATABASE_URL=postgresql://${var.postgres_user}:${var.postgres_password}@postgres:5432/${var.postgres_db}?schema=public",
     "CORS_ALLOWED_ORIGINS=${var.cors_allowed_origins}",
     "RATE_LIMIT_WINDOW_MS=${var.rate_limit_window_ms}",

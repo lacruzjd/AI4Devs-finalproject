@@ -40,6 +40,7 @@ authority: "Fuente Única de Verdad (SSoT) para decisiones tecnológicas de agen
 | **Cabeceras de Seguridad** | Helmet | **7.x** | HSTS, X-Frame-Options, X-Content-Type-Options |
 | **Conector IA Multimodal/LLM** | Node.js Native fetch | **Node 24 LTS** | Conexión HTTP REST nativa (sin SDKs pesados de terceros) a Google Gemini API, OpenAI/Ollama compatible y Motor Heurístico local (Guard 24, decisión humana 2026-09-06) |
 | **Cifrado de Credenciales IA** | Node.js Native crypto | **Node 24 LTS** | AES-256-GCM con IV de 12 bytes y auth tag de 16 bytes para almacenamiento seguro en DB |
+| **Envío de Correo** | nodemailer (SMTP) | **10.x** | MIT-0, sin dependencias en tiempo de ejecución, procedencia SLSA. Adaptador `SmtpEmailService` de `IEmailService` para el correo de recuperación de PIN; configurado con `SMTP_HOST/PORT/SECURE/REQUIRE_TLS/USER/PASS/FROM`, todas opcionales (sin `SMTP_HOST` se mantiene `ConsoleEmailService` con aviso). STARTTLS obligatorio por defecto y no desactivable en producción, timeouts explícitos (`AUDIT-DEV-018`, `security_rules.md` §11). SMTP genérico en vez de la API de un proveedor concreto (decisión humana 2026-10-01, `TK-179` / `INC-002`, Guard 24) |
 
 ---
 

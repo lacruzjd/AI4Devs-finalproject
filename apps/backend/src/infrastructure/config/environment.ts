@@ -20,6 +20,48 @@ function isHttpOrigin(candidate: string): boolean {
   return (url.protocol === 'http:' || url.protocol === 'https:') && url.origin === candidate;
 }
 
+interface SmtpCoherenceInput {
+  NODE_ENV: string;
+  CORS_ALLOWED_ORIGINS: string;
+  CLIENT_ORIGIN?: string;
+  SMTP_HOST?: string;
+  SMTP_REQUIRE_TLS: boolean;
+  SMTP_USER?: string;
+  SMTP_PASS?: string;
+  SMTP_FROM?: string;
+}
+
+/** Coherencia de la configuración SMTP (TK-179, endurecida en AUDIT-DEV-018). */
+const SMTP_COHERENCE_RULES: { path: string; message: string; violated: (env: SmtpCoherenceInput) => boolean }[] = [
+  {
+    path: 'SMTP_FROM',
+    message: 'SMTP_FROM es obligatorio cuando se define SMTP_HOST.',
+    violated: (env) => Boolean(env.SMTP_HOST) && !env.SMTP_FROM,
+  },
+  {
+    path: 'SMTP_PASS',
+    message: 'SMTP_PASS es obligatorio cuando se define SMTP_USER.',
+    violated: (env) => Boolean(env.SMTP_USER) && !env.SMTP_PASS,
+  },
+  {
+    path: 'SMTP_USER',
+    message: 'SMTP_USER es obligatorio cuando se define SMTP_PASS.',
+    violated: (env) => Boolean(env.SMTP_PASS) && !env.SMTP_USER,
+  },
+  {
+    path: 'SMTP_REQUIRE_TLS',
+    message: 'SMTP_REQUIRE_TLS no puede ser false en producción.',
+    violated: (env) => Boolean(env.SMTP_HOST) && env.NODE_ENV === 'production' && !env.SMTP_REQUIRE_TLS,
+  },
+  // AUDIT-DEV-018 D-2: con CORS "*" el caso de uso aceptaría cualquier header Origin para el
+  // enlace de reset; mientras solo iba a los logs era inocuo, entregado por correo es reset-poisoning.
+  {
+    path: 'CLIENT_ORIGIN',
+    message: 'Con SMTP_HOST definido, CLIENT_ORIGIN es obligatorio si CORS_ALLOWED_ORIGINS es "*": el enlace de recuperación no puede tomar el origen de la petición.',
+    violated: (env) => Boolean(env.SMTP_HOST) && !env.CLIENT_ORIGIN && env.CORS_ALLOWED_ORIGINS === '*',
+  },
+];
+
 const environmentSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform((val) => parseInt(val, 10)).default('3000'),
@@ -57,9 +99,58 @@ const environmentSchema = z.object({
   RATE_LIMIT_MAX_REQUESTS: z.string().transform((val) => parseInt(val, 10)).default('300'), // global /api/v1/*, por cliente real (AUDIT-SEC-003)
   LOGIN_RATE_LIMIT_WINDOW_MS: z.string().transform((val) => parseInt(val, 10)).default('900000'),
   LOGIN_RATE_LIMIT_MAX: z.string().transform((val) => parseInt(val, 10)).default('10'), // anti-fuerza-bruta login/forgot/reset PIN (Guard 16)
+  // Servidor SMTP del correo de recuperación de PIN (TK-179 / INC-002). Todo opcional: sin
+  // SMTP_HOST se mantiene ConsoleEmailService y el aviso de arranque, para no romper un
+  // despliegue que aún no tiene proveedor de correo. SMTP_SECURE=true es TLS implícito (465);
+  // con false se usa STARTTLS, obligatorio salvo SMTP_REQUIRE_TLS=false (ver abajo).
+  SMTP_HOST: optionalEnv(z.string().min(1)),
+  SMTP_PORT: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z
+      .string()
+      .regex(/^\d+$/, 'SMTP_PORT debe ser un número de puerto.')
+      .default('587')
+      .transform((val) => parseInt(val, 10))
+      .refine((port) => port >= 1 && port <= 65535, 'SMTP_PORT debe estar entre 1 y 65535.')
+  ),
+  SMTP_SECURE: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.enum(['true', 'false'], { message: 'SMTP_SECURE debe ser "true" o "false".' }).default('false').transform((val) => val === 'true')
+  ),
+  // AUDIT-DEV-018 D-1: sin requireTLS, nodemailer solo cifra si el servidor anuncia STARTTLS, y
+  // un atacante en la ruta puede quitarlo para leer SMTP_PASS y el token de reset en claro.
+  // Solo se puede desactivar fuera de producción (servidor SMTP local de pruebas sin TLS).
+  SMTP_REQUIRE_TLS: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.enum(['true', 'false'], { message: 'SMTP_REQUIRE_TLS debe ser "true" o "false".' }).default('true').transform((val) => val === 'true')
+  ),
+  SMTP_USER: optionalEnv(z.string().min(1)),
+  SMTP_PASS: optionalEnv(z.string().min(1)),
+  SMTP_FROM: optionalEnv(z.string().min(3)),
+}).superRefine((env, ctx) => {
+  for (const rule of SMTP_COHERENCE_RULES) {
+    if (rule.violated(env)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: [rule.path], message: rule.message });
+    }
+  }
 });
 
 export type Environment = z.infer<typeof environmentSchema>;
+
+/** AUDIT-DEV-018 D-6: combinaciones SMTP que arrancan pero casi seguro no funcionarán. */
+function warnSmtpInconsistencies(env: Environment): void {
+  if (!env.SMTP_HOST) {
+    if (env.SMTP_USER || env.SMTP_PASS || env.SMTP_FROM) {
+      console.warn('[config] Hay variables SMTP definidas sin SMTP_HOST: se ignoran y el correo de recuperación no se envía.');
+    }
+    return;
+  }
+  if (env.SMTP_PORT === 465 && !env.SMTP_SECURE) {
+    console.warn('[config] SMTP_PORT=465 suele exigir TLS implícito: revisa SMTP_SECURE (está a false).');
+  } else if (env.SMTP_PORT === 587 && env.SMTP_SECURE) {
+    console.warn('[config] SMTP_PORT=587 suele usar STARTTLS: revisa SMTP_SECURE (está a true).');
+  }
+}
 
 export function getEnvironment(env: Record<string, string | undefined> = process.env): Environment {
   const result = environmentSchema.safeParse(env);
@@ -69,6 +160,8 @@ export function getEnvironment(env: Record<string, string | undefined> = process
       `Error de configuracion de entorno Fail-Fast (Guard 14): ${JSON.stringify(errorFormatted, null, 2)}`
     );
   }
+
+  warnSmtpInconsistencies(result.data);
 
   if (result.data.NODE_ENV === 'production') {
     if (result.data.JWT_SECRET.length < 32) {

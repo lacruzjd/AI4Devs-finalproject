@@ -54,13 +54,24 @@ export class RequestAdminPinResetUseCase {
 
       const resetUrl = `${this.resolveResetOrigin(dto.clientOrigin)}?resetToken=${rawToken}`;
 
-      await this.emailService.sendPasswordResetEmail({
-        to: user.email ?? dto.email,
-        recipientName: user.name,
-        resetToken: rawToken,
-        resetUrl,
-        expiresInMinutes: 15,
-      });
+      // TK-179 / INC-002: el envío no se espera. Con un servidor SMTP real, esperar haría que
+      // un correo de ADMIN tardase cientos de ms más (o devolviera 500 si el servidor falla)
+      // que uno inexistente, y eso enumera administradores. El fallo se registra sin el token.
+      // `Promise.resolve().then` cubre también un adaptador que lance de forma síncrona.
+      Promise.resolve()
+        .then(() =>
+          this.emailService.sendPasswordResetEmail({
+            to: user.email ?? dto.email,
+            recipientName: user.name,
+            resetToken: rawToken,
+            resetUrl,
+            expiresInMinutes: 15,
+          })
+        )
+        .catch((error: unknown) => {
+          const reason = error instanceof Error ? error.message : String(error);
+          console.error(`[RequestAdminPinResetUseCase] No se pudo enviar el correo de recuperación al usuario ${user.id}: ${reason}`);
+        });
     }
 
     // Respuesta generica constante para mitigar User Enumeration (OWASP Top 10)
