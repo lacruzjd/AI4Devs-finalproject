@@ -35,3 +35,8 @@ a756ef2ba9f2e481fd061f720eed762ee77c8e72:apps/backend/tests/auth/StrictPinRotati
 64a9d6a4d7ef460e0d2c34e64da7bf934d0b1199:readme.md:curl-auth-header:4288
 64a9d6a4d7ef460e0d2c34e64da7bf934d0b1199:readme.md:curl-auth-header:4528
 64a9d6a4d7ef460e0d2c34e64da7bf934d0b1199:readme.md:generic-api-key:4592
+
+# TK-179 / INC-002 (2026-10-02): fixture "test-secret-key-inc-002-regression" como JWT_SECRET del
+# test de regresión del correo de recuperación (NODE_ENV=test). Mismo caso que los fixtures de
+# arriba: inventado, nunca alcanza producción. Detectado por el job de gitleaks del push de 62ad7e9.
+62ad7e92013f7c5939215a97348a0e77a42e25a2:apps/backend/tests/auth/AdminPinResetEmailDelivery.test.ts:generic-api-key:111
