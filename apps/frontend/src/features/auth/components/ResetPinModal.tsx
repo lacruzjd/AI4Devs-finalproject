@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import { AuthScreen } from '../../../shared/components/AuthScreen.js';
 import { PinPad } from './PinPad.js';
+import { PinDots } from './PinDots.js';
 import { ErrorBanner } from '../../../shared/components/ErrorBanner.js';
 import { AuthService } from '../services/auth.service.js';
 import { KeyRound, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -94,13 +95,11 @@ function useResetPinForm(token: string, onSuccess: () => void) {
   };
 }
 
-const ResetPinDotsDisplay: React.FC<{ length: number }> = ({ length }) => (
-  <div className="pin-dots-bar">
-    {Array.from({ length: Math.max(4, length) }).map((_, idx) => (
-      <div key={idx} className={`pin-dot-indicator ${idx < length ? 'active' : ''}`} />
-    ))}
-  </div>
-);
+/** TK-180-FE: sin esto, nada indicaba que el paso 2 pide repetir el PIN. */
+const STEP_LABELS: Record<'ENTER_NEW' | 'CONFIRM_NEW', string> = {
+  ENTER_NEW: 'Paso 1 de 2: elija su nuevo PIN de 4 a 6 dígitos',
+  CONFIRM_NEW: 'Paso 2 de 2: repita el mismo PIN para confirmarlo',
+};
 
 const ResetPinSuccessBanner: React.FC = () => (
   <div className="banner-success">
@@ -122,22 +121,36 @@ const ResetPinActionButtons: React.FC<{
   onNext: () => void;
   onSubmit: () => void;
   onCancel: () => void;
-}> = ({ step, newPinLength, confirmPinLength, isLoading, onNext, onSubmit, onCancel }) => (
-  <div className="flex-column gap-3 mt-4">
-    {step === 'ENTER_NEW' ? (
-      <button type="button" disabled={newPinLength < 4 || isLoading} className="btn-touch btn-primary w-full" onClick={onNext}>
-        Continuar
+}> = ({ step, newPinLength, confirmPinLength, isLoading, onNext, onSubmit, onCancel }) => {
+  // TK-180-FE: un botón desactivado sin explicación parecía roto. En la confirmación hay que
+  // repetir los N dígitos elegidos, no «al menos 4» (AUDIT-DEV-019 D-1).
+  const generatedHintId = useId();
+  const isConfirm = step === 'CONFIRM_NEW';
+  const missingDigits = isConfirm ? confirmPinLength < newPinLength : newPinLength < 4;
+  const hintId = missingDigits ? generatedHintId : undefined;
+  const hint = isConfirm ? `Repita los ${newPinLength} dígitos de su nuevo PIN.` : 'Introduzca al menos 4 dígitos para continuar.';
+  return (
+    <div className="flex-column gap-3 mt-4">
+      {step === 'ENTER_NEW' ? (
+        <button type="button" disabled={missingDigits || isLoading} aria-describedby={hintId} className="btn-touch btn-primary w-full" onClick={onNext}>
+          Continuar
+        </button>
+      ) : (
+        <button type="button" disabled={missingDigits || isLoading} aria-describedby={hintId} aria-busy={isLoading} className="btn-touch btn-primary w-full" onClick={onSubmit}>
+          {isLoading ? 'Actualizando PIN...' : 'Confirmar y Guardar PIN'}
+        </button>
+      )}
+      {missingDigits && (
+        <p id={generatedHintId} className="fs-sm text-secondary-color">
+          {hint}
+        </p>
+      )}
+      <button type="button" disabled={isLoading} className="btn-touch btn-secondary w-full" onClick={onCancel}>
+        Cancelar
       </button>
-    ) : (
-      <button type="button" disabled={confirmPinLength < 4 || isLoading} aria-busy={isLoading} className="btn-touch btn-primary w-full" onClick={onSubmit}>
-        {isLoading ? 'Actualizando PIN...' : 'Confirmar y Guardar PIN'}
-      </button>
-    )}
-    <button type="button" disabled={isLoading} className="btn-touch btn-secondary w-full" onClick={onCancel}>
-      Cancelar
-    </button>
-  </div>
-);
+    </div>
+  );
+};
 
 export const ResetPinModal: React.FC<ResetPinModalProps> = ({ token, isOpen, onSuccess, onCancel }) => {
   const form = useResetPinForm(token, onSuccess);
@@ -151,15 +164,15 @@ export const ResetPinModal: React.FC<ResetPinModalProps> = ({ token, isOpen, onS
         </div>
       </div>
       <h2 className="fs-xl fw-bold mb-2">Restablecer PIN de Administrador</h2>
-      <p className="text-secondary-color fs-sm mb-4">
-        {form.step === 'ENTER_NEW' ? 'Ingrese su nuevo PIN de 4 a 6 dígitos' : 'Confirme su nuevo PIN de seguridad'}
+      <p role="status" aria-live="polite" className="fs-md fw-semibold mb-4">
+        {form.success ? 'PIN restablecido. Redirigiendo al inicio de sesión…' : STEP_LABELS[form.step]}
       </p>
       {form.error && <ErrorBanner message={form.error} icon={<AlertCircle size={18} />} compact />}
       {form.success ? (
         <ResetPinSuccessBanner />
       ) : (
         <>
-          <ResetPinDotsDisplay length={form.currentVal.length} />
+          <PinDots length={form.currentVal.length} />
           <PinPad onDigitPress={form.handleDigitPress} onDeletePress={form.handleDeletePress} disabled={form.isLoading} />
           <ResetPinActionButtons
             step={form.step}

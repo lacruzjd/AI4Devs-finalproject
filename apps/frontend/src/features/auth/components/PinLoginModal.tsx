@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PinPad } from './PinPad.js';
+import { PinDots } from './PinDots.js';
 import { AuthService, LoginPinResponse } from '../services/auth.service.js';
 import { Lock, UserCheck, AlertCircle } from 'lucide-react';
 import { AuthScreen } from '../../../shared/components/AuthScreen.js';
@@ -72,14 +73,6 @@ const RecentOperatorChips: React.FC<{ onSelect: (id: string) => void }> = ({ onS
     </div>
   );
 };
-
-const PinDotsDisplay: React.FC<{ pinLength: number }> = ({ pinLength }) => (
-  <div className="pin-dots-bar">
-    {Array.from({ length: Math.max(4, pinLength) }).map((_, idx) => (
-      <div key={idx} className={`pin-dot-indicator ${idx < pinLength ? 'active' : ''}`} />
-    ))}
-  </div>
-);
 
 const PinLoginHeader: React.FC = () => (
   <>
@@ -167,7 +160,7 @@ export const PinLoginModal: React.FC<PinLoginModalProps> = ({ onSuccess, initial
 
         <UserSelector selectedUserId={form.selectedUserId} onChange={form.setSelectedUserId} disabled={form.isLoading} />
         <RecentOperatorChips onSelect={form.setSelectedUserId} />
-        <PinDotsDisplay pinLength={form.pin.length} />
+        <PinDots length={form.pin.length} />
 
         {(form.error || initialNotice) && (
           <ErrorBanner message={form.error || initialNotice || ''} icon={<AlertCircle size={18} />} compact />

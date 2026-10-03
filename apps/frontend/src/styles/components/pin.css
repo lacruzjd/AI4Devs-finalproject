@@ -11,14 +11,20 @@
   gap: 12px;
 }
 
+/* TK-180-FE: el vacío es hueco y el lleno relleno, para que el estado no dependa solo del color
+   (WCAG 1.4.1). Antes el vacío se rellenaba con la tinta (--border-card) y resultaba más llamativo
+   que el lleno: cuatro puntos vacíos parecían un PIN completo. */
 .pin-dot-indicator {
+  box-sizing: border-box;
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background-color: var(--border-card);
+  border: 2px solid var(--rule);
+  background-color: transparent;
   transition: all var(--duration-fast) var(--ease-standard);
 }
 
 .pin-dot-indicator.active {
+  border-color: var(--color-primary);
   background-color: var(--color-primary);
 }
